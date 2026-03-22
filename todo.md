@@ -43,3 +43,9 @@
 - [x] Error handling for URL analyzer
 - [x] Pull-to-refresh on Trending screen
 - [x] Unit tests written and passing (14/14)
+
+## Bug Fixes
+- [x] Fix niche selector not responding to taps on mobile (Pressable className issue)
+- [x] Fix all Pressable components - replace with TouchableOpacity across all screens
+- [x] Verify Modal bottom sheets work on iOS/Android - fixed overlay layout
+- [x] Fix any other mobile interaction issues - all screens now use TouchableOpacity

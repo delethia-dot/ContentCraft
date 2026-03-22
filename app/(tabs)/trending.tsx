@@ -2,7 +2,7 @@ import React, { useState, useCallback, useEffect } from "react";
 import {
   View,
   Text,
-  Pressable,
+  TouchableOpacity,
   StyleSheet,
   ActivityIndicator,
   FlatList,
@@ -146,20 +146,14 @@ export default function TrendingScreen() {
 
         <TrendScoreBar score={item.trendScore} color={pColor} />
 
-        <Pressable
+        <TouchableOpacity
           onPress={() => handleUseIdea(item)}
-          style={({ pressed }) => [
-            styles.useIdeaBtn,
-            {
-              backgroundColor: colors.primary,
-              opacity: pressed ? 0.85 : 1,
-              transform: [{ scale: pressed ? 0.98 : 1 }],
-            },
-          ]}
+          activeOpacity={0.85}
+          style={[styles.useIdeaBtn, { backgroundColor: colors.primary }]}
         >
           <IconSymbol name="lightbulb.fill" size={15} color="#FFFFFF" />
           <Text style={styles.useIdeaBtnText}>Use This Idea</Text>
-        </Pressable>
+        </TouchableOpacity>
       </View>
     );
   };
@@ -175,28 +169,24 @@ export default function TrendingScreen() {
               {new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })}
             </Text>
           </View>
-          <Pressable
+          <TouchableOpacity
             onPress={() => fetchTrending(true)}
-            style={({ pressed }) => [
-              styles.refreshBtn,
-              { backgroundColor: "rgba(255,255,255,0.12)", opacity: pressed ? 0.7 : 1 },
-            ]}
+            activeOpacity={0.7}
+            style={[styles.refreshBtn, { backgroundColor: "rgba(255,255,255,0.12)" }]}
           >
             <IconSymbol name="arrow.clockwise" size={18} color="#FFFFFF" />
-          </Pressable>
+          </TouchableOpacity>
         </View>
 
-        <Pressable
+        <TouchableOpacity
           onPress={() => setNicheSheetVisible(true)}
-          style={({ pressed }) => [
-            styles.nicheBadge,
-            { backgroundColor: "rgba(240,192,64,0.18)", borderColor: "#F0C040", opacity: pressed ? 0.7 : 1 },
-          ]}
+          activeOpacity={0.7}
+          style={[styles.nicheBadge, { backgroundColor: "rgba(240,192,64,0.18)", borderColor: "#F0C040" }]}
         >
           <IconSymbol name="tag.fill" size={13} color="#F0C040" />
           <Text style={[styles.nicheLabel, { color: "#F0C040" }]}>{niche}</Text>
           <IconSymbol name="pencil" size={13} color="#F0C040" />
-        </Pressable>
+        </TouchableOpacity>
       </View>
 
       {/* Platform Filter */}
@@ -206,22 +196,22 @@ export default function TrendingScreen() {
             const isActive = platformFilter === p.id;
             const pColor = p.id === "all" ? colors.primary : (PLATFORMS.find((pl) => pl.id === p.id)?.color ?? colors.primary);
             return (
-              <Pressable
+              <TouchableOpacity
                 key={p.id}
                 onPress={() => setPlatformFilter(p.id as PlatformFilter)}
-                style={({ pressed }) => [
+                activeOpacity={0.75}
+                style={[
                   styles.filterChip,
                   {
                     backgroundColor: isActive ? pColor : colors.surface,
                     borderColor: isActive ? pColor : colors.border,
-                    opacity: pressed ? 0.8 : 1,
                   },
                 ]}
               >
                 <Text style={[styles.filterChipText, { color: isActive ? "#FFFFFF" : colors.foreground }]}>
                   {p.label}
                 </Text>
-              </Pressable>
+              </TouchableOpacity>
             );
           })}
         </ScrollView>
@@ -269,16 +259,14 @@ export default function TrendingScreen() {
           <Text style={[styles.emptySubtitle, { color: colors.muted }]}>
             Tap the refresh button to load today's trending ideas for your niche.
           </Text>
-          <Pressable
+          <TouchableOpacity
             onPress={() => fetchTrending(true)}
-            style={({ pressed }) => [
-              styles.loadBtn,
-              { backgroundColor: colors.primary, opacity: pressed ? 0.9 : 1 },
-            ]}
+            activeOpacity={0.85}
+            style={[styles.loadBtn, { backgroundColor: colors.primary }]}
           >
             <IconSymbol name="flame.fill" size={18} color="#FFFFFF" />
             <Text style={styles.loadBtnText}>Load Trending Ideas</Text>
-          </Pressable>
+          </TouchableOpacity>
         </View>
       )}
 

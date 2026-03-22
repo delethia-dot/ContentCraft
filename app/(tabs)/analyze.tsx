@@ -1,15 +1,14 @@
-import React, { useState, useCallback, useRef } from "react";
+import React, { useState, useCallback } from "react";
 import {
   ScrollView,
   View,
   Text,
-  Pressable,
+  TouchableOpacity,
   StyleSheet,
   ActivityIndicator,
   TextInput,
   Alert,
   Platform,
-  Animated,
 } from "react-native";
 import { ScreenContainer } from "@/components/screen-container";
 import { IconSymbol } from "@/components/ui/icon-symbol";
@@ -170,22 +169,19 @@ export default function AnalyzeScreen() {
               onSubmitEditing={handleAnalyze}
             />
             {url.length > 0 && (
-              <Pressable onPress={() => setUrl("")}>
+              <TouchableOpacity onPress={() => setUrl("")} activeOpacity={0.7}>
                 <IconSymbol name="xmark.circle.fill" size={18} color={colors.muted} />
-              </Pressable>
+              </TouchableOpacity>
             )}
           </View>
 
-          <Pressable
+          <TouchableOpacity
             onPress={handleAnalyze}
             disabled={isAnalyzing}
-            style={({ pressed }) => [
+            activeOpacity={0.85}
+            style={[
               styles.analyzeBtn,
-              {
-                backgroundColor: isAnalyzing ? colors.muted : colors.primary,
-                opacity: pressed ? 0.9 : 1,
-                transform: [{ scale: pressed ? 0.98 : 1 }],
-              },
+              { backgroundColor: isAnalyzing ? colors.muted : colors.primary },
             ]}
           >
             {isAnalyzing ? (
@@ -196,7 +192,7 @@ export default function AnalyzeScreen() {
             <Text style={styles.analyzeBtnText}>
               {isAnalyzing ? "Analyzing Content..." : "Analyze Content"}
             </Text>
-          </Pressable>
+          </TouchableOpacity>
 
           <Text style={[styles.supportedText, { color: colors.muted }]}>
             Supports Instagram, TikTok, YouTube, Facebook, LinkedIn & more

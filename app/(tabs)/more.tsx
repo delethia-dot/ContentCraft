@@ -3,12 +3,11 @@ import {
   ScrollView,
   View,
   Text,
-  Pressable,
+  TouchableOpacity,
   StyleSheet,
   Switch,
   Platform,
   Modal,
-  FlatList,
 } from "react-native";
 import { ScreenContainer } from "@/components/screen-container";
 import { IconSymbol } from "@/components/ui/icon-symbol";
@@ -44,8 +43,9 @@ export default function MoreScreen() {
 
       {/* Tab Switcher */}
       <View style={[styles.tabSwitcher, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-        <Pressable
+        <TouchableOpacity
           onPress={() => setActiveTab("frameworks")}
+          activeOpacity={0.8}
           style={[
             styles.tabBtn,
             activeTab === "frameworks" && { backgroundColor: colors.primary },
@@ -55,9 +55,10 @@ export default function MoreScreen() {
           <Text style={[styles.tabBtnText, { color: activeTab === "frameworks" ? "#FFFFFF" : colors.muted }]}>
             Frameworks
           </Text>
-        </Pressable>
-        <Pressable
+        </TouchableOpacity>
+        <TouchableOpacity
           onPress={() => setActiveTab("settings")}
+          activeOpacity={0.8}
           style={[
             styles.tabBtn,
             activeTab === "settings" && { backgroundColor: colors.primary },
@@ -67,7 +68,7 @@ export default function MoreScreen() {
           <Text style={[styles.tabBtnText, { color: activeTab === "settings" ? "#FFFFFF" : colors.muted }]}>
             Settings
           </Text>
-        </Pressable>
+        </TouchableOpacity>
       </View>
 
       <ScrollView
@@ -132,20 +133,16 @@ function FrameworksTab({
       {CONTENT_FRAMEWORKS.map((fw, index) => {
         const fwColor = frameworkColors[index % frameworkColors.length];
         return (
-          <Pressable
+          <TouchableOpacity
             key={fw.id}
             onPress={() => {
               if (Platform.OS !== "web") Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
               onSelectFramework(fw);
             }}
-            style={({ pressed }) => [
+            activeOpacity={0.8}
+            style={[
               styles.frameworkCard,
-              {
-                backgroundColor: colors.surface,
-                borderColor: colors.border,
-                opacity: pressed ? 0.85 : 1,
-                transform: [{ scale: pressed ? 0.98 : 1 }],
-              },
+              { backgroundColor: colors.surface, borderColor: colors.border },
             ]}
           >
             <View style={styles.frameworkCardLeft}>
@@ -180,7 +177,7 @@ function FrameworksTab({
               </View>
             </View>
             <IconSymbol name="chevron.right" size={18} color={colors.muted} />
-          </Pressable>
+          </TouchableOpacity>
         );
       })}
     </View>
@@ -205,12 +202,10 @@ function SettingsTab({
       {/* Niche Settings */}
       <View>
         <Text style={[styles.settingGroupTitle, { color: colors.foreground }]}>Content Niche</Text>
-        <Pressable
+        <TouchableOpacity
           onPress={onChangeNiche}
-          style={({ pressed }) => [
-            styles.settingRow,
-            { backgroundColor: colors.surface, borderColor: colors.border, opacity: pressed ? 0.8 : 1 },
-          ]}
+          activeOpacity={0.75}
+          style={[styles.settingRow, { backgroundColor: colors.surface, borderColor: colors.border }]}
         >
           <View style={[styles.settingIcon, { backgroundColor: "#F0C04020" }]}>
             <IconSymbol name="tag.fill" size={18} color="#F0C040" />
@@ -220,7 +215,7 @@ function SettingsTab({
             <Text style={[styles.settingValue, { color: colors.primary }]}>{niche}</Text>
           </View>
           <IconSymbol name="chevron.right" size={18} color={colors.muted} />
-        </Pressable>
+        </TouchableOpacity>
       </View>
 
       {/* Appearance */}
@@ -293,7 +288,7 @@ function FrameworkDetailModal({
 }) {
   return (
     <Modal visible animationType="slide" transparent onRequestClose={onClose}>
-      <Pressable style={styles.modalOverlay} onPress={onClose} />
+      <TouchableOpacity style={styles.modalOverlay} activeOpacity={1} onPress={onClose} />
       <View style={[styles.modalSheet, { backgroundColor: colors.background }]}>
         <View style={[styles.modalHandle, { backgroundColor: colors.border }]} />
 
@@ -303,12 +298,13 @@ function FrameworkDetailModal({
               <Text style={[styles.modalTitle, { color: colors.foreground }]}>{framework.name}</Text>
               <Text style={[styles.modalSubtitle, { color: colors.muted }]}>{framework.description}</Text>
             </View>
-            <Pressable
+            <TouchableOpacity
               onPress={onClose}
-              style={({ pressed }) => [styles.modalClose, { backgroundColor: colors.surface, opacity: pressed ? 0.7 : 1 }]}
+              activeOpacity={0.7}
+              style={[styles.modalClose, { backgroundColor: colors.surface }]}
             >
               <IconSymbol name="xmark" size={16} color={colors.muted} />
-            </Pressable>
+            </TouchableOpacity>
           </View>
 
           {/* Steps */}

@@ -3,11 +3,10 @@ import {
   ScrollView,
   View,
   Text,
-  Pressable,
+  TouchableOpacity,
   StyleSheet,
   ActivityIndicator,
   TextInput,
-  FlatList,
   Alert,
   Platform,
 } from "react-native";
@@ -48,10 +47,12 @@ export default function IdeasScreen() {
         contentType: selectedContentType,
         niche,
       });
-      setIdeas(result.ideas);
+      setIdeas(result.ideas as ContentIdea[]);
       setExpandedId(null);
+      if (Platform.OS !== "web") Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     } catch (e) {
       Alert.alert("Error", "Failed to generate ideas. Please try again.");
+      if (Platform.OS !== "web") Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
     } finally {
       setIsGenerating(false);
     }
@@ -61,6 +62,7 @@ export default function IdeasScreen() {
     const text = `${idea.title}\n\n${idea.hook}\n\n${idea.body}\n\n${idea.cta}`;
     await Clipboard.setStringAsync(text);
     if (Platform.OS !== "web") Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    Alert.alert("Copied!", "Idea copied to clipboard.");
   }, []);
 
   const handleSaveToggle = useCallback(
@@ -89,17 +91,18 @@ export default function IdeasScreen() {
           <Text style={[styles.headerSub, { color: "rgba(255,255,255,0.6)" }]}>
             AI-powered content ideas for every platform
           </Text>
-          <Pressable
+          <TouchableOpacity
             onPress={() => setNicheSheetVisible(true)}
-            style={({ pressed }) => [
+            activeOpacity={0.7}
+            style={[
               styles.nicheBadge,
-              { backgroundColor: "rgba(240,192,64,0.18)", borderColor: "#F0C040", opacity: pressed ? 0.7 : 1 },
+              { backgroundColor: "rgba(240,192,64,0.18)", borderColor: "#F0C040" },
             ]}
           >
             <IconSymbol name="tag.fill" size={13} color="#F0C040" />
             <Text style={[styles.nicheLabel, { color: "#F0C040" }]}>{niche}</Text>
             <IconSymbol name="pencil" size={13} color="#F0C040" />
-          </Pressable>
+          </TouchableOpacity>
         </View>
 
         {/* Platform Selector */}
@@ -109,19 +112,19 @@ export default function IdeasScreen() {
             {PLATFORMS.map((p) => {
               const isActive = selectedPlatform === p.id;
               return (
-                <Pressable
+                <TouchableOpacity
                   key={p.id}
                   onPress={() => {
                     setSelectedPlatform(p.id);
                     const types = CONTENT_TYPES.filter((ct) => ct.platforms.includes(p.id));
                     if (types.length > 0) setSelectedContentType(types[0].id);
                   }}
-                  style={({ pressed }) => [
+                  activeOpacity={0.75}
+                  style={[
                     styles.platformChip,
                     {
                       backgroundColor: isActive ? p.color : colors.surface,
                       borderColor: isActive ? p.color : colors.border,
-                      opacity: pressed ? 0.8 : 1,
                     },
                   ]}
                 >
@@ -129,7 +132,7 @@ export default function IdeasScreen() {
                   <Text style={[styles.chipLabel, { color: isActive ? "#FFFFFF" : colors.foreground }]}>
                     {p.label}
                   </Text>
-                </Pressable>
+                </TouchableOpacity>
               );
             })}
           </ScrollView>
@@ -142,22 +145,22 @@ export default function IdeasScreen() {
             {availableContentTypes.map((ct) => {
               const isActive = selectedContentType === ct.id;
               return (
-                <Pressable
+                <TouchableOpacity
                   key={ct.id}
                   onPress={() => setSelectedContentType(ct.id)}
-                  style={({ pressed }) => [
+                  activeOpacity={0.75}
+                  style={[
                     styles.typeChip,
                     {
                       backgroundColor: isActive ? colors.primary : colors.surface,
                       borderColor: isActive ? colors.primary : colors.border,
-                      opacity: pressed ? 0.8 : 1,
                     },
                   ]}
                 >
                   <Text style={[styles.chipLabel, { color: isActive ? "#FFFFFF" : colors.foreground }]}>
                     {ct.label}
                   </Text>
-                </Pressable>
+                </TouchableOpacity>
               );
             })}
           </ScrollView>
@@ -165,16 +168,13 @@ export default function IdeasScreen() {
 
         {/* Generate Button */}
         <View style={{ paddingHorizontal: 20, marginTop: 4, marginBottom: 8 }}>
-          <Pressable
+          <TouchableOpacity
             onPress={handleGenerate}
             disabled={isGenerating}
-            style={({ pressed }) => [
+            activeOpacity={0.85}
+            style={[
               styles.generateBtn,
-              {
-                backgroundColor: isGenerating ? colors.muted : colors.primary,
-                opacity: pressed ? 0.9 : 1,
-                transform: [{ scale: pressed ? 0.98 : 1 }],
-              },
+              { backgroundColor: isGenerating ? colors.muted : colors.primary },
             ]}
           >
             {isGenerating ? (
@@ -185,7 +185,7 @@ export default function IdeasScreen() {
             <Text style={styles.generateBtnText}>
               {isGenerating ? "Generating Ideas..." : "Generate 5 Ideas"}
             </Text>
-          </Pressable>
+          </TouchableOpacity>
         </View>
 
         {/* Ideas List */}
@@ -203,7 +203,10 @@ export default function IdeasScreen() {
                   key={idea.id}
                   style={[styles.ideaCard, { backgroundColor: colors.surface, borderColor: colors.border }]}
                 >
-                  <Pressable onPress={() => setExpandedId(isExpanded ? null : idea.id)}>
+                  <TouchableOpacity
+                    onPress={() => setExpandedId(isExpanded ? null : idea.id)}
+                    activeOpacity={0.85}
+                  >
                     <View style={styles.ideaCardTop}>
                       <View style={[styles.platformBadge, { backgroundColor: (platform?.color ?? "#888") + "20" }]}>
                         <View style={[styles.platformDot, { backgroundColor: platform?.color ?? "#888" }]} />
@@ -221,10 +224,13 @@ export default function IdeasScreen() {
                       />
                     </View>
                     <Text style={[styles.ideaTitle, { color: colors.foreground }]}>{idea.title}</Text>
-                    <Text style={[styles.ideaHook, { color: colors.muted }]} numberOfLines={isExpanded ? undefined : 2}>
+                    <Text
+                      style={[styles.ideaHook, { color: colors.muted }]}
+                      numberOfLines={isExpanded ? undefined : 2}
+                    >
                       {idea.hook}
                     </Text>
-                  </Pressable>
+                  </TouchableOpacity>
 
                   {isExpanded && (
                     <View style={[styles.ideaExpanded, { borderTopColor: colors.border }]}>
@@ -240,16 +246,18 @@ export default function IdeasScreen() {
                   )}
 
                   <View style={[styles.ideaActions, { borderTopColor: colors.border }]}>
-                    <Pressable
+                    <TouchableOpacity
                       onPress={() => handleCopy(idea)}
-                      style={({ pressed }) => [styles.actionBtn, { opacity: pressed ? 0.7 : 1 }]}
+                      activeOpacity={0.7}
+                      style={styles.actionBtn}
                     >
                       <IconSymbol name="doc.on.doc" size={16} color={colors.primary} />
                       <Text style={[styles.actionBtnText, { color: colors.primary }]}>Copy</Text>
-                    </Pressable>
-                    <Pressable
+                    </TouchableOpacity>
+                    <TouchableOpacity
                       onPress={() => handleSaveToggle(idea)}
-                      style={({ pressed }) => [styles.actionBtn, { opacity: pressed ? 0.7 : 1 }]}
+                      activeOpacity={0.7}
+                      style={styles.actionBtn}
                     >
                       <IconSymbol
                         name={isSaved ? "bookmark.fill" : "bookmark"}
@@ -259,16 +267,21 @@ export default function IdeasScreen() {
                       <Text style={[styles.actionBtnText, { color: isSaved ? colors.accent : colors.muted }]}>
                         {isSaved ? "Saved" : "Save"}
                       </Text>
-                    </Pressable>
-                    <Pressable
+                    </TouchableOpacity>
+                    <TouchableOpacity
                       onPress={() => setExpandedId(isExpanded ? null : idea.id)}
-                      style={({ pressed }) => [styles.actionBtn, { opacity: pressed ? 0.7 : 1 }]}
+                      activeOpacity={0.7}
+                      style={styles.actionBtn}
                     >
-                      <IconSymbol name={isExpanded ? "eye.slash.fill" : "eye.fill"} size={16} color={colors.muted} />
+                      <IconSymbol
+                        name={isExpanded ? "eye.slash.fill" : "eye.fill"}
+                        size={16}
+                        color={colors.muted}
+                      />
                       <Text style={[styles.actionBtnText, { color: colors.muted }]}>
                         {isExpanded ? "Less" : "More"}
                       </Text>
-                    </Pressable>
+                    </TouchableOpacity>
                   </View>
                 </View>
               );
@@ -319,7 +332,7 @@ const styles = StyleSheet.create({
     gap: 6,
     alignSelf: "flex-start",
     paddingHorizontal: 12,
-    paddingVertical: 7,
+    paddingVertical: 8,
     borderRadius: 20,
     borderWidth: 1,
   },
@@ -386,6 +399,7 @@ const styles = StyleSheet.create({
     gap: 8,
     padding: 14,
     paddingBottom: 8,
+    flexWrap: "wrap",
   },
   platformBadge: {
     flexDirection: "row",
@@ -408,24 +422,24 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 8,
-    flex: 1,
   },
   typeBadgeText: {
     fontSize: 11,
     fontWeight: "600",
   },
   ideaTitle: {
-    fontSize: 15,
+    fontSize: 16,
     fontWeight: "700",
+    lineHeight: 22,
+    letterSpacing: -0.2,
     paddingHorizontal: 14,
-    paddingBottom: 6,
-    lineHeight: 21,
+    marginBottom: 6,
   },
   ideaHook: {
     fontSize: 13,
+    lineHeight: 19,
     paddingHorizontal: 14,
     paddingBottom: 14,
-    lineHeight: 19,
   },
   ideaExpanded: {
     borderTopWidth: 1,
@@ -449,8 +463,8 @@ const styles = StyleSheet.create({
   ideaActions: {
     flexDirection: "row",
     borderTopWidth: 1,
-    paddingVertical: 10,
     paddingHorizontal: 14,
+    paddingVertical: 10,
     gap: 4,
   },
   actionBtn: {
@@ -459,7 +473,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     gap: 5,
-    paddingVertical: 6,
+    paddingVertical: 4,
   },
   actionBtnText: {
     fontSize: 13,
@@ -467,7 +481,7 @@ const styles = StyleSheet.create({
   },
   emptyState: {
     alignItems: "center",
-    paddingHorizontal: 40,
+    paddingHorizontal: 32,
     paddingTop: 48,
     gap: 12,
   },
@@ -480,7 +494,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   emptyTitle: {
-    fontSize: 20,
+    fontSize: 22,
     fontWeight: "800",
     letterSpacing: -0.3,
   },

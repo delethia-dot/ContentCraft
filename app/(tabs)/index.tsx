@@ -1,14 +1,20 @@
-import { ScrollView, Text, View, Pressable, StyleSheet } from "react-native";
+import React, { useState } from "react";
+import {
+  ScrollView,
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  Platform,
+} from "react-native";
 import { useRouter } from "expo-router";
 import { ScreenContainer } from "@/components/screen-container";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { useColors } from "@/hooks/use-colors";
 import { useNiche } from "@/lib/niche-context";
 import { useSavedIdeas } from "@/lib/saved-ideas-context";
-import { useState } from "react";
 import { NicheSheet } from "@/components/niche-sheet";
 import * as Haptics from "expo-haptics";
-import { Platform } from "react-native";
 
 function getGreeting() {
   const hour = new Date().getHours();
@@ -53,8 +59,8 @@ export default function HomeScreen() {
       id: "trending",
       title: "Trending Today",
       subtitle: "Daily niche trends",
-      icon: "chart.bar.fill" as const,
-      color: "#0F2044",
+      icon: "flame.fill" as const,
+      color: "#E05A1C",
       route: "/(tabs)/trending",
     },
     {
@@ -101,20 +107,21 @@ export default function HomeScreen() {
           </View>
 
           {/* Niche Badge */}
-          <Pressable
+          <TouchableOpacity
             onPress={() => {
               if (Platform.OS !== "web") Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
               setNicheSheetVisible(true);
             }}
-            style={({ pressed }) => [
+            activeOpacity={0.7}
+            style={[
               styles.nicheBadge,
-              { backgroundColor: "rgba(240,192,64,0.18)", borderColor: "#F0C040", opacity: pressed ? 0.7 : 1 },
+              { backgroundColor: "rgba(240,192,64,0.18)", borderColor: "#F0C040" },
             ]}
           >
             <IconSymbol name="tag.fill" size={13} color="#F0C040" />
             <Text style={[styles.nicheLabel, { color: "#F0C040" }]}>{niche}</Text>
             <IconSymbol name="pencil" size={13} color="#F0C040" />
-          </Pressable>
+          </TouchableOpacity>
         </View>
 
         {/* Stats Row */}
@@ -131,17 +138,13 @@ export default function HomeScreen() {
           <Text style={[styles.sectionTitle, { color: colors.foreground }]}>Quick Access</Text>
           <View style={styles.cardsGrid}>
             {featureCards.map((card) => (
-              <Pressable
+              <TouchableOpacity
                 key={card.id}
                 onPress={() => handleCardPress(card.route)}
-                style={({ pressed }) => [
+                activeOpacity={0.8}
+                style={[
                   styles.featureCard,
-                  {
-                    backgroundColor: colors.surface,
-                    borderColor: colors.border,
-                    opacity: pressed ? 0.85 : 1,
-                    transform: [{ scale: pressed ? 0.97 : 1 }],
-                  },
+                  { backgroundColor: colors.surface, borderColor: colors.border },
                 ]}
               >
                 <View style={[styles.cardIconWrap, { backgroundColor: card.color + "18" }]}>
@@ -149,7 +152,7 @@ export default function HomeScreen() {
                 </View>
                 <Text style={[styles.cardTitle, { color: colors.foreground }]}>{card.title}</Text>
                 <Text style={[styles.cardSubtitle, { color: colors.muted }]}>{card.subtitle}</Text>
-              </Pressable>
+              </TouchableOpacity>
             ))}
           </View>
         </View>
@@ -159,9 +162,9 @@ export default function HomeScreen() {
           <View style={styles.sectionContainer}>
             <View style={styles.sectionHeader}>
               <Text style={[styles.sectionTitle, { color: colors.foreground }]}>Saved Ideas</Text>
-              <Pressable onPress={() => router.push("/(tabs)/ideas" as any)}>
+              <TouchableOpacity onPress={() => router.push("/(tabs)/ideas" as any)} activeOpacity={0.7}>
                 <Text style={[styles.seeAll, { color: colors.primary }]}>See all</Text>
-              </Pressable>
+              </TouchableOpacity>
             </View>
             {savedIdeas.slice(0, 3).map((idea) => (
               <View
@@ -188,7 +191,7 @@ export default function HomeScreen() {
           <IconSymbol name="bolt.fill" size={18} color={colors.primary} />
           <Text style={[styles.tipText, { color: colors.foreground }]}>
             <Text style={{ fontWeight: "700", color: colors.primary }}>Pro Tip: </Text>
-            Change your niche anytime to get fresh, targeted content ideas for your audience.
+            Tap the gold niche badge to change your niche anytime and get fresh, targeted content ideas.
           </Text>
         </View>
       </ScrollView>
@@ -208,14 +211,14 @@ function StatItem({ label, value, color }: { label: string; value: string; color
 }
 
 function getPlatformColor(platform: string): string {
-  const colors: Record<string, string> = {
+  const map: Record<string, string> = {
     instagram: "#E1306C",
     facebook: "#1877F2",
     tiktok: "#010101",
     youtube: "#FF0000",
     linkedin: "#0A66C2",
   };
-  return colors[platform] ?? "#888";
+  return map[platform] ?? "#888";
 }
 
 const styles = StyleSheet.create({
@@ -262,7 +265,7 @@ const styles = StyleSheet.create({
     gap: 6,
     alignSelf: "flex-start",
     paddingHorizontal: 12,
-    paddingVertical: 7,
+    paddingVertical: 8,
     borderRadius: 20,
     borderWidth: 1,
   },
@@ -272,16 +275,18 @@ const styles = StyleSheet.create({
   },
   statsRow: {
     flexDirection: "row",
+    alignItems: "center",
     marginHorizontal: 20,
     marginTop: 16,
     borderRadius: 16,
     borderWidth: 1,
     paddingVertical: 16,
-    paddingHorizontal: 8,
+    paddingHorizontal: 20,
   },
   statItem: {
     flex: 1,
     alignItems: "center",
+    gap: 2,
   },
   statValue: {
     fontSize: 22,
@@ -291,13 +296,12 @@ const styles = StyleSheet.create({
   statLabel: {
     fontSize: 11,
     color: "#9CA3AF",
-    marginTop: 2,
     fontWeight: "500",
   },
   statDivider: {
     width: 1,
-    height: "70%",
-    alignSelf: "center",
+    height: 32,
+    marginHorizontal: 8,
   },
   sectionContainer: {
     marginTop: 24,
@@ -311,9 +315,9 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 18,
-    fontWeight: "700",
-    marginBottom: 12,
+    fontWeight: "800",
     letterSpacing: -0.3,
+    marginBottom: 12,
   },
   seeAll: {
     fontSize: 14,
@@ -340,25 +344,25 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   cardTitle: {
-    fontSize: 15,
+    fontSize: 14,
     fontWeight: "700",
     letterSpacing: -0.2,
   },
   cardSubtitle: {
     fontSize: 12,
-    lineHeight: 17,
+    lineHeight: 16,
   },
   savedIdeaCard: {
-    borderRadius: 12,
+    borderRadius: 14,
     borderWidth: 1,
     padding: 14,
-    marginBottom: 8,
+    marginBottom: 10,
+    gap: 6,
   },
   savedIdeaTop: {
     flexDirection: "row",
     alignItems: "center",
     gap: 6,
-    marginBottom: 6,
   },
   platformDot: {
     width: 8,
@@ -382,10 +386,10 @@ const styles = StyleSheet.create({
     alignItems: "flex-start",
     gap: 10,
     marginHorizontal: 20,
-    marginTop: 24,
-    padding: 14,
+    marginTop: 20,
     borderRadius: 14,
     borderWidth: 1,
+    padding: 14,
   },
   tipText: {
     flex: 1,
