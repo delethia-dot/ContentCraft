@@ -191,3 +191,8 @@
 - [x] History: idea cards should open full idea detail modal when tapped
 - [x] History: prompt cards should open full prompt detail modal when tapped
 - [x] History: caption cards should open full caption detail modal when tapped
+
+## Share Web/Desktop URL
+- [x] Add deployed web URL (contentapp-mkf2zi5j.manus.space) to app constants
+- [x] Add "Share App" / "Share Desktop Link" option in Settings/More screen
+- [x] Include web URL in the app's native share sheet so users can share access to the desktop version

@@ -21,6 +21,7 @@ import { useStorage } from "@/lib/storage-context";
 import { PLATFORMS, Platform as SocialPlatform } from "@/lib/types";
 import { trpc } from "@/lib/trpc";
 import * as Haptics from "expo-haptics";
+import { APP_WEB_URL } from "@/constants/app-url";
 
 // ─── Types & Constants ────────────────────────────────────────────────────────
 
@@ -150,7 +151,7 @@ export default function CaptionScreen() {
   const shareCaption = useCallback(async () => {
     if (!result) return;
     const hashtagStr = result.hashtags.length > 0 ? "\n\n" + result.hashtags.map((h) => `#${h.replace(/^#/, "")}`).join(" ") : "";
-    const text = `${result.caption}${hashtagStr}`;
+    const text = `${result.caption}${hashtagStr}\n\n✨ Created with ContentCraft\n${APP_WEB_URL}`;
     try {
       if (Platform.OS !== "web") Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
       await Share.share({ message: text, title: "Caption" });

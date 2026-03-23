@@ -9,6 +9,8 @@ import {
   Platform,
   Modal,
   Alert,
+  Share,
+  Linking,
 } from "react-native";
 import { useEffect } from "react";
 import { useRouter } from "expo-router";
@@ -22,6 +24,7 @@ import * as Haptics from "expo-haptics";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { useThemeContext } from "@/lib/theme-provider";
 import { useOnboarding } from "@/lib/onboarding-context";
+import { APP_WEB_URL, APP_WEB_LABEL } from "@/constants/app-url";
 import {
   loadNotificationPrefs,
   saveNotificationPrefs,
@@ -388,6 +391,36 @@ function SettingsTab({
           <Text style={[styles.aboutDesc, { color: colors.muted }]}>
             AI-powered social media content creation for Instagram, Facebook, TikTok, YouTube, and LinkedIn.
           </Text>
+          {/* Share App row */}
+          <View style={[styles.shareAppRow, { borderTopColor: colors.border, borderBottomColor: colors.border }]}>
+            <TouchableOpacity
+              onPress={async () => {
+                if (Platform.OS !== "web") Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                try {
+                  await Share.share({
+                    message: `✨ Check out ContentCraft — AI-powered social media content creation!\n\n🌐 Open on desktop or mobile:\n${APP_WEB_URL}`,
+                    title: "ContentCraft",
+                    url: APP_WEB_URL,
+                  });
+                } catch {}
+              }}
+              activeOpacity={0.8}
+              style={[styles.shareAppBtn, { backgroundColor: colors.primary }]}
+            >
+              <IconSymbol name="square.and.arrow.up" size={16} color="#FFFFFF" />
+              <Text style={styles.shareAppBtnText}>Share App</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => Linking.openURL(APP_WEB_URL)}
+              activeOpacity={0.8}
+              style={[styles.openWebBtn, { backgroundColor: colors.surface, borderColor: colors.border }]}
+            >
+              <IconSymbol name="globe" size={16} color={colors.primary} />
+              <Text style={[styles.openWebBtnText, { color: colors.primary }]}>Open Desktop</Text>
+            </TouchableOpacity>
+          </View>
+          <Text style={[styles.webUrlText, { color: colors.muted }]}>{APP_WEB_LABEL}</Text>
+
           <View style={[styles.poweredByRow, { borderTopColor: colors.border }]}>
             <Text style={[styles.poweredByText, { color: colors.muted }]}>Powered by</Text>
             <Text style={[styles.poweredByBrand, { color: colors.accent }]}>Simply Your Marketer, LLC</Text>
@@ -846,6 +879,48 @@ const styles = StyleSheet.create({
     fontSize: 13,
     flex: 1,
     textAlign: "center",
+  },
+  shareAppRow: {
+    flexDirection: "row",
+    gap: 10,
+    marginTop: 12,
+    paddingTop: 12,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    width: "100%",
+  },
+  shareAppBtn: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 7,
+    paddingVertical: 12,
+    borderRadius: 12,
+  },
+  shareAppBtnText: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: "#FFFFFF",
+  },
+  openWebBtn: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 7,
+    paddingVertical: 12,
+    borderRadius: 12,
+    borderWidth: 1,
+  },
+  openWebBtnText: {
+    fontSize: 14,
+    fontWeight: "700",
+  },
+  webUrlText: {
+    fontSize: 11,
+    textAlign: "center",
+    marginTop: -4,
+    marginBottom: 4,
   },
   poweredByRow: {
     flexDirection: "row",

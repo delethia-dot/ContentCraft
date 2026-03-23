@@ -19,6 +19,7 @@ import { useColors } from "@/hooks/use-colors";
 import { useSavedIdeas } from "@/lib/saved-ideas-context";
 import { useStorage } from "@/lib/storage-context";
 import { ContentIdea, UrlAnalysis, SavedPrompt, SavedCaption, PLATFORMS } from "@/lib/types";
+import { APP_WEB_URL } from "@/constants/app-url";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Haptics from "expo-haptics";
 
@@ -43,7 +44,7 @@ function IdeaDetailModal({
   const platformColor = PLATFORMS.find((p) => p.id === idea.platform)?.color ?? colors.primary;
   const platformLabel = PLATFORMS.find((p) => p.id === idea.platform)?.label ?? idea.platform;
 
-  const fullText = `📌 ${idea.title}\n\n🎣 Hook:\n${idea.hook}\n\n📝 Body:\n${idea.body}\n\n📣 CTA:\n${idea.cta}\n\n🏷️ Platform: ${platformLabel} | Type: ${idea.contentType} | Niche: ${idea.niche}`;
+  const fullText = `📌 ${idea.title}\n\n🎣 Hook:\n${idea.hook}\n\n📝 Body:\n${idea.body}\n\n📣 CTA:\n${idea.cta}\n\n🏷️ Platform: ${platformLabel} | Type: ${idea.contentType} | Niche: ${idea.niche}\n\n✨ Created with ContentCraft\n${APP_WEB_URL}`;
 
   const handleCopy = () => {
     Clipboard.setString(fullText);
@@ -146,7 +147,7 @@ function AnalysisDetailModal({
   const scoreColor = analysis.resonanceScore >= 75 ? "#10B981" : analysis.resonanceScore >= 50 ? "#F59E0B" : "#EF4444";
   const platformColor = analysis.platform ? (PLATFORMS.find((p) => p.id === analysis.platform)?.color ?? colors.primary) : colors.primary;
 
-  const fullText = `🔗 URL: ${analysis.url}\n\n📊 Resonance Score: ${analysis.resonanceScore}/100\n\n📋 Summary:\n${analysis.summary}\n\n✅ What Worked:\n${analysis.whatWorked.map((w, i) => `${i + 1}. ${w}`).join("\n")}\n\n❌ What Didn't Work:\n${analysis.whatDidntWork.map((w, i) => `${i + 1}. ${w}`).join("\n")}\n\n👥 Audience Insights:\n${analysis.audienceInsights}\n\n📐 Framework Recommendation:\n${analysis.frameworkRecommendation}`;
+  const fullText = `🔗 URL: ${analysis.url}\n\n📊 Resonance Score: ${analysis.resonanceScore}/100\n\n📋 Summary:\n${analysis.summary}\n\n✅ What Worked:\n${analysis.whatWorked.map((w, i) => `${i + 1}. ${w}`).join("\n")}\n\n❌ What Didn't Work:\n${analysis.whatDidntWork.map((w, i) => `${i + 1}. ${w}`).join("\n")}\n\n👥 Audience Insights:\n${analysis.audienceInsights}\n\n📐 Framework Recommendation:\n${analysis.frameworkRecommendation}\n\n✨ Analyzed with ContentCraft\n${APP_WEB_URL}`;
 
   const handleCopy = () => {
     Clipboard.setString(fullText);
@@ -284,7 +285,7 @@ function PromptDetailModal({
   if (!prompt) return null;
   const toolColor = "#8B5CF6";
 
-  const fullText = `🎨 AI Prompt — ${prompt.tool}\n\nSubject: ${prompt.subject}\nPlatform: ${prompt.platform} | Type: ${prompt.mediaType}\n\nMain Prompt:\n${prompt.mainPrompt}\n\nNegative Prompt:\n${prompt.negativePrompt}${prompt.tips.length > 0 ? `\n\nTips:\n${prompt.tips.map((t, i) => `${i + 1}. ${t}`).join("\n")}` : ""}${prompt.variations.length > 0 ? `\n\nVariations:\n${prompt.variations.map((v, i) => `${i + 1}. ${v}`).join("\n")}` : ""}`;
+  const fullText = `🎨 AI Prompt — ${prompt.tool}\n\nSubject: ${prompt.subject}\nPlatform: ${prompt.platform} | Type: ${prompt.mediaType}\n\nMain Prompt:\n${prompt.mainPrompt}\n\nNegative Prompt:\n${prompt.negativePrompt}${prompt.tips.length > 0 ? `\n\nTips:\n${prompt.tips.map((t, i) => `${i + 1}. ${t}`).join("\n")}` : ""}${prompt.variations.length > 0 ? `\n\nVariations:\n${prompt.variations.map((v, i) => `${i + 1}. ${v}`).join("\n")}` : ""}\n\n✨ Generated with ContentCraft\n${APP_WEB_URL}`;
 
   const handleCopy = () => {
     Clipboard.setString(prompt.mainPrompt);
@@ -419,7 +420,7 @@ function CaptionDetailModal({
   const hashtagStr = caption.hashtags.length > 0
     ? "\n\n" + caption.hashtags.map((h) => `#${h.replace(/^#/, "")}`).join(" ")
     : "";
-  const fullText = caption.caption + hashtagStr;
+  const fullText = caption.caption + hashtagStr + `\n\n✨ Created with ContentCraft\n${APP_WEB_URL}`;
 
   const handleCopy = () => {
     Clipboard.setString(fullText);
@@ -529,7 +530,7 @@ function ExportModal({
     ? "No ideas found for this platform."
     : filteredIdeas.map((idea, idx) =>
         `━━━ IDEA ${idx + 1}: ${idea.platform.toUpperCase()} | ${idea.contentType.toUpperCase()} ━━━\n📌 ${idea.title}\n\n🎣 Hook:\n${idea.hook}\n\n📝 Body:\n${idea.body}\n\n📣 CTA:\n${idea.cta}\n`
-      ).join("\n");
+      ).join("\n") + `\n✨ Created with ContentCraft\n${APP_WEB_URL}`;
 
   const handleCopy = () => {
     Clipboard.setString(exportText);
@@ -690,7 +691,7 @@ export default function HistoryScreen() {
 
   const shareIdea = useCallback(async (idea: ContentIdea) => {
     const platformLabel = PLATFORMS.find((p) => p.id === idea.platform)?.label ?? idea.platform;
-    const text = `📌 ${idea.title}\n\n🎣 Hook:\n${idea.hook}\n\n📝 Body:\n${idea.body}\n\n📣 CTA:\n${idea.cta}\n\n🏷️ ${platformLabel} | ${idea.contentType} | ${idea.niche}`;
+    const text = `📌 ${idea.title}\n\n🎣 Hook:\n${idea.hook}\n\n📝 Body:\n${idea.body}\n\n📣 CTA:\n${idea.cta}\n\n🏷️ ${platformLabel} | ${idea.contentType} | ${idea.niche}\n\n✨ Created with ContentCraft\n${APP_WEB_URL}`;
     try {
       if (Platform.OS !== "web") Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
       await Share.share({ message: text, title: idea.title });
