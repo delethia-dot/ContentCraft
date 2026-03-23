@@ -78,7 +78,7 @@ export default function IdeasScreen() {
   );
 
   return (
-    <ScreenContainer containerClassName="bg-background">
+    <ScreenContainer>
       <ScrollView
         style={{ flex: 1 }}
         contentContainerStyle={{ paddingBottom: 32 }}

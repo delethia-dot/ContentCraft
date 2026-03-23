@@ -54,7 +54,7 @@ export default function MoreScreen() {
   };
 
   return (
-    <ScreenContainer containerClassName="bg-background">
+    <ScreenContainer>
       {/* Header */}
       <View style={[styles.header, { backgroundColor: colors.navy }]}>
         <Text style={[styles.headerTitle, { color: "#FFFFFF" }]}>More</Text>

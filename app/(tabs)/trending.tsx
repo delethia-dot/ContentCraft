@@ -159,7 +159,7 @@ export default function TrendingScreen() {
   };
 
   return (
-    <ScreenContainer containerClassName="bg-background">
+    <ScreenContainer>
       {/* Header */}
       <View style={[styles.header, { backgroundColor: colors.navy }]}>
         <View style={styles.headerTop}>

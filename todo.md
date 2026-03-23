@@ -59,3 +59,11 @@
 - [x] Smooth animated transitions between onboarding steps
 - [x] Skip / back navigation within onboarding
 - [x] Reset onboarding option in Settings screen
+
+## Bug Fixes - Text Visibility
+- [x] Audit theme.config.js - ensure foreground/background contrast is correct
+- [x] Fix text visibility on Analyze screen - fixed ScreenContainer bg-background token issue
+- [x] Audit and fix text visibility on all other screens (Home, Ideas, Trending, More, Onboarding)
+- [x] Ensure explicit text colors used everywhere (no reliance on inherited/default colors)
+- [x] Fix ScreenContainer to use style={{ backgroundColor: colors.background }} from useColors()
+- [x] Remove all containerClassName="bg-background" overrides from all 5 tab screens

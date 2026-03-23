@@ -90,7 +90,7 @@ export default function HomeScreen() {
   };
 
   return (
-    <ScreenContainer containerClassName="bg-background">
+    <ScreenContainer>
       <ScrollView
         style={{ flex: 1 }}
         contentContainerStyle={{ paddingBottom: 32 }}
@@ -211,10 +211,11 @@ export default function HomeScreen() {
 }
 
 function StatItem({ label, value, color }: { label: string; value: string; color: string }) {
+  const colors = useColors();
   return (
     <View style={styles.statItem}>
       <Text style={[styles.statValue, { color }]}>{value}</Text>
-      <Text style={styles.statLabel}>{label}</Text>
+      <Text style={[styles.statLabel, { color: colors.muted }]}>{label}</Text>
     </View>
   );
 }
@@ -304,7 +305,6 @@ const styles = StyleSheet.create({
   },
   statLabel: {
     fontSize: 11,
-    color: "#9CA3AF",
     fontWeight: "500",
   },
   statDivider: {
