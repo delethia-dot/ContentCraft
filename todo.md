@@ -202,3 +202,6 @@
 - [x] Fix Daily Reminder toggle/button not working on desktop (hidden on web — push notifications not supported in browser)
 - [x] Fix Appearance (dark mode) toggle not working on desktop
 - [x] Update Open Desktop and Share App URL from manus.space to contentcraft-app.netlify.app
+
+## Dark Mode Toggle Web Fix
+- [x] Fix dark mode / appearance toggle not applying theme change on desktop web
