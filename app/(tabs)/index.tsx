@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   ScrollView,
   View,
@@ -14,6 +14,7 @@ import { useColors } from "@/hooks/use-colors";
 import { useNiche } from "@/lib/niche-context";
 import { useSavedIdeas } from "@/lib/saved-ideas-context";
 import { NicheSheet } from "@/components/niche-sheet";
+import { useOnboarding } from "@/lib/onboarding-context";
 import * as Haptics from "expo-haptics";
 
 function getGreeting() {
@@ -36,7 +37,15 @@ export default function HomeScreen() {
   const router = useRouter();
   const { niche } = useNiche();
   const { savedIdeas } = useSavedIdeas();
+  const { hasCompletedOnboarding, isLoading: onboardingLoading } = useOnboarding();
   const [nicheSheetVisible, setNicheSheetVisible] = useState(false);
+
+  // Redirect to onboarding if first launch
+  useEffect(() => {
+    if (!onboardingLoading && !hasCompletedOnboarding) {
+      router.replace("/onboarding");
+    }
+  }, [onboardingLoading, hasCompletedOnboarding, router]);
 
   const featureCards = [
     {

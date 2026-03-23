@@ -8,7 +8,9 @@ import {
   Switch,
   Platform,
   Modal,
+  Alert,
 } from "react-native";
+import { useRouter } from "expo-router";
 import { ScreenContainer } from "@/components/screen-container";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { useColors } from "@/hooks/use-colors";
@@ -18,10 +20,13 @@ import { CONTENT_FRAMEWORKS, ContentFramework, PLATFORMS } from "@/lib/types";
 import * as Haptics from "expo-haptics";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { useThemeContext } from "@/lib/theme-provider";
+import { useOnboarding } from "@/lib/onboarding-context";
 
 export default function MoreScreen() {
   const colors = useColors();
+  const router = useRouter();
   const { niche } = useNiche();
+  const { resetOnboarding } = useOnboarding();
   const [nicheSheetVisible, setNicheSheetVisible] = useState(false);
   const [selectedFramework, setSelectedFramework] = useState<ContentFramework | null>(null);
   const [activeTab, setActiveTab] = useState<"frameworks" | "settings">("frameworks");
@@ -30,6 +35,23 @@ export default function MoreScreen() {
   const toggleTheme = () => setColorScheme(colorScheme === "dark" ? "light" : "dark");
 
   const isDark = colorScheme === "dark";
+
+  const handleResetOnboarding = () => {
+    Alert.alert(
+      "Replay Onboarding",
+      "This will take you back to the welcome flow. Your niche and saved ideas will be preserved.",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Replay",
+          onPress: async () => {
+            await resetOnboarding();
+            router.replace("/onboarding");
+          },
+        },
+      ]
+    );
+  };
 
   return (
     <ScreenContainer containerClassName="bg-background">
@@ -88,6 +110,7 @@ export default function MoreScreen() {
             isDark={isDark}
             onToggleTheme={toggleTheme}
             onChangeNiche={() => setNicheSheetVisible(true)}
+            onResetOnboarding={handleResetOnboarding}
           />
         )}
       </ScrollView>
@@ -190,12 +213,14 @@ function SettingsTab({
   isDark,
   onToggleTheme,
   onChangeNiche,
+  onResetOnboarding,
 }: {
   colors: any;
   niche: string;
   isDark: boolean;
   onToggleTheme: () => void;
   onChangeNiche: () => void;
+  onResetOnboarding: () => void;
 }) {
   return (
     <View style={{ padding: 20, gap: 20 }}>
@@ -213,6 +238,20 @@ function SettingsTab({
           <View style={{ flex: 1 }}>
             <Text style={[styles.settingLabel, { color: colors.foreground }]}>Current Niche</Text>
             <Text style={[styles.settingValue, { color: colors.primary }]}>{niche}</Text>
+          </View>
+          <IconSymbol name="chevron.right" size={18} color={colors.muted} />
+        </TouchableOpacity>
+        <TouchableOpacity
+          onPress={onResetOnboarding}
+          activeOpacity={0.75}
+          style={[styles.settingRow, { backgroundColor: colors.surface, borderColor: colors.border, marginTop: 8 }]}
+        >
+          <View style={[styles.settingIcon, { backgroundColor: colors.primary + "15" }]}>
+            <IconSymbol name="arrow.counterclockwise" size={18} color={colors.primary} />
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text style={[styles.settingLabel, { color: colors.foreground }]}>Replay Onboarding</Text>
+            <Text style={[styles.settingValue, { color: colors.muted }]}>Revisit the welcome flow</Text>
           </View>
           <IconSymbol name="chevron.right" size={18} color={colors.muted} />
         </TouchableOpacity>

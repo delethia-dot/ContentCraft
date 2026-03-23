@@ -10,6 +10,7 @@ import "@/lib/_core/nativewind-pressable";
 import { ThemeProvider } from "@/lib/theme-provider";
 import { NicheProvider } from "@/lib/niche-context";
 import { SavedIdeasProvider } from "@/lib/saved-ideas-context";
+import { OnboardingProvider } from "@/lib/onboarding-context";
 import {
   SafeAreaFrameContext,
   SafeAreaInsetsContext,
@@ -81,6 +82,7 @@ export default function RootLayout() {
   }, [initialInsets, initialFrame]);
 
   const content = (
+    <OnboardingProvider>
     <NicheProvider>
     <SavedIdeasProvider>
     <GestureHandlerRootView style={{ flex: 1 }}>
@@ -91,6 +93,7 @@ export default function RootLayout() {
           {/* in order for ios apps tab switching to work properly, use presentation: "fullScreenModal" for login page, whenever you decide to use presentation: "modal*/}
           <Stack screenOptions={{ headerShown: false }}>
             <Stack.Screen name="(tabs)" />
+            <Stack.Screen name="onboarding" options={{ animation: "fade" }} />
             <Stack.Screen name="oauth/callback" />
           </Stack>
           <StatusBar style="auto" />
@@ -99,6 +102,7 @@ export default function RootLayout() {
     </GestureHandlerRootView>
     </SavedIdeasProvider>
     </NicheProvider>
+    </OnboardingProvider>
   );
 
   const shouldOverrideSafeArea = Platform.OS === "web";

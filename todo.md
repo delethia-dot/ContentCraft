@@ -49,3 +49,13 @@
 - [x] Fix all Pressable components - replace with TouchableOpacity across all screens
 - [x] Verify Modal bottom sheets work on iOS/Android - fixed overlay layout
 - [x] Fix any other mobile interaction issues - all screens now use TouchableOpacity
+
+## Onboarding Flow
+- [x] Create onboarding context to track first-launch state (AsyncStorage)
+- [x] Build onboarding screen 1: Welcome / hero splash
+- [x] Build onboarding screen 2: Feature highlights (3 key features)
+- [x] Build onboarding screen 3: Niche selection with search + popular niches
+- [x] Wire onboarding gate in root layout (show onboarding if first launch)
+- [x] Smooth animated transitions between onboarding steps
+- [x] Skip / back navigation within onboarding
+- [x] Reset onboarding option in Settings screen
