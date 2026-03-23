@@ -84,6 +84,15 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
+        name="prompt"
+        options={{
+          title: "Prompt",
+          tabBarIcon: ({ color, size }) => (
+            <IconSymbol size={size ?? 24} name="wand.and.stars" color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
         name="more"
         options={{
           title: "More",

@@ -3,7 +3,7 @@ import { publicProcedure, router } from "./_core/trpc";
 import { invokeLLM } from "./_core/llm";
 
 const platformSchema = z.enum(["instagram", "facebook", "tiktok", "youtube", "linkedin"]);
-const contentTypeSchema = z.enum(["post", "reel", "story", "carousel", "long-form", "short"]);
+const contentTypeSchema = z.enum(["post", "reel", "story", "carousel", "long-form", "short", "image", "video"]);
 
 export const contentRouter = router({
   generateIdeas: publicProcedure
@@ -181,6 +181,87 @@ Return JSON in this exact format:
       }));
 
       return { ideas, generatedAt: new Date().toISOString() };
+    }),
+
+  generatePrompt: publicProcedure
+    .input(
+      z.object({
+        tool: z.enum(["midjourney", "dalle", "sora", "runway", "stable-diffusion", "kling"]),
+        mediaType: z.enum(["image", "video"]),
+        style: z.string(),
+        mood: z.string(),
+        subject: z.string(),
+        platform: platformSchema,
+        aspectRatio: z.string(),
+        niche: z.string().optional(),
+        additionalDetails: z.string().optional(),
+      })
+    )
+    .mutation(async ({ input }) => {
+      const { tool, mediaType, style, mood, subject, platform, aspectRatio, niche, additionalDetails } = input;
+
+      const toolGuides: Record<string, string> = {
+        midjourney: "Use Midjourney v6 syntax: descriptive subject, style keywords, lighting, camera, --ar ratio, --style raw, --v 6",
+        dalle: "Use DALL-E 3 syntax: clear descriptive prose, specify art style, lighting, composition, mood",
+        sora: "Use OpenAI Sora syntax: describe scene, camera movement, duration, lighting, cinematic style",
+        runway: "Use Runway Gen-3 syntax: describe visual scene, motion direction, camera angle, atmosphere",
+        "stable-diffusion": "Use Stable Diffusion syntax: subject, style tags, quality boosters like (masterpiece:1.2), negative prompts",
+        kling: "Use Kling AI syntax: describe scene cinematically, include camera movement, lighting, and mood",
+      };
+
+      const platformVisuals: Record<string, string> = {
+        instagram: "square or portrait 4:5, vibrant colors, lifestyle aesthetic, high contrast",
+        facebook: "landscape 1.91:1 or square, clean and clear, community-friendly",
+        tiktok: "vertical 9:16, bold visuals, high energy, trend-aware",
+        youtube: "16:9 landscape, cinematic quality, thumbnail-worthy composition",
+        linkedin: "professional, clean, 1.91:1 or square, business context",
+      };
+
+      const response = await invokeLLM({
+        messages: [
+          {
+            role: "system",
+            content: `You are an expert AI prompt engineer specializing in ${mediaType} generation. You craft precise, detailed prompts that produce stunning results. Return ONLY valid JSON with no markdown.`,
+          },
+          {
+            role: "user",
+            content: `Create an optimized ${mediaType} generation prompt for ${tool}.
+
+Details:
+- Subject: ${subject}
+- Style: ${style}
+- Mood: ${mood}
+- Platform: ${platform} (${platformVisuals[platform]})
+- Aspect Ratio: ${aspectRatio}
+${niche ? `- Niche: ${niche}` : ""}
+${additionalDetails ? `- Additional: ${additionalDetails}` : ""}
+
+Tool syntax guide: ${toolGuides[tool]}
+
+Return JSON in this exact format:
+{
+  "mainPrompt": "The complete optimized prompt ready to paste into ${tool}",
+  "negativePrompt": "Negative prompt (for tools that support it, otherwise empty string)",
+  "tips": ["Tip 1 for best results", "Tip 2", "Tip 3"],
+  "variations": ["Variation prompt 1 for a different angle", "Variation prompt 2"],
+  "estimatedQuality": "Brief note on expected output quality and style"
+}`,
+          },
+        ],
+        response_format: { type: "json_object" },
+      });
+
+      const raw = response.choices[0].message.content as string;
+      const parsed = JSON.parse(raw);
+      return {
+        ...parsed,
+        id: `prompt-${Date.now()}`,
+        tool,
+        mediaType,
+        subject,
+        platform,
+        createdAt: new Date().toISOString(),
+      };
     }),
 
   getFrameworkAdvice: publicProcedure

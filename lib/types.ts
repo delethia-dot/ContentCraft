@@ -1,5 +1,5 @@
 export type Platform = "instagram" | "facebook" | "tiktok" | "youtube" | "linkedin";
-export type ContentType = "post" | "reel" | "story" | "carousel" | "long-form" | "short";
+export type ContentType = "post" | "reel" | "story" | "carousel" | "long-form" | "short" | "image" | "video";
 
 export interface ContentIdea {
   id: string;
@@ -70,6 +70,8 @@ export const CONTENT_TYPES: { id: ContentType; label: string; platforms: Platfor
   { id: "carousel", label: "Carousel", platforms: ["instagram", "linkedin", "facebook"] },
   { id: "long-form", label: "Long-form", platforms: ["youtube", "linkedin", "facebook"] },
   { id: "short", label: "Short Video", platforms: ["tiktok", "youtube", "instagram"] },
+  { id: "image", label: "Image / Graphic", platforms: ["instagram", "facebook", "linkedin"] },
+  { id: "video", label: "Video (Scripted)", platforms: ["youtube", "instagram", "tiktok", "facebook"] },
 ];
 
 export const POPULAR_NICHES = [

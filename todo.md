@@ -80,3 +80,20 @@
 - [x] Show saved URL analyses with resonance score, date, delete action
 - [x] Persist URL analyses to AsyncStorage automatically after each analysis
 - [x] Add clear all / delete individual items functionality
+
+## New Features - Round 3
+- [x] History tab: native share button on each saved idea (Share API)
+- [x] History tab: full idea detail modal (hook, body, CTA, platform, niche)
+- [x] History tab: export button to compile all ideas for a platform into a text block
+- [x] Ideas tab: add Image / Graphic content type
+- [x] Ideas tab: add Video (Scripted) content type
+- [x] Server router: image and video added to contentTypeSchema
+- [x] New Prompt Generator tab: AI-powered image/video prompt generator
+- [x] Prompt Generator: tool selector (Midjourney, DALL-E 3, Stable Diffusion, Sora, Runway, Kling)
+- [x] Prompt Generator: platform + aspect ratio selector per platform
+- [x] Prompt Generator: visual style chips (10 styles)
+- [x] Prompt Generator: mood & atmosphere chips (10 moods)
+- [x] Prompt Generator: subject and additional details text inputs
+- [x] Prompt Generator: main prompt, negative prompt, tips, variations output
+- [x] Prompt Generator: copy individual fields and share full prompt
+- [x] Server router: generatePrompt endpoint with LLM integration (6 tools supported)
