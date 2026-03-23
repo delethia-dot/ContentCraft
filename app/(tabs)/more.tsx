@@ -387,7 +387,7 @@ function SettingsTab({
             <IconSymbol name="sparkles" size={28} color="#F0C040" />
           </View>
           <Text style={[styles.aboutTitle, { color: colors.foreground }]}>ContentCraft</Text>
-          <Text style={[styles.aboutVersion, { color: colors.muted }]}>Version 1.0.0</Text>
+          <Text style={[styles.aboutVersion, { color: colors.muted }]}>Version 1.0.1</Text>
           <Text style={[styles.aboutDesc, { color: colors.muted }]}>
             AI-powered social media content creation for Instagram, Facebook, TikTok, YouTube, and LinkedIn.
           </Text>
