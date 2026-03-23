@@ -163,3 +163,12 @@
 - [x] Notification prefs persisted to AsyncStorage
 - [x] minus icon added to icon-symbol.tsx
 - [x] All 82 tests pass
+
+## Bug Fixes & Navigation Overhaul
+- [ ] Fix TikTok icon not visible in dark mode (white icon on white/light background)
+- [ ] Add "Powered by Simply Your Marketer, LLC" to About section in Settings
+- [ ] Reorganize bottom nav: reduce to 5 primary tabs (Home, Ideas, Trending, History, More)
+- [ ] Create Tools hub screen accessible from More tab (Analyze, Prompt, Caption, Calendar, Tracker)
+- [ ] Remove Analyze, Prompt, Caption, Calendar, Tracker from bottom tab bar
+- [ ] Update sidebar nav to reflect new navigation structure
+- [ ] Ensure all Tools hub items navigate correctly to their screens

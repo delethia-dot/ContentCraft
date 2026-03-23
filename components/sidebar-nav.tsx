@@ -27,14 +27,15 @@ interface NavItem {
 const NAV_ITEMS: NavItem[] = [
   { name: "index", route: "/(tabs)/", icon: "house.fill", label: "Home" },
   { name: "ideas", route: "/(tabs)/ideas", icon: "lightbulb.fill", label: "Ideas" },
-  { name: "analyze", route: "/(tabs)/analyze", icon: "link", label: "Analyze" },
-  { name: "trending", route: "/(tabs)/trending", icon: "chart.bar.fill", label: "Trending" },
-  { name: "history", route: "/(tabs)/history", icon: "clock.arrow.circlepath", label: "History" },
+  { name: "trending", route: "/(tabs)/trending", icon: "flame.fill", label: "Trending" },
+  { name: "analyze", route: "/(tabs)/analyze", icon: "link", label: "URL Analyzer" },
   { name: "prompt", route: "/(tabs)/prompt", icon: "wand.and.stars", label: "Prompt Gen" },
-  { name: "caption", route: "/(tabs)/caption", icon: "text.bubble.fill", label: "Caption" },
+  { name: "caption", route: "/(tabs)/caption", icon: "text.bubble.fill", label: "Caption Writer" },
   { name: "calendar", route: "/(tabs)/calendar", icon: "calendar", label: "Calendar" },
   { name: "tracker", route: "/(tabs)/tracker", icon: "chart.line.uptrend.xyaxis", label: "Tracker" },
-  { name: "more", route: "/(tabs)/more", icon: "ellipsis", label: "More" },
+  { name: "history", route: "/(tabs)/history", icon: "clock.arrow.circlepath", label: "History" },
+  { name: "tools", route: "/(tabs)/tools", icon: "sparkles", label: "Tools Hub" },
+  { name: "more", route: "/(tabs)/more", icon: "gearshape.fill", label: "Settings" },
 ];
 
 export function SidebarNav() {
@@ -142,8 +143,8 @@ export function SidebarNav() {
       {showLabels && (
         <View style={styles.sidebarFooter}>
           <View style={[styles.divider, { backgroundColor: "rgba(255,255,255,0.08)", marginBottom: 12 }]} />
-          <Text style={styles.footerText}>ContentCraft v1.7</Text>
-          <Text style={styles.footerSub}>AI-Powered Content Studio</Text>
+          <Text style={styles.footerText}>ContentCraft v1.9</Text>
+          <Text style={styles.footerSub}>Powered by Simply Your Marketer, LLC</Text>
         </View>
       )}
     </View>

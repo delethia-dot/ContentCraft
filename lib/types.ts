@@ -94,7 +94,7 @@ export interface FrameworkStep {
 export const PLATFORMS: { id: Platform; label: string; color: string; iconName: string }[] = [
   { id: "instagram", label: "Instagram", color: "#E1306C", iconName: "photo.fill" },
   { id: "facebook", label: "Facebook", color: "#1877F2", iconName: "globe" },
-  { id: "tiktok", label: "TikTok", color: "#010101", iconName: "video.fill" },
+  { id: "tiktok", label: "TikTok", color: "#00C2CB", iconName: "video.fill" },
   { id: "youtube", label: "YouTube", color: "#FF0000", iconName: "play.fill" },
   { id: "linkedin", label: "LinkedIn", color: "#0A66C2", iconName: "doc.text.fill" },
 ];

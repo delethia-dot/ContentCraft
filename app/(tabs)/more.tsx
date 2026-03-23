@@ -388,6 +388,10 @@ function SettingsTab({
           <Text style={[styles.aboutDesc, { color: colors.muted }]}>
             AI-powered social media content creation for Instagram, Facebook, TikTok, YouTube, and LinkedIn.
           </Text>
+          <View style={[styles.poweredByRow, { borderTopColor: colors.border }]}>
+            <Text style={[styles.poweredByText, { color: colors.muted }]}>Powered by</Text>
+            <Text style={[styles.poweredByBrand, { color: colors.accent }]}>Simply Your Marketer, LLC</Text>
+          </View>
         </View>
       </View>
 
@@ -842,6 +846,21 @@ const styles = StyleSheet.create({
     fontSize: 13,
     flex: 1,
     textAlign: "center",
+  },
+  poweredByRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    marginTop: 12,
+    paddingTop: 12,
+    borderTopWidth: StyleSheet.hairlineWidth,
+  },
+  poweredByText: {
+    fontSize: 12,
+  },
+  poweredByBrand: {
+    fontSize: 12,
+    fontWeight: "700",
   },
   bestForBadge: {
     flexDirection: "row",

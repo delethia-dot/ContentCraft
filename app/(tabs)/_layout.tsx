@@ -9,7 +9,9 @@ import { SidebarNav } from "@/components/sidebar-nav";
 
 /**
  * Tab layout with responsive navigation:
- * - Mobile: bottom tab bar (standard)
+ * - Mobile: 5 primary tabs on bottom bar (Home, Ideas, Trending, Tools, More)
+ *   Secondary tabs (Analyze, Prompt, Caption, Calendar, Tracker, History) are
+ *   accessible via the Tools hub — they remain registered as tabs but hidden.
  * - Tablet (≥768px): compact icon-only sidebar (72px)
  * - Desktop (≥1024px): full sidebar with labels (220px)
  */
@@ -52,6 +54,7 @@ export default function TabLayout() {
         },
       }}
     >
+      {/* ── PRIMARY TABS (visible in bottom bar on mobile) ── */}
       <Tabs.Screen
         name="index"
         options={{
@@ -71,65 +74,20 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="analyze"
-        options={{
-          title: "Analyze",
-          tabBarIcon: ({ color, size }) => (
-            <IconSymbol size={size ?? 24} name="link" color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
         name="trending"
         options={{
           title: "Trending",
           tabBarIcon: ({ color, size }) => (
-            <IconSymbol size={size ?? 24} name="chart.bar.fill" color={color} />
+            <IconSymbol size={size ?? 24} name="flame.fill" color={color} />
           ),
         }}
       />
       <Tabs.Screen
-        name="history"
+        name="tools"
         options={{
-          title: "History",
+          title: "Tools",
           tabBarIcon: ({ color, size }) => (
-            <IconSymbol size={size ?? 24} name="clock.arrow.circlepath" color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="prompt"
-        options={{
-          title: "Prompt",
-          tabBarIcon: ({ color, size }) => (
-            <IconSymbol size={size ?? 24} name="wand.and.stars" color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="caption"
-        options={{
-          title: "Caption",
-          tabBarIcon: ({ color, size }) => (
-            <IconSymbol size={size ?? 24} name="text.bubble.fill" color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="calendar"
-        options={{
-          title: "Calendar",
-          tabBarIcon: ({ color, size }) => (
-            <IconSymbol size={size ?? 24} name="calendar" color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="tracker"
-        options={{
-          title: "Tracker",
-          tabBarIcon: ({ color, size }) => (
-            <IconSymbol size={size ?? 24} name="chart.line.uptrend.xyaxis" color={color} />
+            <IconSymbol size={size ?? 24} name="sparkles" color={color} />
           ),
         }}
       />
@@ -139,6 +97,68 @@ export default function TabLayout() {
           title: "More",
           tabBarIcon: ({ color, size }) => (
             <IconSymbol size={size ?? 24} name="ellipsis" color={color} />
+          ),
+        }}
+      />
+
+      {/* ── SECONDARY TABS (hidden from bottom bar, accessible via Tools hub or sidebar) ── */}
+      <Tabs.Screen
+        name="analyze"
+        options={{
+          title: "Analyze",
+          tabBarItemStyle: { display: "none" },
+          tabBarIcon: ({ color, size }) => (
+            <IconSymbol size={size ?? 24} name="link" color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="history"
+        options={{
+          title: "History",
+          tabBarItemStyle: { display: "none" },
+          tabBarIcon: ({ color, size }) => (
+            <IconSymbol size={size ?? 24} name="clock.arrow.circlepath" color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="prompt"
+        options={{
+          title: "Prompt",
+          tabBarItemStyle: { display: "none" },
+          tabBarIcon: ({ color, size }) => (
+            <IconSymbol size={size ?? 24} name="wand.and.stars" color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="caption"
+        options={{
+          title: "Caption",
+          tabBarItemStyle: { display: "none" },
+          tabBarIcon: ({ color, size }) => (
+            <IconSymbol size={size ?? 24} name="text.bubble.fill" color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="calendar"
+        options={{
+          title: "Calendar",
+          tabBarItemStyle: { display: "none" },
+          tabBarIcon: ({ color, size }) => (
+            <IconSymbol size={size ?? 24} name="calendar" color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="tracker"
+        options={{
+          title: "Tracker",
+          tabBarItemStyle: { display: "none" },
+          tabBarIcon: ({ color, size }) => (
+            <IconSymbol size={size ?? 24} name="chart.line.uptrend.xyaxis" color={color} />
           ),
         }}
       />
@@ -157,6 +177,6 @@ export default function TabLayout() {
     );
   }
 
-  // On mobile: standard bottom tab bar
+  // On mobile: 5-tab bottom bar
   return tabs;
 }

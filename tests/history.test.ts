@@ -61,7 +61,7 @@ describe("History Screen - getPlatformColor", () => {
   it("returns the correct color for known platforms", () => {
     expect(getPlatformColor("instagram", "#000")).toBe("#E1306C");
     expect(getPlatformColor("facebook", "#000")).toBe("#1877F2");
-    expect(getPlatformColor("tiktok", "#000")).toBe("#010101");
+    expect(getPlatformColor("tiktok", "#000")).toBe("#00C2CB");
     expect(getPlatformColor("youtube", "#000")).toBe("#FF0000");
     expect(getPlatformColor("linkedin", "#000")).toBe("#0A66C2");
   });
