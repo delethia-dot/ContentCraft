@@ -181,3 +181,13 @@
 - [x] "See all" link on Home Saved Ideas preview now goes to History (was going to Ideas)
 - [x] URL analyses persist correctly - Analyze writes to @contentcraft_analyses, History reads same key
 - [x] All 82 tests pass
+
+## Bug Fixes - Navigation UX (Round 2)
+- [x] Home: Platforms stat should navigate to Ideas tab (shows all 5 platforms)
+- [x] Home: Saved Ideas preview cards should open full idea detail modal when tapped
+- [x] History: sub-tabs (Ideas/Analyses/Prompts/Captions) should be fixed-width, not scroll off screen
+- [x] History: sticky header + tab bar so they stay visible while content scrolls
+- [x] History: analysis cards should open a full detail modal when tapped
+- [x] History: idea cards should open full idea detail modal when tapped
+- [x] History: prompt cards should open full prompt detail modal when tapped
+- [x] History: caption cards should open full caption detail modal when tapped

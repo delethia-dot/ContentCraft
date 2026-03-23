@@ -158,7 +158,16 @@ export default function HomeScreen() {
             <StatItem label="Saved Ideas" value={savedIdeas.length.toString()} color={colors.primary} />
           </TouchableOpacity>
           <View style={[styles.statDivider, { backgroundColor: colors.border }]} />
-          <StatItem label="Platforms" value="5" color="#B8860B" />
+          <TouchableOpacity
+            style={{ flex: 1 }}
+            onPress={() => {
+              if (Platform.OS !== "web") Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+              router.push("/(tabs)/ideas" as any);
+            }}
+            activeOpacity={0.7}
+          >
+            <StatItem label="Platforms" value="5" color="#B8860B" />
+          </TouchableOpacity>
           <View style={[styles.statDivider, { backgroundColor: colors.border }]} />
           <TouchableOpacity
             style={{ flex: 1 }}
@@ -208,8 +217,13 @@ export default function HomeScreen() {
               </TouchableOpacity>
             </View>
             {savedIdeas.slice(0, 3).map((idea) => (
-              <View
+              <TouchableOpacity
                 key={idea.id}
+                onPress={() => {
+                  if (Platform.OS !== "web") Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                  router.push("/(tabs)/history" as any);
+                }}
+                activeOpacity={0.75}
                 style={[
                   styles.savedIdeaCard,
                   { backgroundColor: colors.surface, borderColor: colors.border },
@@ -225,7 +239,11 @@ export default function HomeScreen() {
                 <Text style={[styles.savedIdeaTitle, { color: colors.foreground }]} numberOfLines={2}>
                   {idea.title}
                 </Text>
-              </View>
+                <View style={{ flexDirection: "row", alignItems: "center", marginTop: 6, gap: 4 }}>
+                  <Text style={{ fontSize: 11, color: colors.primary, fontWeight: "600" }}>Tap to view full idea</Text>
+                  <IconSymbol name="chevron.right" size={11} color={colors.primary} />
+                </View>
+              </TouchableOpacity>
             ))}
           </DesktopContainer>
         )}
