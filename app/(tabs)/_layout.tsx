@@ -93,6 +93,24 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
+        name="caption"
+        options={{
+          title: "Caption",
+          tabBarIcon: ({ color, size }) => (
+            <IconSymbol size={size ?? 24} name="text.bubble.fill" color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="calendar"
+        options={{
+          title: "Calendar",
+          tabBarIcon: ({ color, size }) => (
+            <IconSymbol size={size ?? 24} name="calendar" color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
         name="more"
         options={{
           title: "More",

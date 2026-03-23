@@ -97,3 +97,32 @@
 - [x] Prompt Generator: main prompt, negative prompt, tips, variations output
 - [x] Prompt Generator: copy individual fields and share full prompt
 - [x] Server router: generatePrompt endpoint with LLM integration (6 tools supported)
+
+## New Features - Round 4
+- [x] Prompt Generator: add "Custom Tool" option for any user-specified AI tool
+- [x] Prompt Generator: custom tool name input field (e.g. Ideogram, Adobe Firefly, Pika)
+- [x] Prompt Generator: AI optimizes prompt for the custom tool the user specifies
+- [x] Prompt Generator: save generated prompts to History tab
+- [x] History tab: show saved prompts section alongside ideas and analyses
+- [x] History tab: prompt cards show tool name, media type, subject, copy/share/delete
+- [x] Caption Writer screen: new tab with platform-optimized caption generation
+- [x] Caption Writer: input idea title/topic and select platform
+- [x] Caption Writer: AI generates full caption with hashtags, emojis, character count
+- [x] Caption Writer: copy caption and hashtags separately
+- [x] Caption Writer: tone selector (professional, casual, witty, inspirational, educational)
+- [x] Caption Writer: character count bar with platform limit
+- [x] Caption Writer: A/B test hook alternative
+- [x] Caption Writer: platform-specific tips
+- [x] Caption Writer: save to History and native share
+- [x] Content Calendar screen: new tab for scheduling ideas to dates
+- [x] Content Calendar: weekly and monthly view
+- [x] Content Calendar: pin/schedule generated ideas to specific dates and platforms
+- [x] Content Calendar: visual posting schedule with platform color coding
+- [x] Content Calendar: tap a date to add or view scheduled ideas
+- [x] Content Calendar: link saved ideas to calendar entries
+- [x] Content Calendar: mark posts as complete with checkbox
+- [x] Content Calendar: upcoming posts summary (next 7 days)
+- [x] History tab: 4 sub-tabs (Ideas, Analyses, Prompts, Captions)
+- [x] History tab: caption cards with copy/share/delete
+- [x] Caption tab added to main tab bar
+- [x] Calendar tab added to main tab bar

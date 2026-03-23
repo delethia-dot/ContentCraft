@@ -28,6 +28,42 @@ export interface UrlAnalysis {
   createdAt: string;
 }
 
+export interface SavedPrompt {
+  id: string;
+  tool: string; // can be preset or custom tool name
+  mediaType: "image" | "video";
+  subject: string;
+  platform: Platform;
+  mainPrompt: string;
+  negativePrompt: string;
+  tips: string[];
+  variations: string[];
+  estimatedQuality: string;
+  createdAt: string;
+}
+
+export interface SavedCaption {
+  id: string;
+  topic: string;
+  platform: Platform;
+  tone: string;
+  caption: string;
+  hashtags: string[];
+  characterCount: number;
+  createdAt: string;
+}
+
+export interface CalendarEntry {
+  id: string;
+  date: string; // ISO date string YYYY-MM-DD
+  ideaId?: string;
+  ideaTitle: string;
+  platform: Platform;
+  contentType: ContentType;
+  notes?: string;
+  completed: boolean;
+}
+
 export interface TrendingIdea {
   id: string;
   title: string;

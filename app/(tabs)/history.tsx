@@ -16,13 +16,14 @@ import { ScreenContainer } from "@/components/screen-container";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { useColors } from "@/hooks/use-colors";
 import { useSavedIdeas } from "@/lib/saved-ideas-context";
-import { ContentIdea, UrlAnalysis, PLATFORMS } from "@/lib/types";
+import { useStorage } from "@/lib/storage-context";
+import { ContentIdea, UrlAnalysis, SavedPrompt, SavedCaption, PLATFORMS } from "@/lib/types";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Haptics from "expo-haptics";
 
 const SAVED_ANALYSES_KEY = "@contentcraft_analyses";
 
-type Tab = "ideas" | "analyses";
+type Tab = "ideas" | "analyses" | "prompts" | "captions";
 
 // ─── Full Idea Modal ──────────────────────────────────────────────────────────
 
@@ -288,6 +289,7 @@ function ExportModal({
 export default function HistoryScreen() {
   const colors = useColors();
   const { savedIdeas, removeIdea } = useSavedIdeas();
+  const { savedPrompts, removePrompt, clearAllPrompts, savedCaptions, removeCaption, clearAllCaptions } = useStorage();
   const [activeTab, setActiveTab] = useState<Tab>("ideas");
   const [analyses, setAnalyses] = useState<UrlAnalysis[]>([]);
   const [selectedIdea, setSelectedIdea] = useState<ContentIdea | null>(null);
@@ -479,6 +481,149 @@ export default function HistoryScreen() {
 
   const ideasEmpty = savedIdeas.length === 0;
   const analysesEmpty = analyses.length === 0;
+  const promptsEmpty = savedPrompts.length === 0;
+  const captionsEmpty = savedCaptions.length === 0;
+
+  const clearAllPromptsFn = useCallback(() => {
+    Alert.alert("Clear All Prompts", "This will permanently delete all saved prompts. Are you sure?", [
+      { text: "Cancel", style: "cancel" },
+      { text: "Clear All", style: "destructive", onPress: () => clearAllPrompts() },
+    ]);
+  }, [clearAllPrompts]);
+
+  const clearAllCaptionsFn = useCallback(() => {
+    Alert.alert("Clear All Captions", "This will permanently delete all saved captions. Are you sure?", [
+      { text: "Cancel", style: "cancel" },
+      { text: "Clear All", style: "destructive", onPress: () => clearAllCaptions() },
+    ]);
+  }, [clearAllCaptions]);
+
+  const sharePrompt = useCallback(async (prompt: SavedPrompt) => {
+    const text = `🎨 AI Prompt (${prompt.tool})\n\nMain Prompt:\n${prompt.mainPrompt}\n\nNegative Prompt:\n${prompt.negativePrompt}\n\nPlatform: ${prompt.platform} | Type: ${prompt.mediaType}`;
+    try {
+      if (Platform.OS !== "web") Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      await Share.share({ message: text, title: "AI Prompt" });
+    } catch {}
+  }, []);
+
+  const shareCaption = useCallback(async (caption: SavedCaption) => {
+    const hashtagStr = caption.hashtags.length > 0 ? "\n\n" + caption.hashtags.map((h) => `#${h.replace(/^#/, "")}`).join(" ") : "";
+    const text = `${caption.caption}${hashtagStr}`;
+    try {
+      if (Platform.OS !== "web") Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      await Share.share({ message: text, title: "Caption" });
+    } catch {}
+  }, []);
+
+  const renderPromptItem = ({ item: prompt }: { item: SavedPrompt }) => {
+    const toolColor = colors.accent;
+    return (
+      <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+        <View style={styles.cardHeader}>
+          <View style={[styles.platformBadge, { backgroundColor: toolColor + "18", borderColor: toolColor + "40" }]}>
+            <Text style={[styles.platformBadgeText, { color: toolColor }]}>{prompt.tool}</Text>
+          </View>
+          <View style={[styles.typeBadge, { backgroundColor: colors.primary + "12" }]}>
+            <Text style={[styles.typeBadgeText, { color: colors.primary }]}>{prompt.mediaType}</Text>
+          </View>
+          <Text style={[styles.dateText, { color: colors.muted }]}>{formatDate(prompt.createdAt)}</Text>
+        </View>
+        <Text style={[styles.ideaTitle, { color: colors.foreground }]} numberOfLines={1}>{prompt.subject || "AI Prompt"}</Text>
+        <View style={[styles.hookBox, { backgroundColor: toolColor + "08", borderLeftColor: toolColor }]}>
+          <Text style={[styles.hookLabel, { color: toolColor }]}>Prompt</Text>
+          <Text style={[styles.hookText, { color: colors.foreground }]} numberOfLines={3}>{prompt.mainPrompt}</Text>
+        </View>
+        <View style={styles.cardActions}>
+          <TouchableOpacity
+            onPress={() => { Clipboard.setString(prompt.mainPrompt); Alert.alert("Copied!", "Prompt copied to clipboard."); }}
+            activeOpacity={0.7}
+            style={[styles.actionBtn, { backgroundColor: toolColor + "12", borderColor: toolColor + "30" }]}
+          >
+            <IconSymbol name="doc.on.doc" size={14} color={toolColor} />
+            <Text style={[styles.actionBtnText, { color: toolColor }]}>Copy</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => sharePrompt(prompt)}
+            activeOpacity={0.7}
+            style={[styles.actionBtn, { backgroundColor: colors.accent + "12", borderColor: colors.accent + "30" }]}
+          >
+            <IconSymbol name="square.and.arrow.up" size={14} color={colors.accent} />
+            <Text style={[styles.actionBtnText, { color: colors.accent }]}>Share</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => Alert.alert("Delete Prompt", "Remove this prompt?", [
+              { text: "Cancel", style: "cancel" },
+              { text: "Delete", style: "destructive", onPress: () => removePrompt(prompt.id) },
+            ])}
+            activeOpacity={0.7}
+            style={[styles.actionBtn, { backgroundColor: "#EF444412", borderColor: "#EF444430" }]}
+          >
+            <IconSymbol name="trash.fill" size={14} color="#EF4444" />
+            <Text style={[styles.actionBtnText, { color: "#EF4444" }]}>Delete</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    );
+  };
+
+  const renderCaptionItem = ({ item: caption }: { item: SavedCaption }) => {
+    const PLATFORM_COLORS: Record<string, string> = {
+      instagram: "#E1306C", facebook: "#1877F2", tiktok: "#010101", youtube: "#FF0000", linkedin: "#0A66C2",
+    };
+    const pColor = PLATFORM_COLORS[caption.platform] ?? colors.primary;
+    return (
+      <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+        <View style={styles.cardHeader}>
+          <View style={[styles.platformBadge, { backgroundColor: pColor + "18", borderColor: pColor + "40" }]}>
+            <Text style={[styles.platformBadgeText, { color: pColor }]}>{caption.platform}</Text>
+          </View>
+          <View style={[styles.typeBadge, { backgroundColor: colors.primary + "12" }]}>
+            <Text style={[styles.typeBadgeText, { color: colors.primary }]}>{caption.tone}</Text>
+          </View>
+          <Text style={[styles.dateText, { color: colors.muted }]}>{formatDate(caption.createdAt)}</Text>
+        </View>
+        <Text style={[styles.ideaTitle, { color: colors.foreground }]} numberOfLines={1}>{caption.topic}</Text>
+        <View style={[styles.hookBox, { backgroundColor: pColor + "08", borderLeftColor: pColor }]}>
+          <Text style={[styles.hookLabel, { color: pColor }]}>Caption</Text>
+          <Text style={[styles.hookText, { color: colors.foreground }]} numberOfLines={3}>{caption.caption}</Text>
+        </View>
+        {caption.hashtags.length > 0 && (
+          <Text style={[styles.summaryText, { color: colors.muted }]} numberOfLines={1}>
+            {caption.hashtags.slice(0, 5).map((h) => `#${h.replace(/^#/, "")}`).join(" ")}{caption.hashtags.length > 5 ? " ..." : ""}
+          </Text>
+        )}
+        <View style={styles.cardActions}>
+          <TouchableOpacity
+            onPress={() => { const hashtagStr = caption.hashtags.length > 0 ? "\n\n" + caption.hashtags.map((h) => `#${h.replace(/^#/, "")}`).join(" ") : ""; Clipboard.setString(caption.caption + hashtagStr); Alert.alert("Copied!", "Caption copied to clipboard."); }}
+            activeOpacity={0.7}
+            style={[styles.actionBtn, { backgroundColor: pColor + "12", borderColor: pColor + "30" }]}
+          >
+            <IconSymbol name="doc.on.doc" size={14} color={pColor} />
+            <Text style={[styles.actionBtnText, { color: pColor }]}>Copy</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => shareCaption(caption)}
+            activeOpacity={0.7}
+            style={[styles.actionBtn, { backgroundColor: colors.accent + "12", borderColor: colors.accent + "30" }]}
+          >
+            <IconSymbol name="square.and.arrow.up" size={14} color={colors.accent} />
+            <Text style={[styles.actionBtnText, { color: colors.accent }]}>Share</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => Alert.alert("Delete Caption", "Remove this caption?", [
+              { text: "Cancel", style: "cancel" },
+              { text: "Delete", style: "destructive", onPress: () => removeCaption(caption.id) },
+            ])}
+            activeOpacity={0.7}
+            style={[styles.actionBtn, { backgroundColor: "#EF444412", borderColor: "#EF444430" }]}
+          >
+            <IconSymbol name="trash.fill" size={14} color="#EF4444" />
+            <Text style={[styles.actionBtnText, { color: "#EF4444" }]}>Delete</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    );
+  };
 
   return (
     <ScreenContainer>
@@ -505,7 +650,7 @@ export default function HistoryScreen() {
       </View>
 
       {/* Tab Switcher */}
-      <View style={[styles.tabBar, { backgroundColor: colors.background, borderBottomColor: colors.border }]}>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={[styles.tabBar, { backgroundColor: colors.background, borderBottomColor: colors.border }]} contentContainerStyle={{ flexDirection: "row" }}>
         <TouchableOpacity
           onPress={() => setActiveTab("ideas")}
           activeOpacity={0.75}
@@ -513,7 +658,7 @@ export default function HistoryScreen() {
         >
           <IconSymbol name="lightbulb.fill" size={16} color={activeTab === "ideas" ? colors.primary : colors.muted} />
           <Text style={[styles.tabBtnText, { color: activeTab === "ideas" ? colors.primary : colors.muted }]}>
-            Saved Ideas ({savedIdeas.length})
+            Ideas ({savedIdeas.length})
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
@@ -526,13 +671,33 @@ export default function HistoryScreen() {
             Analyses ({analyses.length})
           </Text>
         </TouchableOpacity>
-      </View>
+        <TouchableOpacity
+          onPress={() => setActiveTab("prompts")}
+          activeOpacity={0.75}
+          style={[styles.tabBtn, activeTab === "prompts" && [styles.tabBtnActive, { borderBottomColor: colors.accent }]]}
+        >
+          <IconSymbol name="wand.and.stars" size={16} color={activeTab === "prompts" ? colors.accent : colors.muted} />
+          <Text style={[styles.tabBtnText, { color: activeTab === "prompts" ? colors.accent : colors.muted }]}>
+            Prompts ({savedPrompts.length})
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          onPress={() => setActiveTab("captions")}
+          activeOpacity={0.75}
+          style={[styles.tabBtn, activeTab === "captions" && [styles.tabBtnActive, { borderBottomColor: colors.primary }]]}
+        >
+          <IconSymbol name="text.bubble.fill" size={16} color={activeTab === "captions" ? colors.primary : colors.muted} />
+          <Text style={[styles.tabBtnText, { color: activeTab === "captions" ? colors.primary : colors.muted }]}>
+            Captions ({savedCaptions.length})
+          </Text>
+        </TouchableOpacity>
+      </ScrollView>
 
       {/* Clear All */}
-      {((activeTab === "ideas" && !ideasEmpty) || (activeTab === "analyses" && !analysesEmpty)) && (
+      {((activeTab === "ideas" && !ideasEmpty) || (activeTab === "analyses" && !analysesEmpty) || (activeTab === "prompts" && !promptsEmpty) || (activeTab === "captions" && !captionsEmpty)) && (
         <View style={[styles.clearRow, { borderBottomColor: colors.border }]}>
           <TouchableOpacity
-            onPress={activeTab === "ideas" ? clearAllIdeas : clearAllAnalyses}
+            onPress={activeTab === "ideas" ? clearAllIdeas : activeTab === "analyses" ? clearAllAnalyses : activeTab === "prompts" ? clearAllPromptsFn : clearAllCaptionsFn}
             activeOpacity={0.7}
             style={styles.clearBtn}
           >
@@ -563,24 +728,66 @@ export default function HistoryScreen() {
             showsVerticalScrollIndicator={false}
           />
         )
-      ) : analysesEmpty ? (
-        <View style={styles.emptyState}>
-          <View style={[styles.emptyIcon, { backgroundColor: colors.primary + "15" }]}>
-            <IconSymbol name="chart.line.uptrend.xyaxis" size={36} color={colors.primary} />
+      ) : activeTab === "analyses" ? (
+        analysesEmpty ? (
+          <View style={styles.emptyState}>
+            <View style={[styles.emptyIcon, { backgroundColor: colors.primary + "15" }]}>
+              <IconSymbol name="chart.line.uptrend.xyaxis" size={36} color={colors.primary} />
+            </View>
+            <Text style={[styles.emptyTitle, { color: colors.foreground }]}>No Analyses Yet</Text>
+            <Text style={[styles.emptySubtitle, { color: colors.muted }]}>
+              Go to the Analyze tab, paste a social media URL, and your analyses will automatically appear here.
+            </Text>
           </View>
-          <Text style={[styles.emptyTitle, { color: colors.foreground }]}>No Analyses Yet</Text>
-          <Text style={[styles.emptySubtitle, { color: colors.muted }]}>
-            Go to the Analyze tab, paste a social media URL, and your analyses will automatically appear here.
-          </Text>
-        </View>
+        ) : (
+          <FlatList
+            data={analyses}
+            keyExtractor={(item) => item.id}
+            renderItem={renderAnalysisItem}
+            contentContainerStyle={styles.listContent}
+            showsVerticalScrollIndicator={false}
+          />
+        )
+      ) : activeTab === "prompts" ? (
+        promptsEmpty ? (
+          <View style={styles.emptyState}>
+            <View style={[styles.emptyIcon, { backgroundColor: colors.accent + "15" }]}>
+              <IconSymbol name="wand.and.stars" size={36} color={colors.accent} />
+            </View>
+            <Text style={[styles.emptyTitle, { color: colors.foreground }]}>No Saved Prompts Yet</Text>
+            <Text style={[styles.emptySubtitle, { color: colors.muted }]}>
+              Go to the Prompt tab, generate AI prompts, and tap Save to store them here.
+            </Text>
+          </View>
+        ) : (
+          <FlatList
+            data={savedPrompts}
+            keyExtractor={(item) => item.id}
+            renderItem={renderPromptItem}
+            contentContainerStyle={styles.listContent}
+            showsVerticalScrollIndicator={false}
+          />
+        )
       ) : (
-        <FlatList
-          data={analyses}
-          keyExtractor={(item) => item.id}
-          renderItem={renderAnalysisItem}
-          contentContainerStyle={styles.listContent}
-          showsVerticalScrollIndicator={false}
-        />
+        captionsEmpty ? (
+          <View style={styles.emptyState}>
+            <View style={[styles.emptyIcon, { backgroundColor: colors.primary + "15" }]}>
+              <IconSymbol name="text.bubble.fill" size={36} color={colors.primary} />
+            </View>
+            <Text style={[styles.emptyTitle, { color: colors.foreground }]}>No Saved Captions Yet</Text>
+            <Text style={[styles.emptySubtitle, { color: colors.muted }]}>
+              Go to the Caption tab, write platform captions, and tap Save to store them here.
+            </Text>
+          </View>
+        ) : (
+          <FlatList
+            data={savedCaptions}
+            keyExtractor={(item) => item.id}
+            renderItem={renderCaptionItem}
+            contentContainerStyle={styles.listContent}
+            showsVerticalScrollIndicator={false}
+          />
+        )
       )}
 
       {/* Modals */}

@@ -79,6 +79,15 @@ const MAPPING = {
   "eye.slash.fill": "visibility-off",
   "lock.fill": "lock",
   "questionmark.circle.fill": "help",
+  "text.bubble.fill": "chat-bubble",
+  "captions.bubble.fill": "subtitles",
+  "calendar.badge.plus": "event",
+  "calendar.badge.clock": "event-note",
+  "checkmark.square.fill": "check-box",
+  "square": "check-box-outline-blank",
+  "note.text": "note",
+  "text.cursor": "text-fields",
+  "rectangle.and.pencil.and.ellipsis": "rate-review",
 } as IconMapping;
 
 export function IconSymbol({

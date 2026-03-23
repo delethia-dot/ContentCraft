@@ -11,6 +11,7 @@ import { ThemeProvider } from "@/lib/theme-provider";
 import { NicheProvider } from "@/lib/niche-context";
 import { SavedIdeasProvider } from "@/lib/saved-ideas-context";
 import { OnboardingProvider } from "@/lib/onboarding-context";
+import { StorageProvider } from "@/lib/storage-context";
 import {
   SafeAreaFrameContext,
   SafeAreaInsetsContext,
@@ -85,6 +86,7 @@ export default function RootLayout() {
     <OnboardingProvider>
     <NicheProvider>
     <SavedIdeasProvider>
+    <StorageProvider>
     <GestureHandlerRootView style={{ flex: 1 }}>
       <trpc.Provider client={trpcClient} queryClient={queryClient}>
         <QueryClientProvider client={queryClient}>
@@ -100,6 +102,7 @@ export default function RootLayout() {
         </QueryClientProvider>
       </trpc.Provider>
     </GestureHandlerRootView>
+    </StorageProvider>
     </SavedIdeasProvider>
     </NicheProvider>
     </OnboardingProvider>
