@@ -13,47 +13,44 @@ const ThemeContext = createContext<ThemeContextValue | null>(null);
 
 const STORAGE_KEY = "contentcraft_color_scheme";
 
-function getInitialScheme(systemScheme: ColorScheme): ColorScheme {
-  if (Platform.OS === "web" && typeof localStorage !== "undefined") {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    if (saved === "dark" || saved === "light") return saved;
-  }
-  return systemScheme;
+function getStoredScheme(): ColorScheme | null {
+  if (typeof localStorage === "undefined") return null;
+  const saved = localStorage.getItem(STORAGE_KEY);
+  return saved === "dark" || saved === "light" ? saved : null;
 }
 
+/** Apply scheme to the DOM — sets data-theme on <html> which triggers CSS variables in global.css */
 function applyWebScheme(scheme: ColorScheme) {
   if (typeof document === "undefined") return;
   const root = document.documentElement;
-  // Set data-theme attribute for CSS selectors
   root.setAttribute("data-theme", scheme);
   root.classList.toggle("dark", scheme === "dark");
-  // Inject all CSS color variables directly onto :root so they cascade everywhere
+  // Also set inline CSS vars as a fallback for NativeWind scoped vars
   const palette = SchemeColors[scheme];
   Object.entries(palette).forEach(([token, value]) => {
     root.style.setProperty(`--color-${token}`, value as string);
   });
-  // Also set background color on body to avoid flash
   document.body.style.backgroundColor = palette.background as string;
   document.body.style.color = palette.foreground as string;
+  try { localStorage.setItem(STORAGE_KEY, scheme); } catch {}
 }
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const systemScheme = (useSystemColorScheme() ?? "light") as ColorScheme;
-  const [colorScheme, setColorSchemeState] = useState<ColorScheme>(() =>
-    getInitialScheme(systemScheme)
-  );
+
+  const [colorScheme, setColorSchemeState] = useState<ColorScheme>(() => {
+    if (Platform.OS === "web") {
+      return getStoredScheme() ?? systemScheme;
+    }
+    return systemScheme;
+  });
 
   const applyScheme = useCallback((scheme: ColorScheme) => {
-    // Update NativeWind
     nativewindColorScheme.set(scheme);
-    // Update React Native Appearance (mobile)
     if (Platform.OS !== "web") {
       Appearance.setColorScheme?.(scheme);
-    }
-    // Update web DOM
-    if (Platform.OS === "web") {
+    } else {
       applyWebScheme(scheme);
-      try { localStorage.setItem(STORAGE_KEY, scheme); } catch {}
     }
   }, []);
 
@@ -62,7 +59,13 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     applyScheme(scheme);
   }, [applyScheme]);
 
-  // Apply on mount and whenever scheme changes
+  // Apply on mount
+  useEffect(() => {
+    applyScheme(colorScheme);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Re-apply whenever scheme changes
   useEffect(() => {
     applyScheme(colorScheme);
   }, [applyScheme, colorScheme]);
@@ -70,17 +73,17 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const themeVariables = useMemo(
     () =>
       vars({
-        "color-primary": SchemeColors[colorScheme].primary,
-        "color-accent": SchemeColors[colorScheme].accent ?? SchemeColors[colorScheme].primary,
-        "color-navy": SchemeColors[colorScheme].navy ?? SchemeColors[colorScheme].primary,
+        "color-primary":    SchemeColors[colorScheme].primary,
+        "color-accent":     (SchemeColors[colorScheme] as any).accent    ?? SchemeColors[colorScheme].primary,
+        "color-navy":       (SchemeColors[colorScheme] as any).navy      ?? SchemeColors[colorScheme].primary,
         "color-background": SchemeColors[colorScheme].background,
-        "color-surface": SchemeColors[colorScheme].surface,
+        "color-surface":    SchemeColors[colorScheme].surface,
         "color-foreground": SchemeColors[colorScheme].foreground,
-        "color-muted": SchemeColors[colorScheme].muted,
-        "color-border": SchemeColors[colorScheme].border,
-        "color-success": SchemeColors[colorScheme].success,
-        "color-warning": SchemeColors[colorScheme].warning,
-        "color-error": SchemeColors[colorScheme].error,
+        "color-muted":      SchemeColors[colorScheme].muted,
+        "color-border":     SchemeColors[colorScheme].border,
+        "color-success":    SchemeColors[colorScheme].success,
+        "color-warning":    SchemeColors[colorScheme].warning,
+        "color-error":      SchemeColors[colorScheme].error,
       }),
     [colorScheme],
   );

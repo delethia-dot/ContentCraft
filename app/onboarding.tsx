@@ -212,7 +212,7 @@ function WelcomeStep({ colors, onNext }: { colors: any; onNext: () => void }) {
           {[
             { label: "IG", color: "#E1306C" },
             { label: "FB", color: "#1877F2" },
-            { label: "TK", color: "#010101" },
+            { label: "TK", color: "#00C2CB" },
             { label: "YT", color: "#FF0000" },
             { label: "LI", color: "#0A66C2" },
           ].map((p) => (

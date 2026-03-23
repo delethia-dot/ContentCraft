@@ -1,3 +1,41 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* ── Light theme CSS variables (default) ── */
+:root {
+  --color-primary:    #0D9488;
+  --color-accent:     #B8860B;
+  --color-navy:       #0F2044;
+  --color-background: #FFFFFF;
+  --color-surface:    #F4F7FB;
+  --color-foreground: #0F2044;
+  --color-muted:      #6B7280;
+  --color-border:     #E2E8F0;
+  --color-success:    #10B981;
+  --color-warning:    #F59E0B;
+  --color-error:      #EF4444;
+}
+
+/* ── Dark theme CSS variables ── */
+:root[data-theme="dark"],
+:root.dark {
+  --color-primary:    #14B8A6;
+  --color-accent:     #F0C040;
+  --color-navy:       #1E3A6E;
+  --color-background: #0A0F1E;
+  --color-surface:    #111827;
+  --color-foreground: #F0F4FF;
+  --color-muted:      #9CA3AF;
+  --color-border:     #1E3A6E;
+  --color-success:    #34D399;
+  --color-warning:    #FBBF24;
+  --color-error:      #F87171;
+}
+
+/* ── Ensure body background matches theme ── */
+body {
+  background-color: var(--color-background);
+  color: var(--color-foreground);
+  transition: background-color 0.2s ease, color 0.2s ease;
+}

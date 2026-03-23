@@ -205,3 +205,7 @@
 
 ## Dark Mode Toggle Web Fix
 - [x] Fix dark mode / appearance toggle not applying theme change on desktop web
+
+## Bug Fixes Round 3
+- [x] Dark mode toggle still not working on desktop web (deeper fix needed)
+- [x] TikTok color fixed to teal (#00C2CB) across all screens — was incorrectly set to near-black #010101

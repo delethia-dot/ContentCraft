@@ -49,7 +49,7 @@ const STORAGE_KEY = "contentcraft_tracker_entries";
 const PLATFORM_COLORS: Record<SocialPlatform, string> = {
   instagram: "#E1306C",
   facebook: "#1877F2",
-  tiktok: "#010101",
+  tiktok: "#00C2CB",
   youtube: "#FF0000",
   linkedin: "#0A66C2",
 };
