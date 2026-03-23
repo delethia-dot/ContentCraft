@@ -79,6 +79,14 @@ const TOOLS: Tool[] = [
     color: "#DC2626",
     badge: "AI",
   },
+  {
+    id: "history",
+    title: "History",
+    description: "Browse all your saved ideas, URL analyses, prompts, and captions in one place.",
+    icon: "clock.arrow.circlepath",
+    route: "/(tabs)/history",
+    color: "#0D9488",
+  },
 ];
 
 const QUICK_TIPS = [

@@ -83,6 +83,14 @@ export default function HomeScreen() {
       color: "#0A66C2",
       route: "/(tabs)/more",
     },
+    {
+      id: "history",
+      title: "History",
+      subtitle: "Saved ideas & analyses",
+      icon: "clock.arrow.circlepath" as const,
+      color: "#0D9488",
+      route: "/(tabs)/history",
+    },
   ];
 
   const handleCardPress = (route: string) => {
@@ -139,11 +147,29 @@ export default function HomeScreen() {
         {/* Stats Row */}
         <DesktopContainer>
         <View style={[styles.statsRow, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-          <StatItem label="Saved Ideas" value={savedIdeas.length.toString()} color={colors.primary} />
+          <TouchableOpacity
+            style={{ flex: 1 }}
+            onPress={() => {
+              if (Platform.OS !== "web") Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+              router.push("/(tabs)/history" as any);
+            }}
+            activeOpacity={0.7}
+          >
+            <StatItem label="Saved Ideas" value={savedIdeas.length.toString()} color={colors.primary} />
+          </TouchableOpacity>
           <View style={[styles.statDivider, { backgroundColor: colors.border }]} />
           <StatItem label="Platforms" value="5" color="#B8860B" />
           <View style={[styles.statDivider, { backgroundColor: colors.border }]} />
-          <StatItem label="Frameworks" value="6" color={colors.navy} />
+          <TouchableOpacity
+            style={{ flex: 1 }}
+            onPress={() => {
+              if (Platform.OS !== "web") Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+              router.push("/(tabs)/more" as any);
+            }}
+            activeOpacity={0.7}
+          >
+            <StatItem label="Frameworks" value="6" color={colors.navy} />
+          </TouchableOpacity>
         </View>
         </DesktopContainer>
 
@@ -177,7 +203,7 @@ export default function HomeScreen() {
           <DesktopContainer style={styles.sectionContainer}>
             <View style={styles.sectionHeader}>
               <Text style={[styles.sectionTitle, { color: colors.foreground }]}>Saved Ideas</Text>
-              <TouchableOpacity onPress={() => router.push("/(tabs)/ideas" as any)} activeOpacity={0.7}>
+              <TouchableOpacity onPress={() => router.push("/(tabs)/history" as any)} activeOpacity={0.7}>
                 <Text style={[styles.seeAll, { color: colors.primary }]}>See all</Text>
               </TouchableOpacity>
             </View>

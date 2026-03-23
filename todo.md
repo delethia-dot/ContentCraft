@@ -165,10 +165,19 @@
 - [x] All 82 tests pass
 
 ## Bug Fixes & Navigation Overhaul
-- [ ] Fix TikTok icon not visible in dark mode (white icon on white/light background)
-- [ ] Add "Powered by Simply Your Marketer, LLC" to About section in Settings
-- [ ] Reorganize bottom nav: reduce to 5 primary tabs (Home, Ideas, Trending, History, More)
-- [ ] Create Tools hub screen accessible from More tab (Analyze, Prompt, Caption, Calendar, Tracker)
-- [ ] Remove Analyze, Prompt, Caption, Calendar, Tracker from bottom tab bar
-- [ ] Update sidebar nav to reflect new navigation structure
-- [ ] Ensure all Tools hub items navigate correctly to their screens
+- [x] Fix TikTok icon not visible in dark mode (changed to teal #00C2CB)
+- [x] Add "Powered by Simply Your Marketer, LLC" to About section in Settings
+- [x] Reorganize bottom nav: reduce to 5 primary tabs (Home, Ideas, Trending, Tools, More)
+- [x] Create Tools hub screen accessible from Tools tab (Analyze, Prompt, Caption, Calendar, Tracker, Competitor, History)
+- [x] Remove Analyze, Prompt, Caption, Calendar, Tracker from bottom tab bar
+- [x] Update sidebar nav to reflect new navigation structure
+- [x] Ensure all Tools hub items navigate correctly to their screens
+
+## Bug Fixes - Navigation & Persistence
+- [x] History missing from mobile navigation - added to Tools Hub grid
+- [x] History card added to Home screen Quick Access grid (5th card)
+- [x] Saved Ideas stat on Home now taps through to History screen
+- [x] Frameworks stat on Home now taps through to More/Frameworks screen
+- [x] "See all" link on Home Saved Ideas preview now goes to History (was going to Ideas)
+- [x] URL analyses persist correctly - Analyze writes to @contentcraft_analyses, History reads same key
+- [x] All 82 tests pass
