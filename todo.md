@@ -209,3 +209,6 @@
 ## Bug Fixes Round 3
 - [x] Dark mode toggle still not working on desktop web (deeper fix needed)
 - [x] TikTok color fixed to teal (#00C2CB) across all screens — was incorrectly set to near-black #010101
+
+## URL Analyzer Fix
+- [x] URL Analyzer fixed: AI prompt rewritten to stop fabricating follower counts/niche data, disclaimer banner added to results, section reframed as strategy advice not real analytics

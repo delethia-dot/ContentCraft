@@ -266,9 +266,17 @@ export default function AnalyzeScreen() {
               </Text>
             </View>
 
-            {/* Competitor Result */}
+                {/* Competitor Result */}
             {competitorResult && (
               <View style={{ gap: 14, paddingBottom: 20 }}>
+                {/* Disclaimer Banner */}
+                <View style={[styles.disclaimerBanner, { backgroundColor: colors.warning + "18", borderColor: colors.warning + "50" }]}>
+                  <IconSymbol name="exclamationmark.triangle.fill" size={16} color={colors.warning} />
+                  <Text style={[styles.disclaimerText, { color: colors.foreground }]}>
+                    {competitorResult.disclaimer || "This is AI-generated strategy advice based on your niche — not real account data or follower counts."}
+                  </Text>
+                </View>
+
                 {/* Overview Card */}
                 <View style={[styles.scoreCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
                   <View style={styles.scoreRow}>
@@ -279,14 +287,9 @@ export default function AnalyzeScreen() {
                           {competitorResult.platform?.charAt(0).toUpperCase() + competitorResult.platform?.slice(1)}
                         </Text>
                       </View>
-                      <View style={[styles.platformTag, { backgroundColor: colors.accent + "20", marginTop: 4 }]}>
-                        <Text style={[styles.platformTagText, { color: colors.accent }]}>
-                          {competitorResult.estimatedFollowerTier}
-                        </Text>
-                      </View>
                     </View>
                     <View style={[styles.competitorIconBox, { backgroundColor: colors.primary + "15" }]}>
-                      <Text style={styles.competitorEmoji}>🔍</Text>
+                      <Text style={styles.competitorEmoji}>💡</Text>
                       <Text style={[styles.competitorPostingFreq, { color: colors.muted }]}>{competitorResult.postingFrequency}</Text>
                     </View>
                   </View>
@@ -737,4 +740,6 @@ const styles = StyleSheet.create({
   patternName: { fontSize: 14, fontWeight: "700", flex: 1 },
   patternFreq: { fontSize: 11, fontWeight: "600" },
   patternDesc: { fontSize: 13, lineHeight: 18 },
+  disclaimerBanner: { flexDirection: "row", alignItems: "flex-start", gap: 8, padding: 12, borderRadius: 10, borderWidth: 1 },
+  disclaimerText: { flex: 1, fontSize: 12, lineHeight: 17 },
 });

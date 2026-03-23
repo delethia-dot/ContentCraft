@@ -500,32 +500,32 @@ Return JSON in this exact format:
         messages: [
           {
             role: "system",
-            content: `You are a competitive intelligence analyst for social media. Analyze competitor profiles and identify content patterns, strategies, and opportunities. Return ONLY valid JSON with no markdown.`,
+            content: `You are a content strategy advisor. IMPORTANT: You do NOT have access to social media platforms and cannot look up real account data, follower counts, or actual posts. You must NEVER fabricate or guess follower counts, engagement rates, or account-specific facts. Instead, provide genuinely useful strategic content advice based on the niche the user has told you they are in. Return ONLY valid JSON with no markdown.`,
           },
           {
             role: "user",
-            content: `Analyze this competitor on ${platform}: "${competitorHandle}" in the "${niche}" niche.
+            content: `The user wants to study the ${platform} account "${competitorHandle}" as inspiration. Their own niche is "${niche}".
 
-Based on the handle/URL and niche context, provide a strategic competitive analysis covering their likely content strategy, posting patterns, and what's working for them.
+IMPORTANT: You cannot access ${platform} or any social media. Do NOT invent follower counts, engagement rates, or claim to know what this account actually posts. Instead, provide strategic content advice that would help someone in the "${niche}" niche compete effectively on ${platform}, using the handle name only as context for tone/branding.
 
 Return JSON in this exact format:
 {
-  "competitorName": "Cleaned up name/handle",
+  "competitorName": "The handle as provided",
   "platform": "${platform}",
-  "estimatedFollowerTier": "micro (1k-10k)|mid (10k-100k)|macro (100k-1M)|mega (1M+)",
+  "disclaimer": "This analysis is AI-generated strategy advice based on your niche. It does not reflect real account data, follower counts, or actual posts from this account.",
   "contentPatterns": [
     {
-      "pattern": "Pattern name",
-      "description": "What they do and why it works",
-      "frequency": "How often they likely use this"
+      "pattern": "Pattern name relevant to ${niche} on ${platform}",
+      "description": "Why this pattern works for this niche and platform",
+      "frequency": "Recommended frequency for this type of content"
     }
   ],
-  "topContentTypes": ["content type 1", "content type 2", "content type 3"],
-  "postingFrequency": "Estimated posting frequency",
-  "engagementStrengths": ["Strength 1", "Strength 2", "Strength 3"],
-  "contentGaps": ["Gap you could fill", "Opportunity 2", "Opportunity 3"],
-  "differentiationStrategy": "How you can differentiate yourself from this competitor",
-  "keyTakeaways": ["Actionable takeaway 1", "Actionable takeaway 2", "Actionable takeaway 3"]
+  "topContentTypes": ["content type 1 for ${niche}", "content type 2", "content type 3"],
+  "postingFrequency": "Recommended posting frequency for ${platform} in ${niche} niche",
+  "engagementStrengths": ["What tends to drive engagement in ${niche} on ${platform}", "Strength 2", "Strength 3"],
+  "contentGaps": ["Underserved content angle in ${niche}", "Opportunity 2", "Opportunity 3"],
+  "differentiationStrategy": "How to stand out in the ${niche} space on ${platform}",
+  "keyTakeaways": ["Actionable strategy 1", "Actionable strategy 2", "Actionable strategy 3"]
 }`,
           },
         ],
