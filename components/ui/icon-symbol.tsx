@@ -68,6 +68,7 @@ const MAPPING = {
   "arrow.up": "arrow-upward",
   "arrow.down": "arrow-downward",
   "arrow.counterclockwise": "history",
+  "clock.arrow.circlepath": "history",
   "briefcase.fill": "work",
   "heart.fill": "favorite",
   "paintbrush.fill": "brush",

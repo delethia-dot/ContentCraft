@@ -191,7 +191,7 @@ export default function TrendingScreen() {
 
       {/* Platform Filter */}
       <View style={[styles.filterWrap, { backgroundColor: colors.background, borderBottomColor: colors.border }]}>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterRow}>
+        <View style={styles.filterRow}>
           {[{ id: "all", label: "All" }, ...PLATFORMS].map((p) => {
             const isActive = platformFilter === p.id;
             const pColor = p.id === "all" ? colors.primary : (PLATFORMS.find((pl) => pl.id === p.id)?.color ?? colors.primary);
@@ -214,7 +214,7 @@ export default function TrendingScreen() {
               </TouchableOpacity>
             );
           })}
-        </ScrollView>
+        </View>
       </View>
 
       {/* Content */}
@@ -323,6 +323,8 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
   },
   filterRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
     gap: 8,
     paddingHorizontal: 20,
   },

@@ -108,7 +108,7 @@ export default function IdeasScreen() {
         {/* Platform Selector */}
         <View style={styles.section}>
           <Text style={[styles.sectionLabel, { color: colors.foreground }]}>Platform</Text>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chipRow}>
+          <View style={styles.chipWrap}>
             {PLATFORMS.map((p) => {
               const isActive = selectedPlatform === p.id;
               return (
@@ -135,13 +135,13 @@ export default function IdeasScreen() {
                 </TouchableOpacity>
               );
             })}
-          </ScrollView>
+          </View>
         </View>
 
         {/* Content Type Selector */}
         <View style={styles.section}>
           <Text style={[styles.sectionLabel, { color: colors.foreground }]}>Content Type</Text>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chipRow}>
+          <View style={styles.chipWrap}>
             {availableContentTypes.map((ct) => {
               const isActive = selectedContentType === ct.id;
               return (
@@ -163,7 +163,7 @@ export default function IdeasScreen() {
                 </TouchableOpacity>
               );
             })}
-          </ScrollView>
+          </View>
         </View>
 
         {/* Generate Button */}
@@ -353,6 +353,11 @@ const styles = StyleSheet.create({
   chipRow: {
     gap: 8,
     paddingRight: 20,
+  },
+  chipWrap: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
   },
   platformChip: {
     flexDirection: "row",

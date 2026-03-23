@@ -67,3 +67,16 @@
 - [x] Ensure explicit text colors used everywhere (no reliance on inherited/default colors)
 - [x] Fix ScreenContainer to use style={{ backgroundColor: colors.background }} from useColors()
 - [x] Remove all containerClassName="bg-background" overrides from all 5 tab screens
+
+## Bug Fixes - Android & UX
+- [x] Fix niche sheet not showing on Android (Modal z-index / elevation issue)
+- [x] Wrap platform chips instead of horizontal scroll on Ideas screen
+- [x] Wrap content type chips instead of horizontal scroll on Ideas screen
+- [x] Wrap platform filter chips on Trending screen
+
+## History & Saved Results
+- [x] Add History tab (6th tab) for saved ideas and URL analyses
+- [x] Show saved ideas list with platform, niche, date, copy/delete actions
+- [x] Show saved URL analyses with resonance score, date, delete action
+- [x] Persist URL analyses to AsyncStorage automatically after each analysis
+- [x] Add clear all / delete individual items functionality

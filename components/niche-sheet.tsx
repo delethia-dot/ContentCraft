@@ -7,8 +7,8 @@ import {
   FlatList,
   TouchableOpacity,
   StyleSheet,
-  KeyboardAvoidingView,
   Platform,
+  Dimensions,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useColors } from "@/hooks/use-colors";
@@ -16,6 +16,9 @@ import { useNiche } from "@/lib/niche-context";
 import { POPULAR_NICHES } from "@/lib/types";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import * as Haptics from "expo-haptics";
+
+const SCREEN_HEIGHT = Dimensions.get("window").height;
+const SHEET_HEIGHT = Math.min(SCREEN_HEIGHT * 0.82, 640);
 
 interface NicheSheetProps {
   visible: boolean;
@@ -49,184 +52,189 @@ export function NicheSheet({ visible, onClose }: NicheSheetProps) {
     await handleSelect(search.trim());
   }, [search, handleSelect]);
 
+  const bottomPad = Math.max(insets.bottom, 16) + 8;
+
   return (
     <Modal
       visible={visible}
       animationType="slide"
-      transparent
+      transparent={true}
       onRequestClose={onClose}
-      statusBarTranslucent
+      statusBarTranslucent={true}
+      hardwareAccelerated={true}
     >
-      <View style={styles.modalRoot}>
-        {/* Backdrop - tap to dismiss */}
+      {/* Full-screen container — works on both iOS and Android */}
+      <View style={styles.overlay}>
+        {/* Dimmed backdrop */}
         <TouchableOpacity
           style={styles.backdrop}
           activeOpacity={1}
           onPress={onClose}
         />
 
-        {/* Sheet */}
-        <KeyboardAvoidingView
-          behavior={Platform.OS === "ios" ? "padding" : "height"}
-          style={styles.keyboardView}
+        {/* Sheet anchored to bottom */}
+        <View
+          style={[
+            styles.sheet,
+            {
+              backgroundColor: colors.background,
+              height: SHEET_HEIGHT,
+              paddingBottom: bottomPad,
+            },
+          ]}
         >
+          {/* Handle bar */}
+          <View style={[styles.handle, { backgroundColor: colors.border }]} />
+
+          {/* Header */}
+          <View style={styles.sheetHeader}>
+            <View style={{ flex: 1 }}>
+              <Text style={[styles.sheetTitle, { color: colors.foreground }]}>
+                Select Your Niche
+              </Text>
+              <Text style={[styles.sheetSubtitle, { color: colors.muted }]}>
+                Current:{" "}
+                <Text style={{ color: colors.accent, fontWeight: "700" }}>
+                  {niche}
+                </Text>
+              </Text>
+            </View>
+            <TouchableOpacity
+              onPress={onClose}
+              activeOpacity={0.7}
+              style={[styles.closeBtn, { backgroundColor: colors.surface }]}
+            >
+              <IconSymbol name="xmark" size={16} color={colors.muted} />
+            </TouchableOpacity>
+          </View>
+
+          {/* Search */}
           <View
             style={[
-              styles.sheet,
-              {
-                backgroundColor: colors.background,
-                paddingBottom: Math.max(insets.bottom, 16) + 8,
-              },
+              styles.searchWrap,
+              { backgroundColor: colors.surface, borderColor: colors.border },
             ]}
           >
-            {/* Handle */}
-            <View style={[styles.handle, { backgroundColor: colors.border }]} />
-
-            {/* Header */}
-            <View style={styles.sheetHeader}>
-              <View style={{ flex: 1 }}>
-                <Text style={[styles.sheetTitle, { color: colors.foreground }]}>
-                  Select Your Niche
-                </Text>
-                <Text style={[styles.sheetSubtitle, { color: colors.muted }]}>
-                  Current:{" "}
-                  <Text style={{ color: colors.accent, fontWeight: "700" }}>
-                    {niche}
-                  </Text>
-                </Text>
-              </View>
-              <TouchableOpacity
-                onPress={onClose}
-                activeOpacity={0.7}
-                style={[styles.closeBtn, { backgroundColor: colors.surface }]}
-              >
-                <IconSymbol name="xmark" size={16} color={colors.muted} />
+            <IconSymbol name="magnifyingglass" size={18} color={colors.muted} />
+            <TextInput
+              style={[styles.searchInput, { color: colors.foreground }]}
+              placeholder="Search or enter custom niche..."
+              placeholderTextColor={colors.muted}
+              value={search}
+              onChangeText={setSearch}
+              returnKeyType="done"
+              onSubmitEditing={handleCustom}
+              autoCorrect={false}
+            />
+            {search.length > 0 && (
+              <TouchableOpacity onPress={() => setSearch("")} activeOpacity={0.7}>
+                <IconSymbol name="xmark.circle.fill" size={18} color={colors.muted} />
               </TouchableOpacity>
-            </View>
+            )}
+          </View>
 
-            {/* Search */}
-            <View
-              style={[
-                styles.searchWrap,
-                { backgroundColor: colors.surface, borderColor: colors.border },
-              ]}
-            >
-              <IconSymbol name="magnifyingglass" size={18} color={colors.muted} />
-              <TextInput
-                style={[styles.searchInput, { color: colors.foreground }]}
-                placeholder="Search or enter custom niche..."
-                placeholderTextColor={colors.muted}
-                value={search}
-                onChangeText={setSearch}
-                returnKeyType="done"
-                onSubmitEditing={handleCustom}
-                autoCorrect={false}
-              />
-              {search.length > 0 && (
-                <TouchableOpacity onPress={() => setSearch("")} activeOpacity={0.7}>
-                  <IconSymbol name="xmark.circle.fill" size={18} color={colors.muted} />
-                </TouchableOpacity>
-              )}
-            </View>
+          {/* Custom niche button */}
+          {search.trim().length > 0 &&
+            !POPULAR_NICHES.some(
+              (n) => n.toLowerCase() === search.toLowerCase()
+            ) && (
+              <TouchableOpacity
+                onPress={handleCustom}
+                activeOpacity={0.75}
+                style={[
+                  styles.customNicheBtn,
+                  {
+                    backgroundColor: colors.primary + "18",
+                    borderColor: colors.primary,
+                  },
+                ]}
+              >
+                <IconSymbol name="plus.circle.fill" size={18} color={colors.primary} />
+                <Text style={[styles.customNicheText, { color: colors.primary }]}>
+                  Use "{search.trim()}" as my niche
+                </Text>
+              </TouchableOpacity>
+            )}
 
-            {/* Custom niche button */}
-            {search.trim().length > 0 &&
-              !POPULAR_NICHES.some(
-                (n) => n.toLowerCase() === search.toLowerCase()
-              ) && (
+          {/* Niche List */}
+          <FlatList
+            data={filtered}
+            keyExtractor={(item) => item}
+            style={styles.list}
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+            renderItem={({ item }) => {
+              const isSelected = item === niche;
+              return (
                 <TouchableOpacity
-                  onPress={handleCustom}
-                  activeOpacity={0.75}
+                  onPress={() => handleSelect(item)}
+                  activeOpacity={0.7}
                   style={[
-                    styles.customNicheBtn,
+                    styles.nicheItem,
                     {
-                      backgroundColor: colors.primary + "18",
-                      borderColor: colors.primary,
+                      backgroundColor: isSelected
+                        ? colors.primary + "15"
+                        : colors.surface,
+                      borderColor: isSelected ? colors.primary : colors.border,
                     },
                   ]}
                 >
-                  <IconSymbol name="plus.circle.fill" size={18} color={colors.primary} />
-                  <Text style={[styles.customNicheText, { color: colors.primary }]}>
-                    Use "{search.trim()}" as my niche
-                  </Text>
-                </TouchableOpacity>
-              )}
-
-            {/* Niche List */}
-            <FlatList
-              data={filtered}
-              keyExtractor={(item) => item}
-              style={styles.list}
-              showsVerticalScrollIndicator={false}
-              keyboardShouldPersistTaps="handled"
-              renderItem={({ item }) => {
-                const isSelected = item === niche;
-                return (
-                  <TouchableOpacity
-                    onPress={() => handleSelect(item)}
-                    activeOpacity={0.7}
+                  <Text
                     style={[
-                      styles.nicheItem,
+                      styles.nicheItemText,
                       {
-                        backgroundColor: isSelected
-                          ? colors.primary + "15"
-                          : colors.surface,
-                        borderColor: isSelected ? colors.primary : colors.border,
+                        color: isSelected ? colors.primary : colors.foreground,
+                        fontWeight: isSelected ? "700" : "500",
                       },
                     ]}
                   >
-                    <Text
-                      style={[
-                        styles.nicheItemText,
-                        {
-                          color: isSelected ? colors.primary : colors.foreground,
-                          fontWeight: isSelected ? "700" : "500",
-                        },
-                      ]}
-                    >
-                      {item}
-                    </Text>
-                    {isSelected && (
-                      <IconSymbol
-                        name="checkmark.circle.fill"
-                        size={18}
-                        color={colors.primary}
-                      />
-                    )}
-                  </TouchableOpacity>
-                );
-              }}
-            />
-          </View>
-        </KeyboardAvoidingView>
+                    {item}
+                  </Text>
+                  {isSelected && (
+                    <IconSymbol
+                      name="checkmark.circle.fill"
+                      size={18}
+                      color={colors.primary}
+                    />
+                  )}
+                </TouchableOpacity>
+              );
+            }}
+          />
+        </View>
       </View>
     </Modal>
   );
 }
 
 const styles = StyleSheet.create({
-  modalRoot: {
+  overlay: {
     flex: 1,
     justifyContent: "flex-end",
+    // Android requires explicit background on the overlay container
+    backgroundColor: "transparent",
   },
   backdrop: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: "rgba(0,0,0,0.5)",
-  },
-  keyboardView: {
-    width: "100%",
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: "rgba(0,0,0,0.55)",
   },
   sheet: {
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     paddingTop: 12,
     paddingHorizontal: 20,
-    maxHeight: "82%",
+    // Android elevation is critical — without it the sheet may render behind other views
+    elevation: 32,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: -4 },
-    shadowOpacity: 0.18,
+    shadowOpacity: 0.2,
     shadowRadius: 16,
-    elevation: 24,
+    // Ensure sheet is always on top on Android
+    zIndex: 9999,
   },
   handle: {
     width: 40,
