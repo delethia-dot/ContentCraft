@@ -80,21 +80,23 @@ export default function MoreScreen() {
     if (newPrefs.enabled) await scheduleDailyReminder(newPrefs, niche);
   };
 
-  const handleResetOnboarding = () => {
-    Alert.alert(
-      "Replay Onboarding",
-      "This will take you back to the welcome flow. Your niche and saved ideas will be preserved.",
-      [
-        { text: "Cancel", style: "cancel" },
-        {
-          text: "Replay",
-          onPress: async () => {
-            await resetOnboarding();
-            router.replace("/onboarding");
-          },
-        },
-      ]
-    );
+  const handleResetOnboarding = async () => {
+    const confirmed = Platform.OS === "web"
+      ? window.confirm("This will take you back to the welcome flow. Your niche and saved ideas will be preserved. Continue?")
+      : await new Promise<boolean>((resolve) => {
+          Alert.alert(
+            "Replay Onboarding",
+            "This will take you back to the welcome flow. Your niche and saved ideas will be preserved.",
+            [
+              { text: "Cancel", style: "cancel", onPress: () => resolve(false) },
+              { text: "Replay", onPress: () => resolve(true) },
+            ]
+          );
+        });
+    if (confirmed) {
+      await resetOnboarding();
+      router.replace("/onboarding");
+    }
   };
 
   return (
@@ -310,8 +312,8 @@ function SettingsTab({
         </TouchableOpacity>
       </View>
 
-      {/* Notifications */}
-      <View>
+      {/* Notifications — hidden on web (push notifications not supported in browser) */}
+      {Platform.OS !== "web" && <View>
         <Text style={[styles.settingGroupTitle, { color: colors.foreground }]}>Daily Reminders</Text>
         <View style={[styles.settingRow, { backgroundColor: colors.surface, borderColor: colors.border }]}>
           <View style={[styles.settingIcon, { backgroundColor: "#F59E0B20" }]}>
@@ -357,7 +359,7 @@ function SettingsTab({
             </View>
           </View>
         )}
-      </View>
+      </View>}
 
       {/* Appearance */}
       <View>
@@ -370,12 +372,19 @@ function SettingsTab({
             <Text style={[styles.settingLabel, { color: colors.foreground }]}>Dark Mode</Text>
             <Text style={[styles.settingValue, { color: colors.muted }]}>{isDark ? "Enabled" : "Disabled"}</Text>
           </View>
-          <Switch
-            value={isDark}
-            onValueChange={onToggleTheme}
-            trackColor={{ false: "#E2E8F0", true: colors.primary }}
-            thumbColor="#FFFFFF"
-          />
+          <TouchableOpacity
+            onPress={onToggleTheme}
+            activeOpacity={0.8}
+            style={[
+              styles.togglePill,
+              { backgroundColor: isDark ? colors.primary : "#E2E8F0" },
+            ]}
+          >
+            <View style={[
+              styles.toggleThumb,
+              { transform: [{ translateX: isDark ? 20 : 2 }] },
+            ]} />
+          </TouchableOpacity>
         </View>
       </View>
 
@@ -396,13 +405,19 @@ function SettingsTab({
             <TouchableOpacity
               onPress={async () => {
                 if (Platform.OS !== "web") Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                try {
-                  await Share.share({
-                    message: `✨ Check out ContentCraft — AI-powered social media content creation!\n\n🌐 Open on desktop or mobile:\n${APP_WEB_URL}`,
-                    title: "ContentCraft",
-                    url: APP_WEB_URL,
-                  });
-                } catch {}
+                if (Platform.OS === "web") {
+                  // Web: copy link to clipboard
+                  try { await navigator.clipboard.writeText(APP_WEB_URL); } catch {}
+                  window.alert(`Link copied!\n\n${APP_WEB_URL}`);
+                } else {
+                  try {
+                    await Share.share({
+                      message: `✨ Check out ContentCraft — AI-powered social media content creation!\n\n🌐 Open on desktop or mobile:\n${APP_WEB_URL}`,
+                      title: "ContentCraft",
+                      url: APP_WEB_URL,
+                    });
+                  } catch {}
+                }
               }}
               activeOpacity={0.8}
               style={[styles.shareAppBtn, { backgroundColor: colors.primary }]}
@@ -954,5 +969,23 @@ const styles = StyleSheet.create({
   bestForText: {
     fontSize: 13,
     fontWeight: "700",
+  },
+  togglePill: {
+    width: 44,
+    height: 26,
+    borderRadius: 13,
+    justifyContent: "center",
+    flexShrink: 0,
+  },
+  toggleThumb: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    backgroundColor: "#FFFFFF",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.15,
+    shadowRadius: 2,
+    elevation: 2,
   },
 });

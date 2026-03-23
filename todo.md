@@ -196,3 +196,9 @@
 - [x] Add deployed web URL (contentapp-mkf2zi5j.manus.space) to app constants
 - [x] Add "Share App" / "Share Desktop Link" option in Settings/More screen
 - [x] Include web URL in the app's native share sheet so users can share access to the desktop version
+
+## Settings Desktop Fixes
+- [x] Fix Replay Onboarding button not working on desktop
+- [x] Fix Daily Reminder toggle/button not working on desktop (hidden on web — push notifications not supported in browser)
+- [x] Fix Appearance (dark mode) toggle not working on desktop
+- [x] Update Open Desktop and Share App URL from manus.space to contentcraft-app.netlify.app
