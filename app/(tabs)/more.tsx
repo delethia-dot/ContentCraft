@@ -155,6 +155,7 @@ export default function MoreScreen() {
             niche={niche}
             isDark={isDark}
             onToggleTheme={toggleTheme}
+            onSetColorScheme={setColorScheme}
             onChangeNiche={() => setNicheSheetVisible(true)}
             onResetOnboarding={handleResetOnboarding}
             notifPrefs={notifPrefs}
@@ -261,6 +262,7 @@ function SettingsTab({
   niche,
   isDark,
   onToggleTheme,
+  onSetColorScheme,
   onChangeNiche,
   onResetOnboarding,
   notifPrefs,
@@ -271,6 +273,7 @@ function SettingsTab({
   niche: string;
   isDark: boolean;
   onToggleTheme: () => void;
+  onSetColorScheme: (scheme: "light" | "dark") => void;
   onChangeNiche: () => void;
   onResetOnboarding: () => void;
   notifPrefs: NotificationPrefs;
@@ -369,21 +372,32 @@ function SettingsTab({
             <IconSymbol name={isDark ? "moon.fill" : "sun.max.fill"} size={18} color={colors.primary} />
           </View>
           <View style={{ flex: 1 }}>
-            <Text style={[styles.settingLabel, { color: colors.foreground }]}>Dark Mode</Text>
-            <Text style={[styles.settingValue, { color: colors.muted }]}>{isDark ? "Enabled" : "Disabled"}</Text>
+            <Text style={[styles.settingLabel, { color: colors.foreground }]}>Appearance</Text>
+            <Text style={[styles.settingValue, { color: colors.muted }]}>Choose your preferred theme</Text>
           </View>
+        </View>
+        <View style={styles.themeButtonRow}>
           <TouchableOpacity
-            onPress={onToggleTheme}
+            onPress={() => onSetColorScheme("light")}
             activeOpacity={0.8}
             style={[
-              styles.togglePill,
-              { backgroundColor: isDark ? colors.primary : "#E2E8F0" },
+              styles.themeButton,
+              { backgroundColor: !isDark ? colors.primary : colors.surface, borderColor: !isDark ? colors.primary : colors.border },
             ]}
           >
-            <View style={[
-              styles.toggleThumb,
-              { transform: [{ translateX: isDark ? 20 : 2 }] },
-            ]} />
+            <IconSymbol name="sun.max.fill" size={16} color={!isDark ? "#FFFFFF" : colors.muted} />
+            <Text style={[styles.themeButtonText, { color: !isDark ? "#FFFFFF" : colors.muted }]}>Light</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => onSetColorScheme("dark")}
+            activeOpacity={0.8}
+            style={[
+              styles.themeButton,
+              { backgroundColor: isDark ? colors.primary : colors.surface, borderColor: isDark ? colors.primary : colors.border },
+            ]}
+          >
+            <IconSymbol name="moon.fill" size={16} color={isDark ? "#FFFFFF" : colors.muted} />
+            <Text style={[styles.themeButtonText, { color: isDark ? "#FFFFFF" : colors.muted }]}>Dark</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -977,6 +991,9 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     flexShrink: 0,
   },
+  themeButtonRow: { flexDirection: "row", gap: 10, paddingHorizontal: 20, paddingTop: 8 },
+  themeButton: { flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, paddingVertical: 12, borderRadius: 12, borderWidth: 1.5 },
+  themeButtonText: { fontSize: 14, fontWeight: "700" },
   toggleThumb: {
     width: 22,
     height: 22,

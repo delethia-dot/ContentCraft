@@ -28,15 +28,6 @@ type Tool = {
 
 const TOOLS: Tool[] = [
   {
-    id: "analyze",
-    title: "URL Analyzer",
-    description: "Analyze why content resonated with audiences. Paste any URL for a full breakdown.",
-    icon: "link",
-    route: "/(tabs)/analyze",
-    color: "#0A66C2",
-    badge: "AI",
-  },
-  {
     id: "prompt",
     title: "Prompt Generator",
     description: "Craft perfect image & video prompts for Midjourney, DALL-E, Sora, Runway, and more.",
@@ -69,15 +60,6 @@ const TOOLS: Tool[] = [
     icon: "chart.line.uptrend.xyaxis",
     route: "/(tabs)/tracker",
     color: "#F59E0B",
-  },
-  {
-    id: "competitor",
-    title: "Competitor Analysis",
-    description: "Analyze competitor profiles to uncover their content patterns and find your edge.",
-    icon: "eye.fill",
-    route: "/(tabs)/analyze",
-    color: "#DC2626",
-    badge: "AI",
   },
   {
     id: "history",

@@ -76,7 +76,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="trending"
         options={{
-          title: "Trending",
+          title: "Playbook",
           tabBarIcon: ({ color, size }) => (
             <IconSymbol size={size ?? 24} name="flame.fill" color={color} />
           ),
@@ -102,16 +102,6 @@ export default function TabLayout() {
       />
 
       {/* ── SECONDARY TABS (hidden from bottom bar, accessible via Tools hub or sidebar) ── */}
-      <Tabs.Screen
-        name="analyze"
-        options={{
-          title: "Analyze",
-          tabBarItemStyle: { display: "none" },
-          tabBarIcon: ({ color, size }) => (
-            <IconSymbol size={size ?? 24} name="link" color={color} />
-          ),
-        }}
-      />
       <Tabs.Screen
         name="history"
         options={{

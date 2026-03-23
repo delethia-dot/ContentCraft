@@ -138,7 +138,7 @@ export default function TrendingScreen() {
           </View>
           <View style={styles.flameBadge}>
             <IconSymbol name="flame.fill" size={14} color="#F59E0B" />
-            <Text style={[styles.flameBadgeText, { color: "#F59E0B" }]}>Trending</Text>
+            <Text style={[styles.flameBadgeText, { color: "#F59E0B" }]}>Playbook</Text>
           </View>
         </View>
 
@@ -165,7 +165,7 @@ export default function TrendingScreen() {
       <View style={[styles.header, { backgroundColor: colors.navy }]}>
         <View style={styles.headerTop}>
           <View style={{ flex: 1 }}>
-            <Text style={[styles.headerTitle, { color: "#FFFFFF" }]}>Trending Today</Text>
+            <Text style={[styles.headerTitle, { color: "#FFFFFF" }]}>Content Playbook</Text>
             <Text style={[styles.headerSub, { color: "rgba(255,255,255,0.6)" }]}>
               {new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })}
             </Text>
@@ -226,7 +226,7 @@ export default function TrendingScreen() {
         <View style={styles.loadingState}>
           <ActivityIndicator size="large" color={colors.primary} />
           <Text style={[styles.loadingText, { color: colors.muted }]}>
-            Finding trending ideas for {niche}...
+            Finding proven content ideas for {niche}...
           </Text>
         </View>
       ) : filteredIdeas.length > 0 ? (
@@ -261,7 +261,7 @@ export default function TrendingScreen() {
           </View>
           <Text style={[styles.emptyTitle, { color: colors.foreground }]}>No Trends Yet</Text>
           <Text style={[styles.emptySubtitle, { color: colors.muted }]}>
-            Tap the refresh button to load today's trending ideas for your niche.
+            Tap the button below to load proven content ideas and formats for your niche.
           </Text>
           <TouchableOpacity
             onPress={() => fetchTrending(true)}
@@ -269,7 +269,7 @@ export default function TrendingScreen() {
             style={[styles.loadBtn, { backgroundColor: colors.primary }]}
           >
             <IconSymbol name="flame.fill" size={18} color="#FFFFFF" />
-            <Text style={styles.loadBtnText}>Load Trending Ideas</Text>
+            <Text style={styles.loadBtnText}>Load Content Playbook</Text>
           </TouchableOpacity>
         </View>
       )}

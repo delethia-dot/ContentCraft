@@ -212,3 +212,10 @@
 
 ## URL Analyzer Fix
 - [x] URL Analyzer fixed: AI prompt rewritten to stop fabricating follower counts/niche data, disclaimer banner added to results, section reframed as strategy advice not real analytics
+
+## Approved Changes Batch
+- [x] Remove URL Analyzer tab (analyze.tsx) from tab bar, desktop sidebar, and Tools Hub
+- [x] Rename Trending tab to "Content Playbook" everywhere (tab bar, desktop sidebar, screen title, Tools Hub)
+- [x] Replace appearance toggle switch with Light/Dark click buttons in Settings
+- [x] URL Analyzer removed; Niche Strategy deferred to next session
+- [x] Redeploy to Netlify
