@@ -22,6 +22,7 @@ const MAPPING = {
   "xmark": "close",
   "xmark.circle.fill": "cancel",
   "plus": "add",
+  "minus": "remove",
   "plus.circle.fill": "add-circle",
   "checkmark": "check",
   "checkmark.circle.fill": "check-circle",

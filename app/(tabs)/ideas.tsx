@@ -20,6 +20,7 @@ import { PLATFORMS, CONTENT_TYPES, ContentIdea, Platform as SocialPlatform, Cont
 import { trpc } from "@/lib/trpc";
 import * as Haptics from "expo-haptics";
 import * as Clipboard from "expo-clipboard";
+import { DesktopContainer } from "@/components/desktop-container";
 
 export default function IdeasScreen() {
   const colors = useColors();
@@ -106,6 +107,7 @@ export default function IdeasScreen() {
         </View>
 
         {/* Platform Selector */}
+        <DesktopContainer>
         <View style={styles.section}>
           <Text style={[styles.sectionLabel, { color: colors.foreground }]}>Platform</Text>
           <View style={styles.chipWrap}>
@@ -138,7 +140,9 @@ export default function IdeasScreen() {
           </View>
         </View>
 
+        </DesktopContainer>
         {/* Content Type Selector */}
+        <DesktopContainer>
         <View style={styles.section}>
           <Text style={[styles.sectionLabel, { color: colors.foreground }]}>Content Type</Text>
           <View style={styles.chipWrap}>
@@ -166,8 +170,10 @@ export default function IdeasScreen() {
           </View>
         </View>
 
+        </DesktopContainer>
         {/* Generate Button */}
-        <View style={{ paddingHorizontal: 20, marginTop: 4, marginBottom: 8 }}>
+        <DesktopContainer>
+        <View style={{ paddingHorizontal: 0, marginTop: 4, marginBottom: 8 }}>
           <TouchableOpacity
             onPress={handleGenerate}
             disabled={isGenerating}
@@ -301,6 +307,7 @@ export default function IdeasScreen() {
             </Text>
           </View>
         )}
+        </DesktopContainer>
       </ScrollView>
 
       <NicheSheet visible={nicheSheetVisible} onClose={() => setNicheSheetVisible(false)} />

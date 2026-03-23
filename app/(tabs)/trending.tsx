@@ -20,6 +20,7 @@ import { trpc } from "@/lib/trpc";
 import * as Haptics from "expo-haptics";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
+import { DesktopContainer } from "@/components/desktop-container";
 
 const TRENDING_CACHE_KEY = "@contentcraft_trending";
 const CACHE_DURATION_MS = 60 * 60 * 1000; // 1 hour
@@ -190,6 +191,7 @@ export default function TrendingScreen() {
       </View>
 
       {/* Platform Filter */}
+      <DesktopContainer>
       <View style={[styles.filterWrap, { backgroundColor: colors.background, borderBottomColor: colors.border }]}>
         <View style={styles.filterRow}>
           {[{ id: "all", label: "All" }, ...PLATFORMS].map((p) => {
@@ -216,8 +218,10 @@ export default function TrendingScreen() {
           })}
         </View>
       </View>
+      </DesktopContainer>
 
       {/* Content */}
+      <DesktopContainer style={{ flex: 1 }}>
       {isLoading ? (
         <View style={styles.loadingState}>
           <ActivityIndicator size="large" color={colors.primary} />
@@ -270,6 +274,7 @@ export default function TrendingScreen() {
         </View>
       )}
 
+      </DesktopContainer>
       <NicheSheet visible={nicheSheetVisible} onClose={() => setNicheSheetVisible(false)} />
     </ScreenContainer>
   );

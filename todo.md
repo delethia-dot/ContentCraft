@@ -144,3 +144,22 @@
 - [x] Responsive Layout: tablet/desktop multi-column grid for Home screen
 - [x] Responsive Layout: responsive tab bar height for tablet
 - [x] All 82 tests pass
+
+## Desktop/Tablet Layout & Notifications
+- [x] Build sidebar navigation component for tablet/desktop (replaces bottom tab bar)
+- [x] Sidebar: icon-only on tablet (72px), full labels on desktop (220px)
+- [x] Sidebar: shows app logo, nav items with icons + labels, active state, niche badge
+- [x] Tab layout: detect breakpoint and render sidebar vs bottom tab bar
+- [x] DesktopContainer: max-width centered container (900px desktop, 680px tablet)
+- [x] Desktop Home: responsive multi-column feature card grid
+- [x] Desktop Ideas: DesktopContainer wrapping for centered layout
+- [x] Desktop Trending: DesktopContainer wrapping for centered layout
+- [x] notification-service.ts: daily local notification scheduling with expo-notifications
+- [x] Notification handler setup in root _layout.tsx
+- [x] Daily Reminder toggle in Settings tab (More screen)
+- [x] Configurable reminder time (hour +/- 1, minute +/- 15)
+- [x] Android notification channel setup (contentcraft-reminders)
+- [x] Permission request with fallback alert if denied
+- [x] Notification prefs persisted to AsyncStorage
+- [x] minus icon added to icon-symbol.tsx
+- [x] All 82 tests pass

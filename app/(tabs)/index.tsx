@@ -17,6 +17,7 @@ import { NicheSheet } from "@/components/niche-sheet";
 import { useOnboarding } from "@/lib/onboarding-context";
 import * as Haptics from "expo-haptics";
 import { useResponsive } from "@/hooks/use-responsive";
+import { DesktopContainer } from "@/components/desktop-container";
 
 function getGreeting() {
   const hour = new Date().getHours();
@@ -40,7 +41,7 @@ export default function HomeScreen() {
   const { savedIdeas } = useSavedIdeas();
   const { hasCompletedOnboarding, isLoading: onboardingLoading } = useOnboarding();
   const [nicheSheetVisible, setNicheSheetVisible] = useState(false);
-  const { isTablet, isDesktop, contentMaxWidth, screenPadding, columns } = useResponsive();
+  const { isTablet, isDesktop, contentMaxWidth, screenPadding, columns, cardWidth } = useResponsive();
 
   // Redirect to onboarding if first launch
   useEffect(() => {
@@ -136,6 +137,7 @@ export default function HomeScreen() {
         </View>
 
         {/* Stats Row */}
+        <DesktopContainer>
         <View style={[styles.statsRow, { backgroundColor: colors.surface, borderColor: colors.border }]}>
           <StatItem label="Saved Ideas" value={savedIdeas.length.toString()} color={colors.primary} />
           <View style={[styles.statDivider, { backgroundColor: colors.border }]} />
@@ -143,11 +145,12 @@ export default function HomeScreen() {
           <View style={[styles.statDivider, { backgroundColor: colors.border }]} />
           <StatItem label="Frameworks" value="6" color={colors.navy} />
         </View>
+        </DesktopContainer>
 
         {/* Feature Cards */}
-        <View style={[styles.sectionContainer, isTablet && { maxWidth: contentMaxWidth, alignSelf: "center", width: "100%" }]}>
+        <DesktopContainer style={styles.sectionContainer}>
           <Text style={[styles.sectionTitle, { color: colors.foreground }]}>Quick Access</Text>
-          <View style={[styles.cardsGrid, isTablet && { flexDirection: "row", flexWrap: "wrap" }]}>
+          <View style={styles.cardsGrid}>
             {featureCards.map((card) => (
               <TouchableOpacity
                 key={card.id}
@@ -156,6 +159,7 @@ export default function HomeScreen() {
                 style={[
                   styles.featureCard,
                   { backgroundColor: colors.surface, borderColor: colors.border },
+                  isTablet && { width: cardWidth(12) },
                 ]}
               >
                 <View style={[styles.cardIconWrap, { backgroundColor: card.color + "18" }]}>
@@ -166,11 +170,11 @@ export default function HomeScreen() {
               </TouchableOpacity>
             ))}
           </View>
-        </View>
+        </DesktopContainer>
 
         {/* Saved Ideas Preview */}
         {savedIdeas.length > 0 && (
-          <View style={styles.sectionContainer}>
+          <DesktopContainer style={styles.sectionContainer}>
             <View style={styles.sectionHeader}>
               <Text style={[styles.sectionTitle, { color: colors.foreground }]}>Saved Ideas</Text>
               <TouchableOpacity onPress={() => router.push("/(tabs)/ideas" as any)} activeOpacity={0.7}>
@@ -180,7 +184,10 @@ export default function HomeScreen() {
             {savedIdeas.slice(0, 3).map((idea) => (
               <View
                 key={idea.id}
-                style={[styles.savedIdeaCard, { backgroundColor: colors.surface, borderColor: colors.border }]}
+                style={[
+                  styles.savedIdeaCard,
+                  { backgroundColor: colors.surface, borderColor: colors.border },
+                ]}
               >
                 <View style={styles.savedIdeaTop}>
                   <View style={[styles.platformDot, { backgroundColor: getPlatformColor(idea.platform) }]} />
@@ -194,10 +201,11 @@ export default function HomeScreen() {
                 </Text>
               </View>
             ))}
-          </View>
+          </DesktopContainer>
         )}
 
         {/* Tips Banner */}
+        <DesktopContainer>
         <View style={[styles.tipBanner, { backgroundColor: colors.primary + "12", borderColor: colors.primary + "30" }]}>
           <IconSymbol name="bolt.fill" size={18} color={colors.primary} />
           <Text style={[styles.tipText, { color: colors.foreground }]}>
@@ -205,6 +213,7 @@ export default function HomeScreen() {
             Tap the gold niche badge to change your niche anytime and get fresh, targeted content ideas.
           </Text>
         </View>
+        </DesktopContainer>
       </ScrollView>
 
       <NicheSheet visible={nicheSheetVisible} onClose={() => setNicheSheetVisible(false)} />

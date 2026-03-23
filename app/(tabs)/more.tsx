@@ -10,6 +10,7 @@ import {
   Modal,
   Alert,
 } from "react-native";
+import { useEffect } from "react";
 import { useRouter } from "expo-router";
 import { ScreenContainer } from "@/components/screen-container";
 import { IconSymbol } from "@/components/ui/icon-symbol";
@@ -21,6 +22,15 @@ import * as Haptics from "expo-haptics";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { useThemeContext } from "@/lib/theme-provider";
 import { useOnboarding } from "@/lib/onboarding-context";
+import {
+  loadNotificationPrefs,
+  saveNotificationPrefs,
+  scheduleDailyReminder,
+  cancelDailyReminder,
+  formatNotificationTime,
+  type NotificationPrefs,
+  DEFAULT_NOTIFICATION_PREFS,
+} from "@/lib/notification-service";
 
 export default function MoreScreen() {
   const colors = useColors();
@@ -33,8 +43,39 @@ export default function MoreScreen() {
   const colorScheme = useColorScheme();
   const { setColorScheme } = useThemeContext();
   const toggleTheme = () => setColorScheme(colorScheme === "dark" ? "light" : "dark");
+  const [notifPrefs, setNotifPrefs] = useState<NotificationPrefs>(DEFAULT_NOTIFICATION_PREFS);
 
   const isDark = colorScheme === "dark";
+
+  // Load notification prefs on mount
+  useEffect(() => {
+    loadNotificationPrefs().then(setNotifPrefs);
+  }, []);
+
+  const handleNotifToggle = async (enabled: boolean) => {
+    const newPrefs = { ...notifPrefs, enabled };
+    setNotifPrefs(newPrefs);
+    await saveNotificationPrefs(newPrefs);
+    if (enabled) {
+      const success = await scheduleDailyReminder(newPrefs, niche);
+      if (!success) {
+        Alert.alert("Permission Required", "Please allow notifications in your device settings to enable reminders.");
+        setNotifPrefs({ ...newPrefs, enabled: false });
+        await saveNotificationPrefs({ ...newPrefs, enabled: false });
+      }
+    } else {
+      await cancelDailyReminder();
+    }
+  };
+
+  const handleTimeChange = async (direction: "hour" | "minute", delta: number) => {
+    const newHour = direction === "hour" ? (notifPrefs.hour + delta + 24) % 24 : notifPrefs.hour;
+    const newMinute = direction === "minute" ? (notifPrefs.minute + delta + 60) % 60 : notifPrefs.minute;
+    const newPrefs = { ...notifPrefs, hour: newHour, minute: newMinute };
+    setNotifPrefs(newPrefs);
+    await saveNotificationPrefs(newPrefs);
+    if (newPrefs.enabled) await scheduleDailyReminder(newPrefs, niche);
+  };
 
   const handleResetOnboarding = () => {
     Alert.alert(
@@ -111,6 +152,9 @@ export default function MoreScreen() {
             onToggleTheme={toggleTheme}
             onChangeNiche={() => setNicheSheetVisible(true)}
             onResetOnboarding={handleResetOnboarding}
+            notifPrefs={notifPrefs}
+            onNotifToggle={handleNotifToggle}
+            onTimeChange={handleTimeChange}
           />
         )}
       </ScrollView>
@@ -214,6 +258,9 @@ function SettingsTab({
   onToggleTheme,
   onChangeNiche,
   onResetOnboarding,
+  notifPrefs,
+  onNotifToggle,
+  onTimeChange,
 }: {
   colors: any;
   niche: string;
@@ -221,6 +268,9 @@ function SettingsTab({
   onToggleTheme: () => void;
   onChangeNiche: () => void;
   onResetOnboarding: () => void;
+  notifPrefs: NotificationPrefs;
+  onNotifToggle: (enabled: boolean) => void;
+  onTimeChange: (direction: "hour" | "minute", delta: number) => void;
 }) {
   return (
     <View style={{ padding: 20, gap: 20 }}>
@@ -255,6 +305,55 @@ function SettingsTab({
           </View>
           <IconSymbol name="chevron.right" size={18} color={colors.muted} />
         </TouchableOpacity>
+      </View>
+
+      {/* Notifications */}
+      <View>
+        <Text style={[styles.settingGroupTitle, { color: colors.foreground }]}>Daily Reminders</Text>
+        <View style={[styles.settingRow, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+          <View style={[styles.settingIcon, { backgroundColor: "#F59E0B20" }]}>
+            <IconSymbol name="bell.fill" size={18} color="#F59E0B" />
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text style={[styles.settingLabel, { color: colors.foreground }]}>Daily Reminder</Text>
+            <Text style={[styles.settingValue, { color: colors.muted }]}>
+              {notifPrefs.enabled
+                ? `Fires at ${formatNotificationTime(notifPrefs.hour, notifPrefs.minute)}`
+                : "Disabled"}
+            </Text>
+          </View>
+          <Switch
+            value={notifPrefs.enabled}
+            onValueChange={onNotifToggle}
+            trackColor={{ false: "#E2E8F0", true: "#F59E0B" }}
+            thumbColor="#FFFFFF"
+          />
+        </View>
+        {notifPrefs.enabled && (
+          <View style={[styles.timePickerRow, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+            <Text style={[styles.settingLabel, { color: colors.foreground }]}>Reminder Time</Text>
+            <View style={styles.timePicker}>
+              <TouchableOpacity onPress={() => onTimeChange("hour", -1)} activeOpacity={0.7} style={styles.timeBtn}>
+                <IconSymbol name="chevron.left" size={16} color={colors.primary} />
+              </TouchableOpacity>
+              <Text style={[styles.timeDisplay, { color: colors.foreground }]}>
+                {formatNotificationTime(notifPrefs.hour, notifPrefs.minute)}
+              </Text>
+              <TouchableOpacity onPress={() => onTimeChange("hour", 1)} activeOpacity={0.7} style={styles.timeBtn}>
+                <IconSymbol name="chevron.right" size={16} color={colors.primary} />
+              </TouchableOpacity>
+            </View>
+            <View style={styles.timePicker}>
+              <TouchableOpacity onPress={() => onTimeChange("minute", -15)} activeOpacity={0.7} style={styles.timeBtn}>
+                <IconSymbol name="minus" size={14} color={colors.muted} />
+              </TouchableOpacity>
+              <Text style={[styles.timeMinLabel, { color: colors.muted }]}>±15 min</Text>
+              <TouchableOpacity onPress={() => onTimeChange("minute", 15)} activeOpacity={0.7} style={styles.timeBtn}>
+                <IconSymbol name="plus" size={14} color={colors.muted} />
+              </TouchableOpacity>
+            </View>
+          </View>
+        )}
       </View>
 
       {/* Appearance */}
@@ -711,6 +810,38 @@ const styles = StyleSheet.create({
     flexWrap: "wrap",
     gap: 8,
     marginTop: 8,
+  },
+  timePickerRow: {
+    borderRadius: 14,
+    borderWidth: 1,
+    padding: 14,
+    marginBottom: 8,
+    gap: 10,
+  },
+  timePicker: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 8,
+  },
+  timeBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  timeDisplay: {
+    fontSize: 18,
+    fontWeight: "700",
+    letterSpacing: -0.3,
+    flex: 1,
+    textAlign: "center",
+  },
+  timeMinLabel: {
+    fontSize: 13,
+    flex: 1,
+    textAlign: "center",
   },
   bestForBadge: {
     flexDirection: "row",
