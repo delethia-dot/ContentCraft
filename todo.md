@@ -126,3 +126,21 @@
 - [x] History tab: caption cards with copy/share/delete
 - [x] Caption tab added to main tab bar
 - [x] Calendar tab added to main tab bar
+
+## New Features - Round 5
+- [x] Hashtag Research: trending hashtag finder inside Caption Writer (niche + platform input, ranked by reach/competition)
+- [x] Hashtag Research: copy individual hashtags and full hashtag block
+- [x] Hashtag Research: server endpoint for AI hashtag suggestions
+- [x] Post Performance Tracker: manual entry of published post metrics (likes, views, shares, comments)
+- [x] Post Performance Tracker: compare actual performance vs AI resonance score prediction
+- [x] Post Performance Tracker: platform breakdown and performance history list
+- [x] Post Performance Tracker: save/persist tracker entries to AsyncStorage
+- [x] Tracker tab added to main tab bar
+- [x] Niche Competitor Analysis: "Analyze Competitor" mode in Analyze tab
+- [x] Niche Competitor Analysis: accept competitor profile URL or handle
+- [x] Niche Competitor Analysis: identify top-performing content patterns and posting frequency
+- [x] Niche Competitor Analysis: server endpoint for competitor analysis
+- [x] Responsive Layout: useResponsive hook for tablet/desktop breakpoints
+- [x] Responsive Layout: tablet/desktop multi-column grid for Home screen
+- [x] Responsive Layout: responsive tab bar height for tablet
+- [x] All 82 tests pass

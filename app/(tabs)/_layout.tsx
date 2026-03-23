@@ -4,12 +4,14 @@ import { Platform, View, Text } from "react-native";
 import { HapticTab } from "@/components/haptic-tab";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { useColors } from "@/hooks/use-colors";
+import { useResponsive } from "@/hooks/use-responsive";
 
 export default function TabLayout() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
+  const { isTablet } = useResponsive();
   const bottomPadding = Platform.OS === "web" ? 12 : Math.max(insets.bottom, 8);
-  const tabBarHeight = 60 + bottomPadding;
+  const tabBarHeight = isTablet ? 68 + bottomPadding : 60 + bottomPadding;
 
   return (
     <Tabs
@@ -107,6 +109,15 @@ export default function TabLayout() {
           title: "Calendar",
           tabBarIcon: ({ color, size }) => (
             <IconSymbol size={size ?? 24} name="calendar" color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="tracker"
+        options={{
+          title: "Tracker",
+          tabBarIcon: ({ color, size }) => (
+            <IconSymbol size={size ?? 24} name="chart.line.uptrend.xyaxis" color={color} />
           ),
         }}
       />

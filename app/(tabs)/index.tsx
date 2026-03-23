@@ -16,6 +16,7 @@ import { useSavedIdeas } from "@/lib/saved-ideas-context";
 import { NicheSheet } from "@/components/niche-sheet";
 import { useOnboarding } from "@/lib/onboarding-context";
 import * as Haptics from "expo-haptics";
+import { useResponsive } from "@/hooks/use-responsive";
 
 function getGreeting() {
   const hour = new Date().getHours();
@@ -39,6 +40,7 @@ export default function HomeScreen() {
   const { savedIdeas } = useSavedIdeas();
   const { hasCompletedOnboarding, isLoading: onboardingLoading } = useOnboarding();
   const [nicheSheetVisible, setNicheSheetVisible] = useState(false);
+  const { isTablet, isDesktop, contentMaxWidth, screenPadding, columns } = useResponsive();
 
   // Redirect to onboarding if first launch
   useEffect(() => {
@@ -143,9 +145,9 @@ export default function HomeScreen() {
         </View>
 
         {/* Feature Cards */}
-        <View style={styles.sectionContainer}>
+        <View style={[styles.sectionContainer, isTablet && { maxWidth: contentMaxWidth, alignSelf: "center", width: "100%" }]}>
           <Text style={[styles.sectionTitle, { color: colors.foreground }]}>Quick Access</Text>
-          <View style={styles.cardsGrid}>
+          <View style={[styles.cardsGrid, isTablet && { flexDirection: "row", flexWrap: "wrap" }]}>
             {featureCards.map((card) => (
               <TouchableOpacity
                 key={card.id}

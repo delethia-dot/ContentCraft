@@ -81,6 +81,16 @@ export default function CaptionScreen() {
   const [isSaved, setIsSaved] = useState(false);
 
   const generateMutation = trpc.content.generateCaption.useMutation();
+  const hashtagMutation = trpc.content.researchHashtags.useMutation();
+
+  const [showHashtagResearch, setShowHashtagResearch] = useState(false);
+  const [hashtagResult, setHashtagResult] = useState<{
+    hashtags: { tag: string; reach: string; competition: string; relevance: number; category: string }[];
+    strategy: string;
+    topPick: string;
+  } | null>(null);
+  const [isResearchingHashtags, setIsResearchingHashtags] = useState(false);
+  const [copiedHashtag, setCopiedHashtag] = useState<string | null>(null);
 
   const platformColor = PLATFORM_COLORS[selectedPlatform];
   const charLimit = PLATFORM_LIMITS[selectedPlatform];
@@ -149,6 +159,41 @@ export default function CaptionScreen() {
 
   const charPercent = result ? Math.min((result.characterCount / charLimit) * 100, 100) : 0;
   const charColor = charPercent > 90 ? "#EF4444" : charPercent > 70 ? "#F59E0B" : "#10B981";
+
+  const handleResearchHashtags = useCallback(async () => {
+    if (!topic.trim()) {
+      Alert.alert("Enter a Topic", "Please enter a topic first to research hashtags.");
+      return;
+    }
+    if (Platform.OS !== "web") Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    setIsResearchingHashtags(true);
+    setHashtagResult(null);
+    try {
+      const res = await hashtagMutation.mutateAsync({
+        niche,
+        platform: selectedPlatform,
+        topic: topic.trim(),
+        count: 20,
+      });
+      setHashtagResult(res as any);
+      if (Platform.OS !== "web") Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    } catch {
+      Alert.alert("Research Failed", "Could not research hashtags. Please try again.");
+    } finally {
+      setIsResearchingHashtags(false);
+    }
+  }, [topic, niche, selectedPlatform, hashtagMutation]);
+
+  const getReachColor = (reach: string) => {
+    if (reach === "high") return "#10B981";
+    if (reach === "medium") return "#F59E0B";
+    return "#6366F1";
+  };
+  const getCompetitionColor = (comp: string) => {
+    if (comp === "high") return "#EF4444";
+    if (comp === "medium") return "#F59E0B";
+    return "#10B981";
+  };
 
   return (
     <ScreenContainer>
@@ -272,6 +317,106 @@ export default function CaptionScreen() {
                 thumbColor={includeEmojis ? colors.primary : colors.muted}
               />
             </View>
+          </View>
+
+          {/* Hashtag Research Section */}
+          <View style={[styles.section, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+            <TouchableOpacity
+              onPress={() => setShowHashtagResearch(!showHashtagResearch)}
+              activeOpacity={0.8}
+              style={styles.hashtagToggleRow}
+            >
+              <View style={[styles.hashtagToggleIcon, { backgroundColor: colors.accent + "15" }]}>
+                <IconSymbol name="number" size={18} color={colors.accent} />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={[styles.sectionTitle, { color: colors.foreground }]}>Hashtag Research</Text>
+                <Text style={[styles.sectionHint, { color: colors.muted, marginTop: 2 }]}>Find trending hashtags ranked by reach & competition</Text>
+              </View>
+              <IconSymbol name={showHashtagResearch ? "chevron.up" : "chevron.down"} size={16} color={colors.muted} />
+            </TouchableOpacity>
+
+            {showHashtagResearch && (
+              <View style={{ gap: 12 }}>
+                <TouchableOpacity
+                  onPress={handleResearchHashtags}
+                  activeOpacity={0.85}
+                  disabled={isResearchingHashtags}
+                  style={[styles.hashtagResearchBtn, { backgroundColor: isResearchingHashtags ? colors.muted : colors.accent }]}
+                >
+                  {isResearchingHashtags ? (
+                    <><ActivityIndicator size="small" color="#FFFFFF" /><Text style={styles.generateBtnText}>Researching...</Text></>
+                  ) : (
+                    <><IconSymbol name="magnifyingglass" size={16} color="#FFFFFF" /><Text style={styles.generateBtnText}>Research Hashtags</Text></>
+                  )}
+                </TouchableOpacity>
+
+                {hashtagResult && (
+                  <View style={{ gap: 10 }}>
+                    {/* Strategy */}
+                    <View style={[styles.strategyBox, { backgroundColor: colors.accent + "08", borderColor: colors.accent + "25" }]}>
+                      <Text style={[styles.blockLabel, { color: colors.accent }]}>Strategy</Text>
+                      <Text style={[styles.strategyText, { color: colors.foreground }]}>{hashtagResult.strategy}</Text>
+                    </View>
+                    {/* Top Pick */}
+                    <View style={[styles.topPickBox, { backgroundColor: "#10B98110", borderColor: "#10B98130" }]}>
+                      <IconSymbol name="star.fill" size={13} color="#10B981" />
+                      <Text style={[styles.topPickText, { color: colors.foreground }]}>{hashtagResult.topPick}</Text>
+                    </View>
+                    {/* Hashtag Grid */}
+                    <View style={{ gap: 6 }}>
+                      <View style={styles.hashtagTableHeader}>
+                        <Text style={[styles.tableHeaderText, { color: colors.muted, flex: 2 }]}>Hashtag</Text>
+                        <Text style={[styles.tableHeaderText, { color: colors.muted, flex: 1, textAlign: "center" }]}>Reach</Text>
+                        <Text style={[styles.tableHeaderText, { color: colors.muted, flex: 1, textAlign: "center" }]}>Comp.</Text>
+                        <Text style={[styles.tableHeaderText, { color: colors.muted, flex: 1, textAlign: "center" }]}>Score</Text>
+                      </View>
+                      {hashtagResult.hashtags.map((ht, i) => (
+                        <TouchableOpacity
+                          key={i}
+                          onPress={async () => {
+                            await Clipboard.setStringAsync(`#${ht.tag.replace(/^#/, "")}`);
+                            setCopiedHashtag(ht.tag);
+                            setTimeout(() => setCopiedHashtag(null), 1500);
+                          }}
+                          activeOpacity={0.7}
+                          style={[styles.hashtagTableRow, { backgroundColor: i % 2 === 0 ? colors.background : colors.surface, borderColor: colors.border }]}
+                        >
+                          <View style={{ flex: 2, flexDirection: "row", alignItems: "center", gap: 6 }}>
+                            <View style={[styles.categoryDot, { backgroundColor: colors.accent }]} />
+                            <Text style={[styles.hashtagRowTag, { color: copiedHashtag === ht.tag ? "#10B981" : colors.primary }]} numberOfLines={1}>
+                              #{ht.tag.replace(/^#/, "")}
+                            </Text>
+                          </View>
+                          <View style={[styles.reachBadge, { backgroundColor: getReachColor(ht.reach) + "20", flex: 1, alignItems: "center" }]}>
+                            <Text style={[styles.reachText, { color: getReachColor(ht.reach) }]}>{ht.reach}</Text>
+                          </View>
+                          <View style={[styles.reachBadge, { backgroundColor: getCompetitionColor(ht.competition) + "20", flex: 1, alignItems: "center" }]}>
+                            <Text style={[styles.reachText, { color: getCompetitionColor(ht.competition) }]}>{ht.competition}</Text>
+                          </View>
+                          <View style={{ flex: 1, alignItems: "center" }}>
+                            <Text style={[styles.relevanceScore, { color: ht.relevance >= 8 ? "#10B981" : ht.relevance >= 6 ? "#F59E0B" : colors.muted }]}>{ht.relevance}/10</Text>
+                          </View>
+                        </TouchableOpacity>
+                      ))}
+                    </View>
+                    {/* Copy All */}
+                    <TouchableOpacity
+                      onPress={async () => {
+                        const all = hashtagResult.hashtags.map((h) => `#${h.tag.replace(/^#/, "")}`).join(" ");
+                        await Clipboard.setStringAsync(all);
+                        Alert.alert("Copied!", "All hashtags copied to clipboard.");
+                      }}
+                      activeOpacity={0.8}
+                      style={[styles.copyAllBtn, { backgroundColor: colors.accent + "15", borderColor: colors.accent + "30" }]}
+                    >
+                      <IconSymbol name="doc.on.doc" size={14} color={colors.accent} />
+                      <Text style={[styles.copyAllBtnText, { color: colors.accent }]}>Copy All {hashtagResult.hashtags.length} Hashtags</Text>
+                    </TouchableOpacity>
+                  </View>
+                )}
+              </View>
+            )}
           </View>
 
           {/* Generate Button */}
@@ -506,4 +651,22 @@ const styles = StyleSheet.create({
   resultActions: { flexDirection: "row", gap: 8, padding: 16, paddingTop: 12 },
   actionBtn: { flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, paddingVertical: 12, borderRadius: 12 },
   actionBtnText: { fontSize: 13, fontWeight: "700", color: "#FFFFFF" },
+  // Hashtag Research styles
+  hashtagToggleRow: { flexDirection: "row", alignItems: "center", gap: 12 },
+  hashtagToggleIcon: { width: 40, height: 40, borderRadius: 12, alignItems: "center", justifyContent: "center" },
+  hashtagResearchBtn: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, paddingVertical: 12, borderRadius: 12 },
+  strategyBox: { borderRadius: 10, borderWidth: 1, padding: 12, gap: 4 },
+  strategyText: { fontSize: 13, lineHeight: 19 },
+  topPickBox: { flexDirection: "row", alignItems: "flex-start", gap: 8, borderRadius: 10, borderWidth: 1, padding: 10 },
+  topPickText: { flex: 1, fontSize: 12, lineHeight: 18 },
+  hashtagTableHeader: { flexDirection: "row", paddingHorizontal: 10, paddingVertical: 4 },
+  tableHeaderText: { fontSize: 11, fontWeight: "700", textTransform: "uppercase", letterSpacing: 0.5 },
+  hashtagTableRow: { flexDirection: "row", alignItems: "center", borderRadius: 8, borderWidth: 1, paddingHorizontal: 10, paddingVertical: 8 },
+  categoryDot: { width: 6, height: 6, borderRadius: 3 },
+  hashtagRowTag: { fontSize: 12, fontWeight: "700", flex: 1 },
+  reachBadge: { paddingVertical: 3, borderRadius: 6 },
+  reachText: { fontSize: 10, fontWeight: "700", textAlign: "center" },
+  relevanceScore: { fontSize: 12, fontWeight: "700" },
+  copyAllBtn: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, paddingVertical: 10, borderRadius: 10, borderWidth: 1 },
+  copyAllBtnText: { fontSize: 13, fontWeight: "700" },
 });

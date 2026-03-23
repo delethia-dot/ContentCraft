@@ -342,6 +342,208 @@ Return JSON in this exact format:
       };
     }),
 
+  researchHashtags: publicProcedure
+    .input(
+      z.object({
+        niche: z.string().min(1).max(100),
+        platform: platformSchema,
+        topic: z.string().min(1).max(200),
+        count: z.number().min(5).max(30).default(20),
+      })
+    )
+    .mutation(async ({ input }) => {
+      const { niche, platform, topic, count } = input;
+
+      const platformHashtagGuide: Record<string, string> = {
+        instagram: "Instagram hashtags: mix of niche (10k-500k posts), mid-range (500k-2M), and broad (2M+). Avoid banned hashtags.",
+        facebook: "Facebook hashtags: 1-3 highly relevant hashtags. Broad reach over niche.",
+        tiktok: "TikTok hashtags: mix trending (#fyp, #foryou) with niche-specific. 3-8 hashtags.",
+        youtube: "YouTube hashtags: 3-5 descriptive hashtags in description. Focus on searchability.",
+        linkedin: "LinkedIn hashtags: 3-5 professional industry hashtags. Focus on thought leadership.",
+      };
+
+      const response = await invokeLLM({
+        messages: [
+          {
+            role: "system",
+            content: `You are a social media hashtag strategist with deep knowledge of trending hashtags across platforms. Return ONLY valid JSON with no markdown.`,
+          },
+          {
+            role: "user",
+            content: `Research and suggest ${count} hashtags for a ${platform} post about "${topic}" in the "${niche}" niche.
+
+Platform guide: ${platformHashtagGuide[platform]}
+
+For each hashtag, estimate:
+- reach: "low" (under 100k posts), "medium" (100k-1M), "high" (1M+)
+- competition: "low", "medium", "high"
+- relevance: 1-10 score
+
+Return JSON in this exact format:
+{
+  "hashtags": [
+    {
+      "tag": "hashtagname",
+      "reach": "low|medium|high",
+      "competition": "low|medium|high",
+      "relevance": 8,
+      "category": "niche|trending|broad|branded"
+    }
+  ],
+  "strategy": "Brief 2-sentence strategy for using these hashtags on ${platform}",
+  "topPick": "The single best hashtag to prioritize and why"
+}`,
+          },
+        ],
+        response_format: { type: "json_object" },
+      });
+
+      const raw = response.choices[0].message.content as string;
+      const parsed = JSON.parse(raw);
+      return {
+        ...parsed,
+        id: `hashtags-${Date.now()}`,
+        niche,
+        platform,
+        topic,
+        generatedAt: new Date().toISOString(),
+      };
+    }),
+
+  analyzePerformance: publicProcedure
+    .input(
+      z.object({
+        platform: platformSchema,
+        contentType: contentTypeSchema,
+        niche: z.string(),
+        title: z.string(),
+        likes: z.number().min(0),
+        views: z.number().min(0),
+        shares: z.number().min(0),
+        comments: z.number().min(0),
+        resonanceScore: z.number().min(0).max(100).optional(),
+      })
+    )
+    .mutation(async ({ input }) => {
+      const { platform, contentType, niche, title, likes, views, shares, comments, resonanceScore } = input;
+
+      const engagementRate = views > 0 ? (((likes + shares + comments) / views) * 100).toFixed(2) : "0";
+
+      const response = await invokeLLM({
+        messages: [
+          {
+            role: "system",
+            content: `You are a social media analytics expert. Analyze post performance metrics and provide actionable insights. Return ONLY valid JSON with no markdown.`,
+          },
+          {
+            role: "user",
+            content: `Analyze this ${platform} post performance:
+
+Post: "${title}"
+Niche: ${niche}
+Content Type: ${contentType}
+Metrics:
+- Views/Reach: ${views}
+- Likes: ${likes}
+- Shares: ${shares}
+- Comments: ${comments}
+- Engagement Rate: ${engagementRate}%
+${resonanceScore !== undefined ? `- AI Resonance Score (predicted): ${resonanceScore}/100` : ""}
+
+Return JSON in this exact format:
+{
+  "performanceRating": "excellent|good|average|below-average|poor",
+  "performanceScore": 0-100,
+  "engagementRate": "${engagementRate}%",
+  "benchmarkComparison": "How this compares to typical ${platform} ${contentType} in the ${niche} niche",
+  "strengths": ["What worked well based on the metrics"],
+  "improvements": ["What to improve next time"],
+  "aiAccuracy": ${resonanceScore !== undefined ? `"How accurate the AI prediction was vs actual performance"` : `null`},
+  "nextPostTips": ["Specific tip 1 for next post", "Specific tip 2", "Specific tip 3"]
+}`,
+          },
+        ],
+        response_format: { type: "json_object" },
+      });
+
+      const raw = response.choices[0].message.content as string;
+      const parsed = JSON.parse(raw);
+      return {
+        ...parsed,
+        id: `perf-${Date.now()}`,
+        platform,
+        contentType,
+        niche,
+        title,
+        likes,
+        views,
+        shares,
+        comments,
+        engagementRate,
+        resonanceScore,
+        createdAt: new Date().toISOString(),
+      };
+    }),
+
+  analyzeCompetitor: publicProcedure
+    .input(
+      z.object({
+        competitorHandle: z.string().min(1).max(200),
+        platform: platformSchema,
+        niche: z.string(),
+      })
+    )
+    .mutation(async ({ input }) => {
+      const { competitorHandle, platform, niche } = input;
+
+      const response = await invokeLLM({
+        messages: [
+          {
+            role: "system",
+            content: `You are a competitive intelligence analyst for social media. Analyze competitor profiles and identify content patterns, strategies, and opportunities. Return ONLY valid JSON with no markdown.`,
+          },
+          {
+            role: "user",
+            content: `Analyze this competitor on ${platform}: "${competitorHandle}" in the "${niche}" niche.
+
+Based on the handle/URL and niche context, provide a strategic competitive analysis covering their likely content strategy, posting patterns, and what's working for them.
+
+Return JSON in this exact format:
+{
+  "competitorName": "Cleaned up name/handle",
+  "platform": "${platform}",
+  "estimatedFollowerTier": "micro (1k-10k)|mid (10k-100k)|macro (100k-1M)|mega (1M+)",
+  "contentPatterns": [
+    {
+      "pattern": "Pattern name",
+      "description": "What they do and why it works",
+      "frequency": "How often they likely use this"
+    }
+  ],
+  "topContentTypes": ["content type 1", "content type 2", "content type 3"],
+  "postingFrequency": "Estimated posting frequency",
+  "engagementStrengths": ["Strength 1", "Strength 2", "Strength 3"],
+  "contentGaps": ["Gap you could fill", "Opportunity 2", "Opportunity 3"],
+  "differentiationStrategy": "How you can differentiate yourself from this competitor",
+  "keyTakeaways": ["Actionable takeaway 1", "Actionable takeaway 2", "Actionable takeaway 3"]
+}`,
+          },
+        ],
+        response_format: { type: "json_object" },
+      });
+
+      const raw = response.choices[0].message.content as string;
+      const parsed = JSON.parse(raw);
+      return {
+        ...parsed,
+        id: `competitor-${Date.now()}`,
+        competitorHandle,
+        platform,
+        niche,
+        analyzedAt: new Date().toISOString(),
+      };
+    }),
+
   getFrameworkAdvice: publicProcedure
     .input(
       z.object({
