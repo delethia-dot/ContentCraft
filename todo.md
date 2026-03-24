@@ -229,3 +229,4 @@
 
 ## Appearance Button Web Fix (Round 2)
 - [x] Light/Dark buttons fixed: useColors now reads from ThemeContext (not system hook) so all components re-render when scheme changes
+- [x] Add Caption Writer as third feature card on onboarding Features slide so "Three powerful tools" subtitle is accurate

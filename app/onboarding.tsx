@@ -37,6 +37,13 @@ const FEATURES = [
     description:
       "Discover proven content formats, hooks, and strategies tailored to your niche and platform — drawn from what has historically performed best.",
   },
+  {
+    icon: "pencil" as const,
+    color: "#0A66C2",
+    title: "Caption Writer",
+    description:
+      "Write platform-optimized captions with the right tone, hashtags, and character count — plus A/B hook alternatives to maximize engagement.",
+  },
 ];
 
 const NICHE_CATEGORIES = [
