@@ -23,7 +23,34 @@ import { APP_WEB_URL } from "@/constants/app-url";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Haptics from "expo-haptics";
 
-const SAVED_ANALYSES_KEY = "@contentcraft_analyses";
+const SAVED_ANALYSES_KEY = "@contentcraft_niche_analyses";
+
+function formatDate(dateStr: string) {
+  try {
+    const d = new Date(dateStr);
+    return d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+  } catch { return dateStr; }
+}
+
+type NicheAnalysis = {
+  id: string;
+  niche: string;
+  platform: string;
+  savedAt: string;
+  result: {
+    nicheOverview: string;
+    competitorLandscape: {
+      dominantAccountTypes: string[];
+      commonContentStyles: string[];
+      postingPatterns: string;
+      toneAndVoice: string;
+    };
+    contentGaps: Array<{ gap: string; opportunity: string; contentFormat: string }>;
+    audiencePainPoints: Array<{ painPoint: string; contentAngle: string }>;
+    contentPillars: Array<{ pillar: string; description: string; exampleTopics: string[] }>;
+    quickWins: string[];
+  };
+};
 
 type Tab = "ideas" | "analyses" | "prompts" | "captions";
 
@@ -138,16 +165,26 @@ function AnalysisDetailModal({
   onClose,
   colors,
 }: {
-  analysis: UrlAnalysis | null;
+  analysis: NicheAnalysis | null;
   visible: boolean;
   onClose: () => void;
   colors: any;
 }) {
   if (!analysis) return null;
-  const scoreColor = analysis.resonanceScore >= 75 ? "#10B981" : analysis.resonanceScore >= 50 ? "#F59E0B" : "#EF4444";
-  const platformColor = analysis.platform ? (PLATFORMS.find((p) => p.id === analysis.platform)?.color ?? colors.primary) : colors.primary;
+  const platformColor = analysis.platform && analysis.platform !== "all"
+    ? (PLATFORMS.find((p) => p.id === analysis.platform)?.color ?? colors.primary)
+    : colors.primary;
 
-  const fullText = `🔗 URL: ${analysis.url}\n\n📊 Resonance Score: ${analysis.resonanceScore}/100\n\n📋 Summary:\n${analysis.summary}\n\n✅ What Worked:\n${analysis.whatWorked.map((w, i) => `${i + 1}. ${w}`).join("\n")}\n\n❌ What Didn't Work:\n${analysis.whatDidntWork.map((w, i) => `${i + 1}. ${w}`).join("\n")}\n\n👥 Audience Insights:\n${analysis.audienceInsights}\n\n📐 Framework Recommendation:\n${analysis.frameworkRecommendation}\n\n✨ Analyzed with ContentCraft\n${APP_WEB_URL}`;
+  const r = analysis.result;
+  const fullText = [
+    `🔍 Niche Intelligence: ${analysis.niche}`,
+    analysis.platform !== "all" ? `Platform: ${analysis.platform}` : "",
+    `\n📋 Overview:\n${r.nicheOverview}`,
+    r.quickWins?.length ? `\n⚡ Quick Wins:\n${r.quickWins.map((w, i) => `${i + 1}. ${w}`).join("\n")}` : "",
+    `\n🏆 Competitor Landscape:\nAccount Types: ${r.competitorLandscape.dominantAccountTypes.join(", ")}\nContent Styles: ${r.competitorLandscape.commonContentStyles.join(", ")}`,
+    `\n📌 Content Pillars:\n${r.contentPillars.map((p, i) => `${i + 1}. ${p.pillar}: ${p.description}`).join("\n")}`,
+    `\n✨ Analyzed with ContentCraft\n${APP_WEB_URL}`,
+  ].filter(Boolean).join("\n");
 
   const handleCopy = () => {
     Clipboard.setString(fullText);
@@ -158,7 +195,7 @@ function AnalysisDetailModal({
   const handleShare = async () => {
     try {
       if (Platform.OS !== "web") Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-      await Share.share({ message: fullText, title: "URL Analysis" });
+      await Share.share({ message: fullText, title: "Niche Intelligence" });
     } catch {}
   };
 
@@ -178,21 +215,19 @@ function AnalysisDetailModal({
           <View style={modalStyles.header}>
             <View style={{ flex: 1, gap: 6 }}>
               <View style={modalStyles.badgeRow}>
-                {analysis.platform && (
+                {analysis.platform && analysis.platform !== "all" && (
                   <View style={[modalStyles.platformBadge, { backgroundColor: platformColor + "18", borderColor: platformColor + "40" }]}>
                     <Text style={[modalStyles.platformBadgeText, { color: platformColor }]}>
                       {analysis.platform.charAt(0).toUpperCase() + analysis.platform.slice(1)}
                     </Text>
                   </View>
                 )}
-                <View style={[modalStyles.scorePill, { backgroundColor: scoreColor + "18" }]}>
-                  <Text style={[modalStyles.scorePillText, { color: scoreColor }]}>Score: {analysis.resonanceScore}/100</Text>
+                <View style={[modalStyles.scorePill, { backgroundColor: colors.primary + "18" }]}>
+                  <Text style={[modalStyles.scorePillText, { color: colors.primary }]}>Niche Intelligence</Text>
                 </View>
               </View>
-              {analysis.title && (
-                <Text style={[modalStyles.title, { color: colors.foreground }]}>{analysis.title}</Text>
-              )}
-              <Text style={[modalStyles.subtitle, { color: colors.muted }]} numberOfLines={1}>{analysis.url}</Text>
+              <Text style={[modalStyles.title, { color: colors.foreground }]}>{analysis.niche}</Text>
+              <Text style={[modalStyles.subtitle, { color: colors.muted }]}>{formatDate(analysis.savedAt)}</Text>
             </View>
             <TouchableOpacity onPress={onClose} activeOpacity={0.7} style={[modalStyles.closeBtn, { backgroundColor: colors.surface }]}>
               <IconSymbol name="xmark" size={16} color={colors.muted} />
@@ -203,54 +238,56 @@ function AnalysisDetailModal({
             <View style={[modalStyles.section, { backgroundColor: colors.surface, borderLeftColor: colors.primary }]}>
               <View style={modalStyles.sectionHeader}>
                 <IconSymbol name="doc.text.fill" size={14} color={colors.primary} />
-                <Text style={[modalStyles.sectionLabel, { color: colors.primary }]}>SUMMARY</Text>
+                <Text style={[modalStyles.sectionLabel, { color: colors.primary }]}>NICHE OVERVIEW</Text>
               </View>
-              <Text style={[modalStyles.sectionText, { color: colors.foreground }]}>{analysis.summary}</Text>
+              <Text style={[modalStyles.sectionText, { color: colors.foreground }]}>{r.nicheOverview}</Text>
             </View>
 
-            {analysis.whatWorked.length > 0 && (
+            {r.quickWins?.length > 0 && (
               <View style={[modalStyles.section, { backgroundColor: "#10B98108", borderLeftColor: "#10B981" }]}>
                 <View style={modalStyles.sectionHeader}>
-                  <IconSymbol name="checkmark.circle.fill" size={14} color="#10B981" />
-                  <Text style={[modalStyles.sectionLabel, { color: "#10B981" }]}>WHAT WORKED</Text>
+                  <IconSymbol name="bolt.fill" size={14} color="#10B981" />
+                  <Text style={[modalStyles.sectionLabel, { color: "#10B981" }]}>QUICK WINS</Text>
                 </View>
-                {analysis.whatWorked.map((item, i) => (
-                  <Text key={i} style={[modalStyles.sectionText, { color: colors.foreground }]}>• {item}</Text>
+                {r.quickWins.map((win, i) => (
+                  <Text key={i} style={[modalStyles.sectionText, { color: colors.foreground }]}>• {win}</Text>
                 ))}
               </View>
             )}
 
-            {analysis.whatDidntWork.length > 0 && (
-              <View style={[modalStyles.section, { backgroundColor: "#EF444408", borderLeftColor: "#EF4444" }]}>
-                <View style={modalStyles.sectionHeader}>
-                  <IconSymbol name="xmark.circle.fill" size={14} color="#EF4444" />
-                  <Text style={[modalStyles.sectionLabel, { color: "#EF4444" }]}>WHAT DIDN'T WORK</Text>
-                </View>
-                {analysis.whatDidntWork.map((item, i) => (
-                  <Text key={i} style={[modalStyles.sectionText, { color: colors.foreground }]}>• {item}</Text>
-                ))}
+            <View style={[modalStyles.section, { backgroundColor: "#8B5CF608", borderLeftColor: "#8B5CF6" }]}>
+              <View style={modalStyles.sectionHeader}>
+                <IconSymbol name="person.2.fill" size={14} color="#8B5CF6" />
+                <Text style={[modalStyles.sectionLabel, { color: "#8B5CF6" }]}>COMPETITOR LANDSCAPE</Text>
               </View>
-            )}
+              <Text style={[modalStyles.sectionText, { color: colors.muted }]}>Account Types: {r.competitorLandscape.dominantAccountTypes.join(", ")}</Text>
+              <Text style={[modalStyles.sectionText, { color: colors.muted }]}>Content Styles: {r.competitorLandscape.commonContentStyles.join(", ")}</Text>
+              <Text style={[modalStyles.sectionText, { color: colors.foreground }]}>{r.competitorLandscape.postingPatterns}</Text>
+            </View>
 
-            {analysis.audienceInsights ? (
-              <View style={[modalStyles.section, { backgroundColor: "#8B5CF608", borderLeftColor: "#8B5CF6" }]}>
-                <View style={modalStyles.sectionHeader}>
-                  <IconSymbol name="person.2.fill" size={14} color="#8B5CF6" />
-                  <Text style={[modalStyles.sectionLabel, { color: "#8B5CF6" }]}>AUDIENCE INSIGHTS</Text>
-                </View>
-                <Text style={[modalStyles.sectionText, { color: colors.foreground }]}>{analysis.audienceInsights}</Text>
-              </View>
-            ) : null}
-
-            {analysis.frameworkRecommendation ? (
+            {r.contentGaps?.length > 0 && (
               <View style={[modalStyles.section, { backgroundColor: "#F59E0B08", borderLeftColor: "#F59E0B" }]}>
                 <View style={modalStyles.sectionHeader}>
                   <IconSymbol name="lightbulb.fill" size={14} color="#F59E0B" />
-                  <Text style={[modalStyles.sectionLabel, { color: "#F59E0B" }]}>FRAMEWORK RECOMMENDATION</Text>
+                  <Text style={[modalStyles.sectionLabel, { color: "#F59E0B" }]}>CONTENT GAPS</Text>
                 </View>
-                <Text style={[modalStyles.sectionText, { color: colors.foreground }]}>{analysis.frameworkRecommendation}</Text>
+                {r.contentGaps.map((gap, i) => (
+                  <Text key={i} style={[modalStyles.sectionText, { color: colors.foreground }]}>• {gap.gap}</Text>
+                ))}
               </View>
-            ) : null}
+            )}
+
+            {r.contentPillars?.length > 0 && (
+              <View style={[modalStyles.section, { backgroundColor: colors.surface, borderLeftColor: colors.primary }]}>
+                <View style={modalStyles.sectionHeader}>
+                  <IconSymbol name="square.grid.2x2.fill" size={14} color={colors.primary} />
+                  <Text style={[modalStyles.sectionLabel, { color: colors.primary }]}>CONTENT PILLARS</Text>
+                </View>
+                {r.contentPillars.map((pillar, i) => (
+                  <Text key={i} style={[modalStyles.sectionText, { color: colors.foreground }]}>{i + 1}. {pillar.pillar}: {pillar.description}</Text>
+                ))}
+              </View>
+            )}
           </ScrollView>
 
           <View style={modalStyles.actions}>
@@ -621,12 +658,12 @@ export default function HistoryScreen() {
   const { savedIdeas, removeIdea } = useSavedIdeas();
   const { savedPrompts, removePrompt, clearAllPrompts, savedCaptions, removeCaption, clearAllCaptions } = useStorage();
   const [activeTab, setActiveTab] = useState<Tab>("ideas");
-  const [analyses, setAnalyses] = useState<UrlAnalysis[]>([]);
+  const [analyses, setAnalyses] = useState<NicheAnalysis[]>([]);
 
   // Detail modal state
   const [selectedIdea, setSelectedIdea] = useState<ContentIdea | null>(null);
   const [showIdeaModal, setShowIdeaModal] = useState(false);
-  const [selectedAnalysis, setSelectedAnalysis] = useState<UrlAnalysis | null>(null);
+  const [selectedAnalysis, setSelectedAnalysis] = useState<NicheAnalysis | null>(null);
   const [showAnalysisModal, setShowAnalysisModal] = useState(false);
   const [selectedPrompt, setSelectedPrompt] = useState<SavedPrompt | null>(null);
   const [showPromptModal, setShowPromptModal] = useState(false);
@@ -774,9 +811,10 @@ export default function HistoryScreen() {
     );
   };
 
-  const renderAnalysisItem = ({ item: analysis }: { item: UrlAnalysis }) => {
-    const scoreColor = getScoreColor(analysis.resonanceScore);
-    const platformColor = analysis.platform ? getPlatformColor(analysis.platform) : colors.primary;
+  const renderAnalysisItem = ({ item: analysis }: { item: NicheAnalysis }) => {
+    const platformColor = analysis.platform && analysis.platform !== "all"
+      ? getPlatformColor(analysis.platform)
+      : colors.primary;
     return (
       <TouchableOpacity
         onPress={() => { setSelectedAnalysis(analysis); setShowAnalysisModal(true); }}
@@ -784,29 +822,23 @@ export default function HistoryScreen() {
         style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}
       >
         <View style={styles.cardHeader}>
-          {analysis.platform && (
+          {analysis.platform && analysis.platform !== "all" && (
             <View style={[styles.platformBadge, { backgroundColor: platformColor + "18", borderColor: platformColor + "40" }]}>
               <Text style={[styles.platformBadgeText, { color: platformColor }]}>
                 {analysis.platform.charAt(0).toUpperCase() + analysis.platform.slice(1)}
               </Text>
             </View>
           )}
-          <View style={[styles.scorePill, { backgroundColor: scoreColor + "18" }]}>
-            <Text style={[styles.scorePillText, { color: scoreColor }]}>Score: {analysis.resonanceScore}/100</Text>
+          <View style={[styles.typeBadge, { backgroundColor: colors.primary + "12" }]}>
+            <Text style={[styles.typeBadgeText, { color: colors.primary }]}>Niche Intelligence</Text>
           </View>
-          <Text style={[styles.dateText, { color: colors.muted }]}>{formatDate(analysis.createdAt)}</Text>
+          <Text style={[styles.dateText, { color: colors.muted }]}>{formatDate(analysis.savedAt)}</Text>
         </View>
-        <Text style={[styles.urlText, { color: colors.muted }]} numberOfLines={1} ellipsizeMode="middle">{analysis.url}</Text>
-        {analysis.title && (
-          <Text style={[styles.ideaTitle, { color: colors.foreground }]} numberOfLines={2}>{analysis.title}</Text>
-        )}
-        <Text style={[styles.summaryText, { color: colors.foreground }]} numberOfLines={3}>{analysis.summary}</Text>
-        {analysis.whatWorked.length > 0 && (
-          <View style={[styles.hookBox, { backgroundColor: "#10B98110", borderLeftColor: "#10B981" }]}>
-            <Text style={[styles.hookLabel, { color: "#10B981" }]}>What Worked</Text>
-            <Text style={[styles.hookText, { color: colors.foreground }]} numberOfLines={2}>{analysis.whatWorked[0]}</Text>
-          </View>
-        )}
+        <Text style={[styles.ideaTitle, { color: colors.foreground }]} numberOfLines={1}>{analysis.niche}</Text>
+        <View style={[styles.hookBox, { backgroundColor: colors.primary + "08", borderLeftColor: colors.primary }]}>
+          <Text style={[styles.hookLabel, { color: colors.primary }]}>Overview</Text>
+          <Text style={[styles.hookText, { color: colors.foreground }]} numberOfLines={3}>{analysis.result.nicheOverview}</Text>
+        </View>
         <View style={styles.cardFooter}>
           <Text style={[styles.tapHint, { color: colors.primary }]}>Tap to view full analysis →</Text>
           <TouchableOpacity

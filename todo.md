@@ -246,3 +246,7 @@
 - [x] Desktop Niche Intelligence: fix Content Gaps first-line text overflow — ensure text wraps correctly
 - [x] Desktop menu/sidebar: rename "Content Playbook" to "Niche Intelligence"
 - [x] Niche Intelligence (desktop + mobile): add Save button to results so users can save to History
+
+## Bug Fixes Round 4
+- [ ] History Analyses tab: show saved Niche Intelligence analyses (currently saved to @contentcraft_niche_analyses but not displayed in History)
+- [ ] Niche Intelligence desktop: Content Gaps text still not fully wrapping — fix container flex/shrink styles

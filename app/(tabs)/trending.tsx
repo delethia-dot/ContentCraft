@@ -512,6 +512,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     padding: 12,
     gap: 6,
+    alignSelf: "stretch",
   },
   gapHeader: {
     flexDirection: "row",
@@ -530,6 +531,8 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "700",
     lineHeight: 20,
+    flexShrink: 1,
+    flexWrap: "wrap",
   },
   pillarCard: {
     borderRadius: 12,
