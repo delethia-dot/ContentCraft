@@ -219,3 +219,6 @@
 - [x] Replace appearance toggle switch with Light/Dark click buttons in Settings
 - [x] URL Analyzer removed; Niche Strategy deferred to next session
 - [x] Redeploy to Netlify
+
+## Appearance Fix
+- [x] Restore toggle switch on mobile, keep Light/Dark buttons on desktop web (platform detection)

@@ -367,39 +367,61 @@ function SettingsTab({
       {/* Appearance */}
       <View>
         <Text style={[styles.settingGroupTitle, { color: colors.foreground }]}>Appearance</Text>
-        <View style={[styles.settingRow, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-          <View style={[styles.settingIcon, { backgroundColor: colors.primary + "20" }]}>
-            <IconSymbol name={isDark ? "moon.fill" : "sun.max.fill"} size={18} color={colors.primary} />
+        {Platform.OS === "web" ? (
+          // Desktop: Light/Dark click buttons (toggle doesn't work reliably on web)
+          <>
+            <View style={[styles.settingRow, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+              <View style={[styles.settingIcon, { backgroundColor: colors.primary + "20" }]}>
+                <IconSymbol name={isDark ? "moon.fill" : "sun.max.fill"} size={18} color={colors.primary} />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={[styles.settingLabel, { color: colors.foreground }]}>Appearance</Text>
+                <Text style={[styles.settingValue, { color: colors.muted }]}>Choose your preferred theme</Text>
+              </View>
+            </View>
+            <View style={styles.themeButtonRow}>
+              <TouchableOpacity
+                onPress={() => onSetColorScheme("light")}
+                activeOpacity={0.8}
+                style={[
+                  styles.themeButton,
+                  { backgroundColor: !isDark ? colors.primary : colors.surface, borderColor: !isDark ? colors.primary : colors.border },
+                ]}
+              >
+                <IconSymbol name="sun.max.fill" size={16} color={!isDark ? "#FFFFFF" : colors.muted} />
+                <Text style={[styles.themeButtonText, { color: !isDark ? "#FFFFFF" : colors.muted }]}>Light</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => onSetColorScheme("dark")}
+                activeOpacity={0.8}
+                style={[
+                  styles.themeButton,
+                  { backgroundColor: isDark ? colors.primary : colors.surface, borderColor: isDark ? colors.primary : colors.border },
+                ]}
+              >
+                <IconSymbol name="moon.fill" size={16} color={isDark ? "#FFFFFF" : colors.muted} />
+                <Text style={[styles.themeButtonText, { color: isDark ? "#FFFFFF" : colors.muted }]}>Dark</Text>
+              </TouchableOpacity>
+            </View>
+          </>
+        ) : (
+          // Mobile: original toggle switch
+          <View style={[styles.settingRow, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+            <View style={[styles.settingIcon, { backgroundColor: colors.primary + "20" }]}>
+              <IconSymbol name={isDark ? "moon.fill" : "sun.max.fill"} size={18} color={colors.primary} />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={[styles.settingLabel, { color: colors.foreground }]}>Dark Mode</Text>
+              <Text style={[styles.settingValue, { color: colors.muted }]}>{isDark ? "Enabled" : "Disabled"}</Text>
+            </View>
+            <Switch
+              value={isDark}
+              onValueChange={onToggleTheme}
+              trackColor={{ false: colors.border, true: colors.primary }}
+              thumbColor={"#FFFFFF"}
+            />
           </View>
-          <View style={{ flex: 1 }}>
-            <Text style={[styles.settingLabel, { color: colors.foreground }]}>Appearance</Text>
-            <Text style={[styles.settingValue, { color: colors.muted }]}>Choose your preferred theme</Text>
-          </View>
-        </View>
-        <View style={styles.themeButtonRow}>
-          <TouchableOpacity
-            onPress={() => onSetColorScheme("light")}
-            activeOpacity={0.8}
-            style={[
-              styles.themeButton,
-              { backgroundColor: !isDark ? colors.primary : colors.surface, borderColor: !isDark ? colors.primary : colors.border },
-            ]}
-          >
-            <IconSymbol name="sun.max.fill" size={16} color={!isDark ? "#FFFFFF" : colors.muted} />
-            <Text style={[styles.themeButtonText, { color: !isDark ? "#FFFFFF" : colors.muted }]}>Light</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            onPress={() => onSetColorScheme("dark")}
-            activeOpacity={0.8}
-            style={[
-              styles.themeButton,
-              { backgroundColor: isDark ? colors.primary : colors.surface, borderColor: isDark ? colors.primary : colors.border },
-            ]}
-          >
-            <IconSymbol name="moon.fill" size={16} color={isDark ? "#FFFFFF" : colors.muted} />
-            <Text style={[styles.themeButtonText, { color: isDark ? "#FFFFFF" : colors.muted }]}>Dark</Text>
-          </TouchableOpacity>
-        </View>
+        )}
       </View>
 
       {/* About */}
