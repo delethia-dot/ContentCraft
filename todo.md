@@ -230,5 +230,13 @@
 ## Appearance Button Web Fix (Round 2)
 - [x] Light/Dark buttons fixed: useColors now reads from ThemeContext (not system hook) so all components re-render when scheme changes
 - [x] Add Caption Writer as third feature card on onboarding Features slide so "Three powerful tools" subtitle is accurate
-- [ ] Diagnose and fix Caption Writer not working
+- [x] Diagnose and fix Caption Writer not working
 - [x] Deploy backend to Railway for permanent 24/7 hosting (api-production-1afb.up.railway.app)
+
+## Approved Fixes - Content Quality Round
+- [x] Fix Idea Generator: format-specific AI prompts and structured outputs (script, carousel breakdown, image brief, short-form, blog)
+- [x] Fix Idea Generator UI: render format-specific sections per content type
+- [x] Rename Hashtag Research to Hashtag Suggestions with disclaimer about AI training data
+- [x] Reframe Content Playbook as Niche Intelligence (Competitor Landscape, Content Gaps, Audience Pain Points, Content Pillars)
+- [x] Remove broken "Use this Idea" button from Content Playbook / Niche Intelligence
+- [x] Add disclaimer to Niche Intelligence: based on AI training data, not live analytics

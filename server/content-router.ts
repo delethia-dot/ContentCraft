@@ -25,30 +25,72 @@ export const contentRouter = router({
         linkedin: "professional, thought leadership, career insights, B2B",
       };
 
+      // Format-specific output instructions
+      const formatInstructions: Record<string, string> = {
+        video: `For each scripted video idea, include a FULL SCRIPT with:
+- "script": object with "intro" (hook, first 5-10 seconds), "scenes" (array of {sceneNumber, description, dialogue, duration}), "outro" (CTA, last 10-15 seconds)
+- "estimatedDuration": e.g. "3-5 minutes"
+- "productionNotes": brief notes on visuals, b-roll, or on-screen text`,
+        carousel: `For each carousel idea, include:
+- "slides": array of {slideNumber, headline, bodyText, visualDirection} — specify EVERY slide
+- "slideCount": recommended number of slides (e.g. 7)
+- "coverSlide": the first slide concept that makes people swipe
+- "lastSlide": the CTA/save-worthy final slide`,
+        image: `For each image/graphic idea, include:
+- "imageConceptDetails": object with "composition" (what to show and how), "textOverlay" (exact copy to put on the image), "colorMood" (palette/mood direction), "style" (e.g. flat design, photo, illustration)
+- "toolSuggestions": array of tool recommendations (e.g. Canva template type, Midjourney prompt idea)
+- "captionHint": brief note on what caption to pair with this image`,
+        short: `For each short-form video idea, include:
+- "shortScript": object with "hook" (exact first 3 seconds), "keyPoints" (array of 3-5 bullet talking points), "closingLine" (last line before CTA)
+- "estimatedDuration": e.g. "30-60 seconds"
+- "trendAngle": trending format or sound style to use`,
+        reel: `For each reel idea, include:
+- "shortScript": object with "hook" (exact first 3 seconds), "keyPoints" (array of 3-5 bullet talking points), "closingLine" (last line before CTA)
+- "estimatedDuration": e.g. "15-30 seconds"
+- "trendAngle": trending audio or visual format to use`,
+        "long-form": `For each long-form content idea, include:
+- "outline": object with "intro" (angle/thesis), "sections" (array of {heading, keyPoints}), "conclusion" (summary + CTA)
+- "estimatedLength": e.g. "800-1200 words" or "10-15 minutes"
+- "seoAngle": keyword or search intent to target`,
+        post: `For each post idea, include:
+- "postStructure": object with "openingLine" (scroll-stopping first line), "mainContent" (2-3 paragraphs), "closingCTA" (engagement question or action)
+- "visualSuggestion": what image or graphic to pair with this post`,
+        story: `For each story idea, include:
+- "storyFrames": array of {frameNumber, content, interactiveElement} (e.g. poll, question sticker, swipe-up)
+- "frameCount": recommended number of frames (3-7)
+- "goal": awareness | engagement | traffic | sales`,
+      };
+
+      const formatKey = contentType as string;
+      const extraInstructions = formatInstructions[formatKey] ?? formatInstructions["post"];
+
       const response = await invokeLLM({
         messages: [
           {
             role: "system",
-            content: `You are an expert social media content strategist. Generate exactly 5 unique, high-quality content ideas. Return ONLY valid JSON with no markdown.`,
+            content: `You are an expert social media content strategist and copywriter. Generate exactly 5 unique, high-quality content ideas with FULL format-specific details. Return ONLY valid JSON with no markdown.`,
           },
           {
             role: "user",
             content: `Generate 5 ${contentType} content ideas for ${platform} in the "${niche}" niche.
 Platform style: ${platformGuide[platform]}
 
-Return JSON in this exact format:
+${extraInstructions}
+
+Return JSON in this exact format — include ALL format-specific fields described above:
 {
   "ideas": [
     {
       "id": "unique-string-id",
       "title": "Compelling content title",
       "hook": "Opening hook that stops the scroll (1-2 sentences)",
-      "body": "Main content body with key points (2-4 sentences)",
+      "body": "Main content summary (2-3 sentences describing the idea)",
       "cta": "Clear call to action",
       "platform": "${platform}",
       "contentType": "${contentType}",
       "niche": "${niche}",
-      "createdAt": "ISO date string"
+      "createdAt": "ISO date string",
+      ... (include all format-specific fields as described above)
     }
   ]
 }`,
@@ -541,6 +583,74 @@ Return JSON in this exact format:
         platform,
         niche,
         analyzedAt: new Date().toISOString(),
+      };
+    }),
+
+  getNicheIntelligence: publicProcedure
+    .input(
+      z.object({
+        niche: z.string().min(1).max(100),
+        platform: z.enum(["all", "instagram", "facebook", "tiktok", "youtube", "linkedin"]).default("all"),
+      })
+    )
+    .mutation(async ({ input }) => {
+      const { niche, platform } = input;
+      const platformContext = platform === "all" ? "across all major social platforms (Instagram, TikTok, YouTube, Facebook, LinkedIn)" : `on ${platform}`;
+
+      const response = await invokeLLM({
+        messages: [
+          {
+            role: "system",
+            content: `You are a senior social media strategist. Provide genuinely useful niche intelligence to help content creators understand their competitive landscape and find strategic opportunities. IMPORTANT: You are working from AI training data, not live platform analytics. Be honest and insightful. Return ONLY valid JSON with no markdown.`,
+          },
+          {
+            role: "user",
+            content: `Provide comprehensive niche intelligence for someone creating content in the "${niche}" niche ${platformContext}.
+
+Return JSON in this exact format:
+{
+  "nicheOverview": "2-3 sentence summary of this niche's content landscape and opportunity level",
+  "competitorLandscape": {
+    "dominantAccountTypes": ["Type of account that dominates (e.g. educators, entertainers, brands)", "Type 2", "Type 3"],
+    "commonContentStyles": ["Content style commonly used in this niche", "Style 2", "Style 3"],
+    "postingPatterns": "Typical posting frequency and timing patterns in this niche",
+    "toneAndVoice": "The dominant tone and voice used by top creators in this niche"
+  },
+  "contentGaps": [
+    {
+      "gap": "Underserved topic or angle in this niche",
+      "opportunity": "Why this is an opportunity and how to capitalize on it",
+      "contentFormat": "Best format to use for this gap (e.g. carousel, short video)"
+    }
+  ],
+  "audiencePainPoints": [
+    {
+      "painPoint": "A real struggle or question the audience has",
+      "contentAngle": "How to address this in content"
+    }
+  ],
+  "contentPillars": [
+    {
+      "pillar": "Core content theme name",
+      "description": "What this pillar covers and why it matters for this niche",
+      "exampleTopics": ["Example topic 1", "Example topic 2", "Example topic 3"]
+    }
+  ],
+  "quickWins": ["Immediately actionable content idea 1", "Quick win 2", "Quick win 3"]
+}`,
+          },
+        ],
+        response_format: { type: "json_object" },
+      });
+
+      const raw = response.choices[0].message.content as string;
+      const parsed = JSON.parse(raw);
+      return {
+        ...parsed,
+        id: `niche-intel-${Date.now()}`,
+        niche,
+        platform,
+        generatedAt: new Date().toISOString(),
       };
     }),
 

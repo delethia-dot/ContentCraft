@@ -31,11 +31,11 @@ const FEATURES = [
       "Generate 5 tailored content ideas for Instagram, TikTok, YouTube, Facebook, and LinkedIn — all tuned to your niche.",
   },
   {
-    icon: "flame.fill" as const,
+    icon: "binoculars.fill" as const,
     color: "#EF4444",
-    title: "Content Playbook",
+    title: "Niche Intelligence",
     description:
-      "Discover proven content formats, hooks, and strategies tailored to your niche and platform — drawn from what has historically performed best.",
+      "Get a strategic breakdown of your niche — competitor landscape, content gaps, audience pain points, and content pillars to build your presence around.",
   },
   {
     icon: "pencil" as const,

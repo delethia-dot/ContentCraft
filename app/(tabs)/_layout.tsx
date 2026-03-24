@@ -76,9 +76,9 @@ export default function TabLayout() {
       <Tabs.Screen
         name="trending"
         options={{
-          title: "Playbook",
+          title: "Niche Intel",
           tabBarIcon: ({ color, size }) => (
-            <IconSymbol size={size ?? 24} name="flame.fill" color={color} />
+            <IconSymbol size={size ?? 24} name="binoculars.fill" color={color} />
           ),
         }}
       />

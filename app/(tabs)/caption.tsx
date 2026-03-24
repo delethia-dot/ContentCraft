@@ -331,14 +331,20 @@ export default function CaptionScreen() {
                 <IconSymbol name="number" size={18} color={colors.accent} />
               </View>
               <View style={{ flex: 1 }}>
-                <Text style={[styles.sectionTitle, { color: colors.foreground }]}>Hashtag Research</Text>
-                <Text style={[styles.sectionHint, { color: colors.muted, marginTop: 2 }]}>Find trending hashtags ranked by reach & competition</Text>
+                <Text style={[styles.sectionTitle, { color: colors.foreground }]}>Hashtag Suggestions</Text>
+                <Text style={[styles.sectionHint, { color: colors.muted, marginTop: 2 }]}>AI-suggested hashtags ranked by estimated reach & competition</Text>
               </View>
               <IconSymbol name={showHashtagResearch ? "chevron.up" : "chevron.down"} size={16} color={colors.muted} />
             </TouchableOpacity>
 
             {showHashtagResearch && (
               <View style={{ gap: 12 }}>
+                {/* Disclaimer */}
+                <View style={{ backgroundColor: "#F59E0B10", borderRadius: 10, padding: 10, borderWidth: 1, borderColor: "#F59E0B30" }}>
+                  <Text style={{ fontSize: 11, color: "#92400E", lineHeight: 16 }}>
+                    ⚠️ These suggestions are AI-generated based on training data and do not reflect live platform metrics. Verify current trends using Instagram, TikTok, or a dedicated hashtag tool before publishing.
+                  </Text>
+                </View>
                 <TouchableOpacity
                   onPress={handleResearchHashtags}
                   activeOpacity={0.85}
@@ -348,7 +354,7 @@ export default function CaptionScreen() {
                   {isResearchingHashtags ? (
                     <><ActivityIndicator size="small" color="#FFFFFF" /><Text style={styles.generateBtnText}>Researching...</Text></>
                   ) : (
-                    <><IconSymbol name="magnifyingglass" size={16} color="#FFFFFF" /><Text style={styles.generateBtnText}>Research Hashtags</Text></>
+                    <><IconSymbol name="magnifyingglass" size={16} color="#FFFFFF" /><Text style={styles.generateBtnText}>Get Hashtag Suggestions</Text></>
                   )}
                 </TouchableOpacity>
 

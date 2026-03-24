@@ -44,6 +44,8 @@ const MAPPING = {
   "sparkles": "auto-awesome",
   "wand.and.stars": "auto-fix-high",
   "flame.fill": "local-fire-department",
+  "binoculars.fill": "manage-search",
+  "number": "tag",
   "bolt.fill": "bolt",
   "globe": "language",
   "calendar": "calendar-today",

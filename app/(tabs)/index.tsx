@@ -61,9 +61,9 @@ export default function HomeScreen() {
     },
     {
       id: "trending",
-      title: "Content Playbook",
-      subtitle: "Proven content formats",
-      icon: "flame.fill" as const,
+      title: "Niche Intelligence",
+      subtitle: "Competitor landscape & strategy",
+      icon: "binoculars.fill" as const,
       color: "#E05A1C",
       route: "/(tabs)/trending",
     },

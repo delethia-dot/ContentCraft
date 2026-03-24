@@ -59,12 +59,74 @@ export default function IdeasScreen() {
     }
   }, [selectedPlatform, selectedContentType, niche, generateMutation]);
 
+  const buildCopyText = useCallback((idea: any): string => {
+    const lines: string[] = [`${idea.title}`, ``, `HOOK: ${idea.hook}`, ``];
+
+    if (idea.script) {
+      lines.push(`--- FULL SCRIPT ---`);
+      lines.push(`INTRO: ${idea.script.intro}`);
+      if (Array.isArray(idea.script.scenes)) {
+        idea.script.scenes.forEach((s: any) => {
+          lines.push(``, `SCENE ${s.sceneNumber} (${s.duration}): ${s.description}`);
+          if (s.dialogue) lines.push(`DIALOGUE: ${s.dialogue}`);
+        });
+      }
+      lines.push(``, `OUTRO: ${idea.script.outro}`);
+      if (idea.estimatedDuration) lines.push(``, `Duration: ${idea.estimatedDuration}`);
+      if (idea.productionNotes) lines.push(`Production Notes: ${idea.productionNotes}`);
+    } else if (idea.slides) {
+      lines.push(`--- CAROUSEL BREAKDOWN (${idea.slideCount ?? idea.slides.length} slides) ---`);
+      idea.slides.forEach((s: any) => {
+        lines.push(``, `SLIDE ${s.slideNumber}: ${s.headline}`);
+        if (s.bodyText) lines.push(s.bodyText);
+        if (s.visualDirection) lines.push(`Visual: ${s.visualDirection}`);
+      });
+    } else if (idea.imageConceptDetails) {
+      lines.push(`--- IMAGE CONCEPT ---`);
+      lines.push(`Composition: ${idea.imageConceptDetails.composition}`);
+      lines.push(`Text Overlay: ${idea.imageConceptDetails.textOverlay}`);
+      lines.push(`Color/Mood: ${idea.imageConceptDetails.colorMood}`);
+      lines.push(`Style: ${idea.imageConceptDetails.style}`);
+      if (idea.toolSuggestions?.length) lines.push(``, `Tools: ${idea.toolSuggestions.join(', ')}`);
+      if (idea.captionHint) lines.push(`Caption Hint: ${idea.captionHint}`);
+    } else if (idea.shortScript) {
+      lines.push(`--- SHORT VIDEO SCRIPT ---`);
+      lines.push(`Hook (first 3s): ${idea.shortScript.hook}`);
+      if (Array.isArray(idea.shortScript.keyPoints)) {
+        lines.push(``, `Key Points:`);
+        idea.shortScript.keyPoints.forEach((pt: string) => lines.push(`• ${pt}`));
+      }
+      lines.push(``, `Closing: ${idea.shortScript.closingLine}`);
+      if (idea.trendAngle) lines.push(`Trend Angle: ${idea.trendAngle}`);
+    } else if (idea.outline) {
+      lines.push(`--- CONTENT OUTLINE ---`);
+      lines.push(`Intro: ${idea.outline.intro}`);
+      if (Array.isArray(idea.outline.sections)) {
+        idea.outline.sections.forEach((sec: any) => {
+          lines.push(``, `${sec.heading}:`);
+          if (Array.isArray(sec.keyPoints)) sec.keyPoints.forEach((pt: string) => lines.push(`• ${pt}`));
+        });
+      }
+      lines.push(``, `Conclusion: ${idea.outline.conclusion}`);
+      if (idea.seoAngle) lines.push(`SEO Angle: ${idea.seoAngle}`);
+    } else if (idea.postStructure) {
+      lines.push(idea.postStructure.openingLine);
+      lines.push(``, idea.postStructure.mainContent);
+      lines.push(``, idea.postStructure.closingCTA);
+    } else {
+      lines.push(idea.body);
+    }
+
+    lines.push(``, `CTA: ${idea.cta}`);
+    return lines.join('\n');
+  }, []);
+
   const handleCopy = useCallback(async (idea: ContentIdea) => {
-    const text = `${idea.title}\n\n${idea.hook}\n\n${idea.body}\n\n${idea.cta}`;
+    const text = buildCopyText(idea);
     await Clipboard.setStringAsync(text);
     if (Platform.OS !== "web") Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    Alert.alert("Copied!", "Idea copied to clipboard.");
-  }, []);
+    Alert.alert("Copied!", "Full content copied to clipboard. Paste into Caption Writer for captions.");
+  }, [buildCopyText]);
 
   const handleSaveToggle = useCallback(
     async (idea: ContentIdea) => {
@@ -240,10 +302,192 @@ export default function IdeasScreen() {
 
                   {isExpanded && (
                     <View style={[styles.ideaExpanded, { borderTopColor: colors.border }]}>
+                      {/* Body summary always shown */}
                       <View style={[styles.ideaSection, { backgroundColor: colors.primary + "08" }]}>
-                        <Text style={[styles.ideaSectionLabel, { color: colors.primary }]}>BODY</Text>
+                        <Text style={[styles.ideaSectionLabel, { color: colors.primary }]}>OVERVIEW</Text>
                         <Text style={[styles.ideaSectionText, { color: colors.foreground }]}>{idea.body}</Text>
                       </View>
+
+                      {/* Scripted Video */}
+                      {(idea as any).script && (
+                        <>
+                          {(idea as any).estimatedDuration && (
+                            <View style={[styles.ideaSection, { backgroundColor: colors.surface }]}>
+                              <Text style={[styles.ideaSectionLabel, { color: colors.muted }]}>ESTIMATED DURATION</Text>
+                              <Text style={[styles.ideaSectionText, { color: colors.foreground }]}>{(idea as any).estimatedDuration}</Text>
+                            </View>
+                          )}
+                          <View style={[styles.ideaSection, { backgroundColor: colors.navy + "12" }]}>
+                            <Text style={[styles.ideaSectionLabel, { color: colors.navy }]}>INTRO (Hook)</Text>
+                            <Text style={[styles.ideaSectionText, { color: colors.foreground }]}>{(idea as any).script.intro}</Text>
+                          </View>
+                          {Array.isArray((idea as any).script.scenes) && (idea as any).script.scenes.map((scene: any) => (
+                            <View key={scene.sceneNumber} style={[styles.ideaSection, { backgroundColor: colors.surface }]}>
+                              <Text style={[styles.ideaSectionLabel, { color: colors.primary }]}>SCENE {scene.sceneNumber} · {scene.duration}</Text>
+                              <Text style={[styles.ideaSectionText, { color: colors.foreground }]}>{scene.description}</Text>
+                              {scene.dialogue ? <Text style={[styles.ideaSectionText, { color: colors.muted, fontStyle: 'italic', marginTop: 4 }]}>🎙 {scene.dialogue}</Text> : null}
+                            </View>
+                          ))}
+                          <View style={[styles.ideaSection, { backgroundColor: colors.accent + "12" }]}>
+                            <Text style={[styles.ideaSectionLabel, { color: colors.accent }]}>OUTRO (CTA)</Text>
+                            <Text style={[styles.ideaSectionText, { color: colors.foreground }]}>{(idea as any).script.outro}</Text>
+                          </View>
+                          {(idea as any).productionNotes && (
+                            <View style={[styles.ideaSection, { backgroundColor: colors.surface }]}>
+                              <Text style={[styles.ideaSectionLabel, { color: colors.muted }]}>PRODUCTION NOTES</Text>
+                              <Text style={[styles.ideaSectionText, { color: colors.foreground }]}>{(idea as any).productionNotes}</Text>
+                            </View>
+                          )}
+                        </>
+                      )}
+
+                      {/* Carousel */}
+                      {(idea as any).slides && (
+                        <>
+                          <View style={[styles.ideaSection, { backgroundColor: colors.surface }]}>
+                            <Text style={[styles.ideaSectionLabel, { color: colors.muted }]}>CAROUSEL · {(idea as any).slideCount ?? (idea as any).slides.length} SLIDES</Text>
+                            <Text style={[styles.ideaSectionText, { color: colors.muted }]}>Tap Copy to get the full breakdown</Text>
+                          </View>
+                          {(idea as any).slides.map((slide: any) => (
+                            <View key={slide.slideNumber} style={[styles.ideaSection, { backgroundColor: slide.slideNumber === 1 ? colors.primary + "10" : colors.surface }]}>
+                              <Text style={[styles.ideaSectionLabel, { color: colors.primary }]}>SLIDE {slide.slideNumber}{slide.slideNumber === 1 ? ' (Cover)' : slide.slideNumber === (idea as any).slideCount ? ' (CTA)' : ''}</Text>
+                              <Text style={[styles.ideaSectionText, { color: colors.foreground, fontWeight: '700' }]}>{slide.headline}</Text>
+                              {slide.bodyText ? <Text style={[styles.ideaSectionText, { color: colors.foreground, marginTop: 2 }]}>{slide.bodyText}</Text> : null}
+                              {slide.visualDirection ? <Text style={[styles.ideaSectionText, { color: colors.muted, fontStyle: 'italic', marginTop: 4 }]}>Visual: {slide.visualDirection}</Text> : null}
+                            </View>
+                          ))}
+                        </>
+                      )}
+
+                      {/* Image/Graphic */}
+                      {(idea as any).imageConceptDetails && (
+                        <>
+                          <View style={[styles.ideaSection, { backgroundColor: colors.navy + "10" }]}>
+                            <Text style={[styles.ideaSectionLabel, { color: colors.navy }]}>COMPOSITION</Text>
+                            <Text style={[styles.ideaSectionText, { color: colors.foreground }]}>{(idea as any).imageConceptDetails.composition}</Text>
+                          </View>
+                          <View style={[styles.ideaSection, { backgroundColor: colors.accent + "10" }]}>
+                            <Text style={[styles.ideaSectionLabel, { color: colors.accent }]}>TEXT OVERLAY</Text>
+                            <Text style={[styles.ideaSectionText, { color: colors.foreground }]}>{(idea as any).imageConceptDetails.textOverlay}</Text>
+                          </View>
+                          <View style={[styles.ideaSection, { backgroundColor: colors.surface }]}>
+                            <Text style={[styles.ideaSectionLabel, { color: colors.muted }]}>COLOR / MOOD</Text>
+                            <Text style={[styles.ideaSectionText, { color: colors.foreground }]}>{(idea as any).imageConceptDetails.colorMood}</Text>
+                          </View>
+                          <View style={[styles.ideaSection, { backgroundColor: colors.surface }]}>
+                            <Text style={[styles.ideaSectionLabel, { color: colors.muted }]}>STYLE</Text>
+                            <Text style={[styles.ideaSectionText, { color: colors.foreground }]}>{(idea as any).imageConceptDetails.style}</Text>
+                          </View>
+                          {Array.isArray((idea as any).toolSuggestions) && (idea as any).toolSuggestions.length > 0 && (
+                            <View style={[styles.ideaSection, { backgroundColor: colors.primary + "08" }]}>
+                              <Text style={[styles.ideaSectionLabel, { color: colors.primary }]}>TOOL SUGGESTIONS</Text>
+                              {(idea as any).toolSuggestions.map((t: string, i: number) => (
+                                <Text key={i} style={[styles.ideaSectionText, { color: colors.foreground }]}>• {t}</Text>
+                              ))}
+                            </View>
+                          )}
+                          {(idea as any).captionHint && (
+                            <View style={[styles.ideaSection, { backgroundColor: colors.surface }]}>
+                              <Text style={[styles.ideaSectionLabel, { color: colors.muted }]}>CAPTION HINT</Text>
+                              <Text style={[styles.ideaSectionText, { color: colors.foreground }]}>{(idea as any).captionHint}</Text>
+                            </View>
+                          )}
+                        </>
+                      )}
+
+                      {/* Short-form / Reel */}
+                      {(idea as any).shortScript && (
+                        <>
+                          {(idea as any).estimatedDuration && (
+                            <View style={[styles.ideaSection, { backgroundColor: colors.surface }]}>
+                              <Text style={[styles.ideaSectionLabel, { color: colors.muted }]}>DURATION</Text>
+                              <Text style={[styles.ideaSectionText, { color: colors.foreground }]}>{(idea as any).estimatedDuration}</Text>
+                            </View>
+                          )}
+                          <View style={[styles.ideaSection, { backgroundColor: colors.primary + "10" }]}>
+                            <Text style={[styles.ideaSectionLabel, { color: colors.primary }]}>HOOK (First 3 seconds)</Text>
+                            <Text style={[styles.ideaSectionText, { color: colors.foreground }]}>{(idea as any).shortScript.hook}</Text>
+                          </View>
+                          {Array.isArray((idea as any).shortScript.keyPoints) && (
+                            <View style={[styles.ideaSection, { backgroundColor: colors.surface }]}>
+                              <Text style={[styles.ideaSectionLabel, { color: colors.muted }]}>KEY TALKING POINTS</Text>
+                              {(idea as any).shortScript.keyPoints.map((pt: string, i: number) => (
+                                <Text key={i} style={[styles.ideaSectionText, { color: colors.foreground }]}>• {pt}</Text>
+                              ))}
+                            </View>
+                          )}
+                          <View style={[styles.ideaSection, { backgroundColor: colors.accent + "10" }]}>
+                            <Text style={[styles.ideaSectionLabel, { color: colors.accent }]}>CLOSING LINE</Text>
+                            <Text style={[styles.ideaSectionText, { color: colors.foreground }]}>{(idea as any).shortScript.closingLine}</Text>
+                          </View>
+                          {(idea as any).trendAngle && (
+                            <View style={[styles.ideaSection, { backgroundColor: colors.surface }]}>
+                              <Text style={[styles.ideaSectionLabel, { color: colors.muted }]}>TREND ANGLE</Text>
+                              <Text style={[styles.ideaSectionText, { color: colors.foreground }]}>{(idea as any).trendAngle}</Text>
+                            </View>
+                          )}
+                        </>
+                      )}
+
+                      {/* Long-form outline */}
+                      {(idea as any).outline && (
+                        <>
+                          {(idea as any).estimatedLength && (
+                            <View style={[styles.ideaSection, { backgroundColor: colors.surface }]}>
+                              <Text style={[styles.ideaSectionLabel, { color: colors.muted }]}>ESTIMATED LENGTH</Text>
+                              <Text style={[styles.ideaSectionText, { color: colors.foreground }]}>{(idea as any).estimatedLength}</Text>
+                            </View>
+                          )}
+                          <View style={[styles.ideaSection, { backgroundColor: colors.navy + "10" }]}>
+                            <Text style={[styles.ideaSectionLabel, { color: colors.navy }]}>INTRO / ANGLE</Text>
+                            <Text style={[styles.ideaSectionText, { color: colors.foreground }]}>{(idea as any).outline.intro}</Text>
+                          </View>
+                          {Array.isArray((idea as any).outline.sections) && (idea as any).outline.sections.map((sec: any, i: number) => (
+                            <View key={i} style={[styles.ideaSection, { backgroundColor: colors.surface }]}>
+                              <Text style={[styles.ideaSectionLabel, { color: colors.primary }]}>{sec.heading}</Text>
+                              {Array.isArray(sec.keyPoints) && sec.keyPoints.map((pt: string, j: number) => (
+                                <Text key={j} style={[styles.ideaSectionText, { color: colors.foreground }]}>• {pt}</Text>
+                              ))}
+                            </View>
+                          ))}
+                          <View style={[styles.ideaSection, { backgroundColor: colors.accent + "10" }]}>
+                            <Text style={[styles.ideaSectionLabel, { color: colors.accent }]}>CONCLUSION</Text>
+                            <Text style={[styles.ideaSectionText, { color: colors.foreground }]}>{(idea as any).outline.conclusion}</Text>
+                          </View>
+                          {(idea as any).seoAngle && (
+                            <View style={[styles.ideaSection, { backgroundColor: colors.surface }]}>
+                              <Text style={[styles.ideaSectionLabel, { color: colors.muted }]}>SEO ANGLE</Text>
+                              <Text style={[styles.ideaSectionText, { color: colors.foreground }]}>{(idea as any).seoAngle}</Text>
+                            </View>
+                          )}
+                        </>
+                      )}
+
+                      {/* Post structure */}
+                      {(idea as any).postStructure && (
+                        <>
+                          <View style={[styles.ideaSection, { backgroundColor: colors.primary + "08" }]}>
+                            <Text style={[styles.ideaSectionLabel, { color: colors.primary }]}>OPENING LINE</Text>
+                            <Text style={[styles.ideaSectionText, { color: colors.foreground }]}>{(idea as any).postStructure.openingLine}</Text>
+                          </View>
+                          <View style={[styles.ideaSection, { backgroundColor: colors.surface }]}>
+                            <Text style={[styles.ideaSectionLabel, { color: colors.muted }]}>MAIN CONTENT</Text>
+                            <Text style={[styles.ideaSectionText, { color: colors.foreground }]}>{(idea as any).postStructure.mainContent}</Text>
+                          </View>
+                          <View style={[styles.ideaSection, { backgroundColor: colors.accent + "08" }]}>
+                            <Text style={[styles.ideaSectionLabel, { color: colors.accent }]}>CLOSING CTA</Text>
+                            <Text style={[styles.ideaSectionText, { color: colors.foreground }]}>{(idea as any).postStructure.closingCTA}</Text>
+                          </View>
+                          {(idea as any).visualSuggestion && (
+                            <View style={[styles.ideaSection, { backgroundColor: colors.surface }]}>
+                              <Text style={[styles.ideaSectionLabel, { color: colors.muted }]}>VISUAL SUGGESTION</Text>
+                              <Text style={[styles.ideaSectionText, { color: colors.foreground }]}>{(idea as any).visualSuggestion}</Text>
+                            </View>
+                          )}
+                        </>
+                      )}
+
+                      {/* CTA always at bottom */}
                       <View style={[styles.ideaSection, { backgroundColor: colors.accent + "08" }]}>
                         <Text style={[styles.ideaSectionLabel, { color: colors.accent }]}>CALL TO ACTION</Text>
                         <Text style={[styles.ideaSectionText, { color: colors.foreground }]}>{idea.cta}</Text>
