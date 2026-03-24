@@ -230,3 +230,5 @@
 ## Appearance Button Web Fix (Round 2)
 - [x] Light/Dark buttons fixed: useColors now reads from ThemeContext (not system hook) so all components re-render when scheme changes
 - [x] Add Caption Writer as third feature card on onboarding Features slide so "Three powerful tools" subtitle is accurate
+- [ ] Diagnose and fix Caption Writer not working
+- [x] Deploy backend to Railway for permanent 24/7 hosting (api-production-1afb.up.railway.app)
