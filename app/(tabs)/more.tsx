@@ -43,8 +43,7 @@ export default function MoreScreen() {
   const [nicheSheetVisible, setNicheSheetVisible] = useState(false);
   const [selectedFramework, setSelectedFramework] = useState<ContentFramework | null>(null);
   const [activeTab, setActiveTab] = useState<"frameworks" | "settings">("frameworks");
-  const colorScheme = useColorScheme();
-  const { setColorScheme } = useThemeContext();
+  const { colorScheme, setColorScheme } = useThemeContext();
   const toggleTheme = () => setColorScheme(colorScheme === "dark" ? "light" : "dark");
   const [notifPrefs, setNotifPrefs] = useState<NotificationPrefs>(DEFAULT_NOTIFICATION_PREFS);
 

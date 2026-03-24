@@ -224,5 +224,5 @@
 - [x] Restore toggle switch on mobile, keep Light/Dark buttons on desktop web (platform detection)
 
 ## Critical Fixes
-- [x] Remove Analyze tab completely — removed from onboarding and history empty state message
-- [x] Fix Appearance: Platform.OS detection confirmed correct — Switch on native mobile, buttons on web
+- [x] Remove Analyze tab completely — deleted analyze.tsx file so Expo Router no longer auto-adds it to the tab bar
+- [x] Fix Appearance: isDark now reads from ThemeContext (reactive) instead of useColorScheme (stale) — buttons now update correctly on press
