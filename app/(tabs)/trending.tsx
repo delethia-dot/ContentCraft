@@ -17,6 +17,7 @@ import { PLATFORMS } from "@/lib/types";
 import { trpc } from "@/lib/trpc";
 import * as Haptics from "expo-haptics";
 import { DesktopContainer } from "@/components/desktop-container";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 type PlatformFilter = "all" | "instagram" | "facebook" | "tiktok" | "youtube" | "linkedin";
 
@@ -73,13 +74,37 @@ export default function NicheIntelligenceScreen() {
   const [result, setResult] = useState<NicheIntelligenceResult | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [expandedPillar, setExpandedPillar] = useState<number | null>(null);
+  const [isSaved, setIsSaved] = useState(false);
 
   const intelligenceMutation = trpc.content.getNicheIntelligence.useMutation();
+
+  const handleSave = useCallback(async () => {
+    if (!result) return;
+    try {
+      const key = "@contentcraft_niche_analyses";
+      const existing = await AsyncStorage.getItem(key);
+      const list = existing ? JSON.parse(existing) : [];
+      const entry = {
+        id: Date.now().toString(),
+        niche,
+        platform: platformFilter,
+        savedAt: new Date().toISOString(),
+        result,
+      };
+      list.unshift(entry);
+      await AsyncStorage.setItem(key, JSON.stringify(list));
+      setIsSaved(true);
+      if (Platform.OS !== "web") Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    } catch {
+      // silent fail
+    }
+  }, [result, niche, platformFilter]);
 
   const handleGenerate = useCallback(async () => {
     if (Platform.OS !== "web") Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     setIsLoading(true);
     setResult(null);
+    setIsSaved(false);
     try {
       const data = await intelligenceMutation.mutateAsync({
         niche,
@@ -245,10 +270,10 @@ export default function NicheIntelligenceScreen() {
                   <View key={i} style={[styles.gapCard, { backgroundColor: colors.background, borderColor: colors.border }]}>
                     <View style={styles.gapHeader}>
                       <View style={[styles.gapBadge, { backgroundColor: colors.accent + "15" }]}>
-                        <Text style={[styles.gapBadgeText, { color: colors.accent }]}>{gap.contentFormat}</Text>
+                        <Text style={[styles.gapBadgeText, { color: colors.accent }]} numberOfLines={0}>{gap.contentFormat}</Text>
                       </View>
                     </View>
-                    <Text style={[styles.gapTitle, { color: colors.foreground }]}>{gap.gap}</Text>
+                    <Text style={[styles.gapTitle, { color: colors.foreground }]} numberOfLines={0}>{gap.gap}</Text>
                     <Text style={[styles.bodyText, { color: colors.muted }]}>{gap.opportunity}</Text>
                   </View>
                 ))}
@@ -305,6 +330,17 @@ export default function NicheIntelligenceScreen() {
                   </TouchableOpacity>
                 ))}
               </View>
+
+              {/* Save Button */}
+              <TouchableOpacity
+                onPress={handleSave}
+                disabled={isSaved}
+                activeOpacity={0.85}
+                style={[styles.saveBtn, { backgroundColor: isSaved ? colors.muted : colors.success }]}
+              >
+                <IconSymbol name={isSaved ? "checkmark" : "square.and.arrow.down"} size={18} color="#FFFFFF" />
+                <Text style={styles.saveBtnText}>{isSaved ? "Analysis Saved" : "Save Analysis"}</Text>
+              </TouchableOpacity>
 
             </View>
           )}
@@ -546,5 +582,19 @@ const styles = StyleSheet.create({
     fontSize: 14,
     textAlign: "center",
     lineHeight: 21,
+  },
+  saveBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    paddingVertical: 14,
+    borderRadius: 14,
+    marginTop: 4,
+  },
+  saveBtnText: {
+    color: "#FFFFFF",
+    fontSize: 15,
+    fontWeight: "700",
   },
 });

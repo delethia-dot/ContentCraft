@@ -240,3 +240,9 @@
 - [x] Reframe Content Playbook as Niche Intelligence (Competitor Landscape, Content Gaps, Audience Pain Points, Content Pillars)
 - [x] Remove broken "Use this Idea" button from Content Playbook / Niche Intelligence
 - [x] Add disclaimer to Niche Intelligence: based on AI training data, not live analytics
+
+## UI Fixes Round 2
+- [x] Onboarding features slide: add instructional note above feature cards ("Tap the Choose Your Niche button below to continue")
+- [x] Desktop Niche Intelligence: fix Content Gaps first-line text overflow — ensure text wraps correctly
+- [x] Desktop menu/sidebar: rename "Content Playbook" to "Niche Intelligence"
+- [x] Niche Intelligence (desktop + mobile): add Save button to results so users can save to History

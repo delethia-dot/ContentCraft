@@ -247,6 +247,12 @@ function FeaturesStep({ colors, onNext }: { colors: any; onNext: () => void }) {
           Three powerful tools designed to supercharge your social media presence.
         </Text>
 
+        <View style={[styles.instructionNote, { backgroundColor: colors.primary + "15", borderColor: colors.primary + "40" }]}>
+          <Text style={[styles.instructionText, { color: colors.primary }]}>
+            Tap the Choose Your Niche button below to continue.
+          </Text>
+        </View>
+
         <View style={styles.featuresList}>
           {FEATURES.map((f, i) => (
             <View
@@ -537,6 +543,20 @@ const styles = StyleSheet.create({
   featuresList: {
     gap: 12,
     marginTop: 8,
+  },
+  instructionNote: {
+    borderWidth: 1,
+    borderRadius: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    marginBottom: 12,
+    marginTop: 4,
+  },
+  instructionText: {
+    fontSize: 13,
+    fontWeight: "600",
+    textAlign: "center",
+    lineHeight: 18,
   },
   featureCard: {
     flexDirection: "row",
