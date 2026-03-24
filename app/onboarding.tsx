@@ -31,18 +31,11 @@ const FEATURES = [
       "Generate 5 tailored content ideas for Instagram, TikTok, YouTube, Facebook, and LinkedIn — all tuned to your niche.",
   },
   {
-    icon: "chart.line.uptrend.xyaxis" as const,
-    color: "#0D9488",
-    title: "URL Content Analyzer",
-    description:
-      "Paste any social media URL and get a resonance score, audience insights, and a breakdown of what worked and what didn't.",
-  },
-  {
     icon: "flame.fill" as const,
     color: "#EF4444",
-    title: "Daily Trending Ideas",
+    title: "Content Playbook",
     description:
-      "Every day, discover fresh trending content ideas tailored to your niche across all platforms.",
+      "Discover proven content formats, hooks, and strategies tailored to your niche and platform — drawn from what has historically performed best.",
   },
 ];
 

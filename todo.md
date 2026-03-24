@@ -222,3 +222,7 @@
 
 ## Appearance Fix
 - [x] Restore toggle switch on mobile, keep Light/Dark buttons on desktop web (platform detection)
+
+## Critical Fixes
+- [x] Remove Analyze tab completely — removed from onboarding and history empty state message
+- [x] Fix Appearance: Platform.OS detection confirmed correct — Switch on native mobile, buttons on web

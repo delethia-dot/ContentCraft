@@ -1054,7 +1054,7 @@ export default function HistoryScreen() {
             </View>
             <Text style={[styles.emptyTitle, { color: colors.foreground }]}>No Analyses Yet</Text>
             <Text style={[styles.emptySubtitle, { color: colors.muted }]}>
-              Go to the Analyze tab, paste a social media URL, and your analyses will automatically appear here.
+              No analyses saved yet.
             </Text>
           </View>
         ) : (
