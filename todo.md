@@ -226,3 +226,6 @@
 ## Critical Fixes
 - [x] Remove Analyze tab completely — deleted analyze.tsx file so Expo Router no longer auto-adds it to the tab bar
 - [x] Fix Appearance: isDark now reads from ThemeContext (reactive) instead of useColorScheme (stale) — buttons now update correctly on press
+
+## Appearance Button Web Fix (Round 2)
+- [x] Light/Dark buttons fixed: useColors now reads from ThemeContext (not system hook) so all components re-render when scheme changes
