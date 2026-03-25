@@ -67,6 +67,7 @@ function IdeaDetailModal({
   onClose: () => void;
   colors: any;
 }) {
+  const { height: windowHeight } = useWindowDimensions();
   if (!idea) return null;
   const platformColor = PLATFORMS.find((p) => p.id === idea.platform)?.color ?? colors.primary;
   const platformLabel = PLATFORMS.find((p) => p.id === idea.platform)?.label ?? idea.platform;
@@ -117,7 +118,7 @@ function IdeaDetailModal({
             </TouchableOpacity>
           </View>
 
-          <ScrollView showsVerticalScrollIndicator={false} style={{ flex: 1 }} contentContainerStyle={{ gap: 14, paddingBottom: 24 }}>
+          <ScrollView showsVerticalScrollIndicator={false} style={{ maxHeight: windowHeight * 0.9 - 220 }} contentContainerStyle={{ gap: 14, paddingBottom: 24 }}>
             <View style={[modalStyles.section, { backgroundColor: colors.primary + "0A", borderLeftColor: colors.primary }]}>
               <View style={modalStyles.sectionHeader}>
                 <IconSymbol name="bolt.fill" size={14} color={colors.primary} />
@@ -170,6 +171,7 @@ function AnalysisDetailModal({
   onClose: () => void;
   colors: any;
 }) {
+  const { height: windowHeight } = useWindowDimensions();
   if (!analysis) return null;
   const platformColor = analysis.platform && analysis.platform !== "all"
     ? (PLATFORMS.find((p) => p.id === analysis.platform)?.color ?? colors.primary)
@@ -234,7 +236,7 @@ function AnalysisDetailModal({
             </TouchableOpacity>
           </View>
 
-          <ScrollView showsVerticalScrollIndicator={false} style={{ flex: 1 }} contentContainerStyle={{ gap: 14, paddingBottom: 24 }}>
+          <ScrollView showsVerticalScrollIndicator={false} style={{ maxHeight: windowHeight * 0.9 - 220 }} contentContainerStyle={{ gap: 14, paddingBottom: 24 }}>
             <View style={[modalStyles.section, { backgroundColor: colors.surface, borderLeftColor: colors.primary }]}>
               <View style={modalStyles.sectionHeader}>
                 <IconSymbol name="doc.text.fill" size={14} color={colors.primary} />
@@ -319,6 +321,7 @@ function PromptDetailModal({
   onClose: () => void;
   colors: any;
 }) {
+  const { height: windowHeight } = useWindowDimensions();
   if (!prompt) return null;
   const toolColor = "#8B5CF6";
 
@@ -376,7 +379,7 @@ function PromptDetailModal({
             </TouchableOpacity>
           </View>
 
-          <ScrollView showsVerticalScrollIndicator={false} style={{ flex: 1 }} contentContainerStyle={{ gap: 14, paddingBottom: 24 }}>
+          <ScrollView showsVerticalScrollIndicator={false} style={{ maxHeight: windowHeight * 0.9 - 220 }} contentContainerStyle={{ gap: 14, paddingBottom: 24 }}>
             <View style={[modalStyles.section, { backgroundColor: toolColor + "08", borderLeftColor: toolColor }]}>
               <View style={modalStyles.sectionHeader}>
                 <IconSymbol name="wand.and.stars" size={14} color={toolColor} />
@@ -449,6 +452,7 @@ function CaptionDetailModal({
   onClose: () => void;
   colors: any;
 }) {
+  const { height: windowHeight } = useWindowDimensions();
   if (!caption) return null;
   const PLATFORM_COLORS: Record<string, string> = {
     instagram: "#E1306C", facebook: "#1877F2", tiktok: "#00C2CB", youtube: "#FF0000", linkedin: "#0A66C2",
@@ -505,7 +509,7 @@ function CaptionDetailModal({
             </TouchableOpacity>
           </View>
 
-          <ScrollView showsVerticalScrollIndicator={false} style={{ flex: 1 }} contentContainerStyle={{ gap: 14, paddingBottom: 24 }}>
+          <ScrollView showsVerticalScrollIndicator={false} style={{ maxHeight: windowHeight * 0.9 - 220 }} contentContainerStyle={{ gap: 14, paddingBottom: 24 }}>
             <View style={[modalStyles.section, { backgroundColor: pColor + "08", borderLeftColor: pColor }]}>
               <View style={modalStyles.sectionHeader}>
                 <IconSymbol name="text.bubble.fill" size={14} color={pColor} />

@@ -266,3 +266,6 @@
 
 ## Bug Fixes Round 9
 - [x] Content Gaps badge flexWrap on View breaks mobile layout — remove from gapBadge View, keep only on gapBadgeText
+
+## Bug Fixes Round 10
+- [ ] History modals Android: ScrollView content body collapses to zero height — fix with useWindowDimensions explicit height
