@@ -263,3 +263,6 @@
 
 ## Bug Fixes Round 8
 - [x] Content Gaps badge text overflow on desktop — gapBadge and gapBadgeText need flexWrap so long content format strings wrap correctly
+
+## Bug Fixes Round 9
+- [x] Content Gaps badge flexWrap on View breaks mobile layout — remove from gapBadge View, keep only on gapBadgeText
