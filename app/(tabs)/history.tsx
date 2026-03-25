@@ -757,45 +757,46 @@ export default function HistoryScreen() {
     const platformColor = getPlatformColor(idea.platform);
     const platform = PLATFORMS.find((p) => p.id === idea.platform);
     return (
-      <TouchableOpacity
-        onPress={() => { setSelectedIdea(idea); setShowIdeaModal(true); }}
-        activeOpacity={0.85}
-        style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}
-      >
-        <View style={styles.cardHeader}>
-          <View style={[styles.platformBadge, { backgroundColor: platformColor + "18", borderColor: platformColor + "40" }]}>
-            <Text style={[styles.platformBadgeText, { color: platformColor }]}>{platform?.label ?? idea.platform}</Text>
+      <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+        <TouchableOpacity
+          onPress={() => { setSelectedIdea(idea); setShowIdeaModal(true); }}
+          activeOpacity={0.85}
+          style={{ flex: 1 }}
+        >
+          <View style={styles.cardHeader}>
+            <View style={[styles.platformBadge, { backgroundColor: platformColor + "18", borderColor: platformColor + "40" }]}>
+              <Text style={[styles.platformBadgeText, { color: platformColor }]}>{platform?.label ?? idea.platform}</Text>
+            </View>
+            <View style={[styles.typeBadge, { backgroundColor: colors.primary + "12" }]}>
+              <Text style={[styles.typeBadgeText, { color: colors.primary }]}>{idea.contentType}</Text>
+            </View>
+            <Text style={[styles.dateText, { color: colors.muted }]}>{formatDate(idea.createdAt)}</Text>
           </View>
-          <View style={[styles.typeBadge, { backgroundColor: colors.primary + "12" }]}>
-            <Text style={[styles.typeBadgeText, { color: colors.primary }]}>{idea.contentType}</Text>
+
+          <View style={[styles.nicheBadge, { backgroundColor: colors.border }]}>
+            <IconSymbol name="tag.fill" size={11} color={colors.muted} />
+            <Text style={[styles.nicheBadgeText, { color: colors.muted }]}>{idea.niche}</Text>
           </View>
-          <Text style={[styles.dateText, { color: colors.muted }]}>{formatDate(idea.createdAt)}</Text>
-        </View>
 
-        <View style={[styles.nicheBadge, { backgroundColor: colors.border }]}>
-          <IconSymbol name="tag.fill" size={11} color={colors.muted} />
-          <Text style={[styles.nicheBadgeText, { color: colors.muted }]}>{idea.niche}</Text>
-        </View>
+          <Text style={[styles.ideaTitle, { color: colors.foreground }]}>{idea.title}</Text>
 
-        <Text style={[styles.ideaTitle, { color: colors.foreground }]}>{idea.title}</Text>
-
-        <View style={[styles.hookBox, { backgroundColor: colors.primary + "08", borderLeftColor: colors.primary }]}>
-          <Text style={[styles.hookLabel, { color: colors.primary }]}>Hook</Text>
-          <Text style={[styles.hookText, { color: colors.foreground }]} numberOfLines={2}>{idea.hook}</Text>
-        </View>
+          <View style={[styles.hookBox, { backgroundColor: colors.primary + "08", borderLeftColor: colors.primary }]}>
+            <Text style={[styles.hookLabel, { color: colors.primary }]}>Hook</Text>
+            <Text style={[styles.hookText, { color: colors.foreground }]} numberOfLines={2}>{idea.hook}</Text>
+          </View>
+        </TouchableOpacity>
 
         <View style={styles.cardFooter}>
           <Text style={[styles.tapHint, { color: colors.primary }]}>Tap to view full idea →</Text>
           <TouchableOpacity
-            onPress={(e) => { e.stopPropagation?.(); shareIdea(idea); }}
+            onPress={() => shareIdea(idea)}
             activeOpacity={0.7}
             style={[styles.iconBtn, { backgroundColor: colors.primary + "12" }]}
           >
             <IconSymbol name="square.and.arrow.up" size={14} color={colors.primary} />
           </TouchableOpacity>
           <TouchableOpacity
-            onPress={(e) => {
-              e.stopPropagation?.();
+            onPress={() => {
               Alert.alert("Delete Idea", "Remove this idea from your saved list?", [
                 { text: "Cancel", style: "cancel" },
                 { text: "Delete", style: "destructive", onPress: () => removeIdea(idea.id) },
@@ -807,7 +808,7 @@ export default function HistoryScreen() {
             <IconSymbol name="trash.fill" size={14} color="#EF4444" />
           </TouchableOpacity>
         </View>
-      </TouchableOpacity>
+      </View>
     );
   };
 
@@ -816,34 +817,35 @@ export default function HistoryScreen() {
       ? getPlatformColor(analysis.platform)
       : colors.primary;
     return (
-      <TouchableOpacity
-        onPress={() => { setSelectedAnalysis(analysis); setShowAnalysisModal(true); }}
-        activeOpacity={0.85}
-        style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}
-      >
-        <View style={styles.cardHeader}>
-          {analysis.platform && analysis.platform !== "all" && (
-            <View style={[styles.platformBadge, { backgroundColor: platformColor + "18", borderColor: platformColor + "40" }]}>
-              <Text style={[styles.platformBadgeText, { color: platformColor }]}>
-                {analysis.platform.charAt(0).toUpperCase() + analysis.platform.slice(1)}
-              </Text>
+      <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+        <TouchableOpacity
+          onPress={() => { setSelectedAnalysis(analysis); setShowAnalysisModal(true); }}
+          activeOpacity={0.85}
+          style={{ flex: 1 }}
+        >
+          <View style={styles.cardHeader}>
+            {analysis.platform && analysis.platform !== "all" && (
+              <View style={[styles.platformBadge, { backgroundColor: platformColor + "18", borderColor: platformColor + "40" }]}>
+                <Text style={[styles.platformBadgeText, { color: platformColor }]}>
+                  {analysis.platform.charAt(0).toUpperCase() + analysis.platform.slice(1)}
+                </Text>
+              </View>
+            )}
+            <View style={[styles.typeBadge, { backgroundColor: colors.primary + "12" }]}>
+              <Text style={[styles.typeBadgeText, { color: colors.primary }]}>Niche Intelligence</Text>
             </View>
-          )}
-          <View style={[styles.typeBadge, { backgroundColor: colors.primary + "12" }]}>
-            <Text style={[styles.typeBadgeText, { color: colors.primary }]}>Niche Intelligence</Text>
+            <Text style={[styles.dateText, { color: colors.muted }]}>{formatDate(analysis.savedAt)}</Text>
           </View>
-          <Text style={[styles.dateText, { color: colors.muted }]}>{formatDate(analysis.savedAt)}</Text>
-        </View>
-        <Text style={[styles.ideaTitle, { color: colors.foreground }]} numberOfLines={1}>{analysis.niche}</Text>
-        <View style={[styles.hookBox, { backgroundColor: colors.primary + "08", borderLeftColor: colors.primary }]}>
-          <Text style={[styles.hookLabel, { color: colors.primary }]}>Overview</Text>
-          <Text style={[styles.hookText, { color: colors.foreground }]} numberOfLines={3}>{analysis.result.nicheOverview}</Text>
-        </View>
+          <Text style={[styles.ideaTitle, { color: colors.foreground }]} numberOfLines={1}>{analysis.niche}</Text>
+          <View style={[styles.hookBox, { backgroundColor: colors.primary + "08", borderLeftColor: colors.primary }]}>
+            <Text style={[styles.hookLabel, { color: colors.primary }]}>Overview</Text>
+            <Text style={[styles.hookText, { color: colors.foreground }]} numberOfLines={3}>{analysis.result.nicheOverview}</Text>
+          </View>
+        </TouchableOpacity>
         <View style={styles.cardFooter}>
           <Text style={[styles.tapHint, { color: colors.primary }]}>Tap to view full analysis →</Text>
           <TouchableOpacity
-            onPress={(e) => {
-              e.stopPropagation?.();
+            onPress={() => {
               Alert.alert("Delete Analysis", "Remove this analysis?", [
                 { text: "Cancel", style: "cancel" },
                 { text: "Delete", style: "destructive", onPress: () => deleteAnalysis(analysis.id) },
@@ -855,37 +857,38 @@ export default function HistoryScreen() {
             <IconSymbol name="trash.fill" size={14} color="#EF4444" />
           </TouchableOpacity>
         </View>
-      </TouchableOpacity>
+      </View>
     );
   };
 
   const renderPromptItem = ({ item: prompt }: { item: SavedPrompt }) => {
     const toolColor = "#8B5CF6";
     return (
-      <TouchableOpacity
-        onPress={() => { setSelectedPrompt(prompt); setShowPromptModal(true); }}
-        activeOpacity={0.85}
-        style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}
-      >
-        <View style={styles.cardHeader}>
-          <View style={[styles.platformBadge, { backgroundColor: toolColor + "18", borderColor: toolColor + "40" }]}>
-            <Text style={[styles.platformBadgeText, { color: toolColor }]}>{prompt.tool}</Text>
+      <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+        <TouchableOpacity
+          onPress={() => { setSelectedPrompt(prompt); setShowPromptModal(true); }}
+          activeOpacity={0.85}
+          style={{ flex: 1 }}
+        >
+          <View style={styles.cardHeader}>
+            <View style={[styles.platformBadge, { backgroundColor: toolColor + "18", borderColor: toolColor + "40" }]}>
+              <Text style={[styles.platformBadgeText, { color: toolColor }]}>{prompt.tool}</Text>
+            </View>
+            <View style={[styles.typeBadge, { backgroundColor: colors.primary + "12" }]}>
+              <Text style={[styles.typeBadgeText, { color: colors.primary }]}>{prompt.mediaType}</Text>
+            </View>
+            <Text style={[styles.dateText, { color: colors.muted }]}>{formatDate(prompt.createdAt)}</Text>
           </View>
-          <View style={[styles.typeBadge, { backgroundColor: colors.primary + "12" }]}>
-            <Text style={[styles.typeBadgeText, { color: colors.primary }]}>{prompt.mediaType}</Text>
+          <Text style={[styles.ideaTitle, { color: colors.foreground }]} numberOfLines={1}>{prompt.subject || "AI Prompt"}</Text>
+          <View style={[styles.hookBox, { backgroundColor: toolColor + "08", borderLeftColor: toolColor }]}>
+            <Text style={[styles.hookLabel, { color: toolColor }]}>Prompt</Text>
+            <Text style={[styles.hookText, { color: colors.foreground }]} numberOfLines={3}>{prompt.mainPrompt}</Text>
           </View>
-          <Text style={[styles.dateText, { color: colors.muted }]}>{formatDate(prompt.createdAt)}</Text>
-        </View>
-        <Text style={[styles.ideaTitle, { color: colors.foreground }]} numberOfLines={1}>{prompt.subject || "AI Prompt"}</Text>
-        <View style={[styles.hookBox, { backgroundColor: toolColor + "08", borderLeftColor: toolColor }]}>
-          <Text style={[styles.hookLabel, { color: toolColor }]}>Prompt</Text>
-          <Text style={[styles.hookText, { color: colors.foreground }]} numberOfLines={3}>{prompt.mainPrompt}</Text>
-        </View>
+        </TouchableOpacity>
         <View style={styles.cardFooter}>
           <Text style={[styles.tapHint, { color: toolColor }]}>Tap to view full prompt →</Text>
           <TouchableOpacity
-            onPress={(e) => {
-              e.stopPropagation?.();
+            onPress={() => {
               Clipboard.setString(prompt.mainPrompt);
               Alert.alert("Copied!", "Prompt copied to clipboard.");
             }}
@@ -895,8 +898,7 @@ export default function HistoryScreen() {
             <IconSymbol name="doc.on.doc" size={14} color={toolColor} />
           </TouchableOpacity>
           <TouchableOpacity
-            onPress={(e) => {
-              e.stopPropagation?.();
+            onPress={() => {
               Alert.alert("Delete Prompt", "Remove this prompt?", [
                 { text: "Cancel", style: "cancel" },
                 { text: "Delete", style: "destructive", onPress: () => removePrompt(prompt.id) },
@@ -908,7 +910,7 @@ export default function HistoryScreen() {
             <IconSymbol name="trash.fill" size={14} color="#EF4444" />
           </TouchableOpacity>
         </View>
-      </TouchableOpacity>
+      </View>
     );
   };
 
@@ -918,35 +920,36 @@ export default function HistoryScreen() {
     };
     const pColor = PLATFORM_COLORS[caption.platform] ?? colors.primary;
     return (
-      <TouchableOpacity
-        onPress={() => { setSelectedCaption(caption); setShowCaptionModal(true); }}
-        activeOpacity={0.85}
-        style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}
-      >
-        <View style={styles.cardHeader}>
-          <View style={[styles.platformBadge, { backgroundColor: pColor + "18", borderColor: pColor + "40" }]}>
-            <Text style={[styles.platformBadgeText, { color: pColor }]}>{caption.platform}</Text>
+      <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+        <TouchableOpacity
+          onPress={() => { setSelectedCaption(caption); setShowCaptionModal(true); }}
+          activeOpacity={0.85}
+          style={{ flex: 1 }}
+        >
+          <View style={styles.cardHeader}>
+            <View style={[styles.platformBadge, { backgroundColor: pColor + "18", borderColor: pColor + "40" }]}>
+              <Text style={[styles.platformBadgeText, { color: pColor }]}>{caption.platform}</Text>
+            </View>
+            <View style={[styles.typeBadge, { backgroundColor: colors.primary + "12" }]}>
+              <Text style={[styles.typeBadgeText, { color: colors.primary }]}>{caption.tone}</Text>
+            </View>
+            <Text style={[styles.dateText, { color: colors.muted }]}>{formatDate(caption.createdAt)}</Text>
           </View>
-          <View style={[styles.typeBadge, { backgroundColor: colors.primary + "12" }]}>
-            <Text style={[styles.typeBadgeText, { color: colors.primary }]}>{caption.tone}</Text>
+          <Text style={[styles.ideaTitle, { color: colors.foreground }]} numberOfLines={1}>{caption.topic}</Text>
+          <View style={[styles.hookBox, { backgroundColor: pColor + "08", borderLeftColor: pColor }]}>
+            <Text style={[styles.hookLabel, { color: pColor }]}>Caption</Text>
+            <Text style={[styles.hookText, { color: colors.foreground }]} numberOfLines={3}>{caption.caption}</Text>
           </View>
-          <Text style={[styles.dateText, { color: colors.muted }]}>{formatDate(caption.createdAt)}</Text>
-        </View>
-        <Text style={[styles.ideaTitle, { color: colors.foreground }]} numberOfLines={1}>{caption.topic}</Text>
-        <View style={[styles.hookBox, { backgroundColor: pColor + "08", borderLeftColor: pColor }]}>
-          <Text style={[styles.hookLabel, { color: pColor }]}>Caption</Text>
-          <Text style={[styles.hookText, { color: colors.foreground }]} numberOfLines={3}>{caption.caption}</Text>
-        </View>
-        {caption.hashtags.length > 0 && (
-          <Text style={[styles.summaryText, { color: colors.muted }]} numberOfLines={1}>
-            {caption.hashtags.slice(0, 5).map((h) => `#${h.replace(/^#/, "")}`).join(" ")}{caption.hashtags.length > 5 ? " ..." : ""}
-          </Text>
-        )}
+          {caption.hashtags.length > 0 && (
+            <Text style={[styles.summaryText, { color: colors.muted }]} numberOfLines={1}>
+              {caption.hashtags.slice(0, 5).map((h) => `#${h.replace(/^#/, "")}`).join(" ")}{caption.hashtags.length > 5 ? " ..." : ""}
+            </Text>
+          )}
+        </TouchableOpacity>
         <View style={styles.cardFooter}>
           <Text style={[styles.tapHint, { color: pColor }]}>Tap to view full caption →</Text>
           <TouchableOpacity
-            onPress={(e) => {
-              e.stopPropagation?.();
+            onPress={() => {
               const hashtagStr = caption.hashtags.length > 0 ? "\n\n" + caption.hashtags.map((h) => `#${h.replace(/^#/, "")}`).join(" ") : "";
               Clipboard.setString(caption.caption + hashtagStr);
               Alert.alert("Copied!", "Caption copied to clipboard.");
@@ -957,8 +960,7 @@ export default function HistoryScreen() {
             <IconSymbol name="doc.on.doc" size={14} color={pColor} />
           </TouchableOpacity>
           <TouchableOpacity
-            onPress={(e) => {
-              e.stopPropagation?.();
+            onPress={() => {
               Alert.alert("Delete Caption", "Remove this caption?", [
                 { text: "Cancel", style: "cancel" },
                 { text: "Delete", style: "destructive", onPress: () => removeCaption(caption.id) },
@@ -970,7 +972,7 @@ export default function HistoryScreen() {
             <IconSymbol name="trash.fill" size={14} color="#EF4444" />
           </TouchableOpacity>
         </View>
-      </TouchableOpacity>
+      </View>
     );
   };
 

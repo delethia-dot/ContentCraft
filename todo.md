@@ -253,3 +253,6 @@
 
 ## Bug Fixes Round 5
 - [x] History tab mobile: tapping saved items (ideas, analyses, prompts, captions) does not open detail modal — works on desktop but broken on mobile
+
+## Bug Fixes Round 6
+- [x] History tab Android: detail modals do not open on physical Android device (works in web preview, broken on native)
