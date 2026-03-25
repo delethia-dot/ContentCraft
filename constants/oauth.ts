@@ -24,13 +24,17 @@ export const OWNER_OPEN_ID = env.ownerId;
 export const OWNER_NAME = env.ownerName;
 export const API_BASE_URL = env.apiBaseUrl;
 
+// Permanent Railway backend URL — always-on production server.
+// Used as fallback when EXPO_PUBLIC_API_BASE_URL is not injected at build time (e.g. APK builds).
+const RAILWAY_URL = "https://api-production-1afb.up.railway.app";
+
 /**
  * Get the API base URL, deriving from current hostname if not set.
  * Metro runs on 8081, API server runs on 3000.
  * URL pattern: https://PORT-sandboxid.region.domain
  */
 export function getApiBaseUrl(): string {
-  // If API_BASE_URL is set, use it
+  // If API_BASE_URL is set via env var, use it (highest priority)
   if (API_BASE_URL) {
     return API_BASE_URL.replace(/\/$/, "");
   }
@@ -45,8 +49,8 @@ export function getApiBaseUrl(): string {
     }
   }
 
-  // Fallback to empty (will use relative URL)
-  return "";
+  // Fallback: always use Railway for both native (iOS/Android) and web production
+  return RAILWAY_URL;
 }
 
 export const SESSION_TOKEN_KEY = "app_session_token";

@@ -268,4 +268,8 @@
 - [x] Content Gaps badge flexWrap on View breaks mobile layout — remove from gapBadge View, keep only on gapBadgeText
 
 ## Bug Fixes Round 10
-- [ ] History modals Android: ScrollView content body collapses to zero height — fix with useWindowDimensions explicit height
+- [x] History modals Android: ScrollView content body collapses to zero height — fix with useWindowDimensions explicit height
+
+## Critical APK Fix
+- [x] APK crashes on any feature tap when sandbox is offline — hardcoded Railway URL fallback in getApiBaseUrl() so native builds always reach the production server
+- [x] Niche Intelligence silent catch replaced with proper Alert so failures show a message instead of crashing silently
