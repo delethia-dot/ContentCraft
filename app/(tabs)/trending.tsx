@@ -513,6 +513,8 @@ const styles = StyleSheet.create({
     padding: 12,
     gap: 6,
     alignSelf: "stretch",
+    overflow: "hidden",
+    minWidth: 0,
   },
   gapHeader: {
     flexDirection: "row",

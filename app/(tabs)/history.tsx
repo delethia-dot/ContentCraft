@@ -761,7 +761,7 @@ export default function HistoryScreen() {
         <TouchableOpacity
           onPress={() => { setSelectedIdea(idea); setShowIdeaModal(true); }}
           activeOpacity={0.85}
-          style={{ flex: 1 }}
+          style={{ flexGrow: 1, flexShrink: 1 }}
         >
           <View style={styles.cardHeader}>
             <View style={[styles.platformBadge, { backgroundColor: platformColor + "18", borderColor: platformColor + "40" }]}>
@@ -821,7 +821,7 @@ export default function HistoryScreen() {
         <TouchableOpacity
           onPress={() => { setSelectedAnalysis(analysis); setShowAnalysisModal(true); }}
           activeOpacity={0.85}
-          style={{ flex: 1 }}
+          style={{ flexGrow: 1, flexShrink: 1 }}
         >
           <View style={styles.cardHeader}>
             {analysis.platform && analysis.platform !== "all" && (
@@ -868,7 +868,7 @@ export default function HistoryScreen() {
         <TouchableOpacity
           onPress={() => { setSelectedPrompt(prompt); setShowPromptModal(true); }}
           activeOpacity={0.85}
-          style={{ flex: 1 }}
+          style={{ flexGrow: 1, flexShrink: 1 }}
         >
           <View style={styles.cardHeader}>
             <View style={[styles.platformBadge, { backgroundColor: toolColor + "18", borderColor: toolColor + "40" }]}>
@@ -924,7 +924,7 @@ export default function HistoryScreen() {
         <TouchableOpacity
           onPress={() => { setSelectedCaption(caption); setShowCaptionModal(true); }}
           activeOpacity={0.85}
-          style={{ flex: 1 }}
+          style={{ flexGrow: 1, flexShrink: 1 }}
         >
           <View style={styles.cardHeader}>
             <View style={[styles.platformBadge, { backgroundColor: pColor + "18", borderColor: pColor + "40" }]}>
