@@ -250,3 +250,6 @@
 ## Bug Fixes Round 4
 - [ ] History Analyses tab: show saved Niche Intelligence analyses (currently saved to @contentcraft_niche_analyses but not displayed in History)
 - [ ] Niche Intelligence desktop: Content Gaps text still not fully wrapping — fix container flex/shrink styles
+
+## Bug Fixes Round 5
+- [x] History tab mobile: tapping saved items (ideas, analyses, prompts, captions) does not open detail modal — works on desktop but broken on mobile

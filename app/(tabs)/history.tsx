@@ -987,6 +987,7 @@ export default function HistoryScreen() {
   ];
 
   return (
+    <View style={{ flex: 1 }}>
     <ScreenContainer edges={["top", "left", "right"]}>
       {/* Sticky Header + Tabs — these never scroll */}
       <View style={[styles.stickyTop, { backgroundColor: colors.background }]}>
@@ -1140,7 +1141,7 @@ export default function HistoryScreen() {
         )
       )}
 
-      {/* Detail Modals */}
+    </ScreenContainer>
       <IdeaDetailModal
         idea={selectedIdea}
         visible={showIdeaModal}
@@ -1171,7 +1172,7 @@ export default function HistoryScreen() {
         onClose={() => setShowExportModal(false)}
         colors={colors}
       />
-    </ScreenContainer>
+    </View>
   );
 }
 
