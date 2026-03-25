@@ -260,3 +260,6 @@
 ## Regression Fixes Round 7
 - [x] Content Gaps text wrapping broken on desktop — reverted gapCard/gapTitle to exact working state from checkpoint f76501a
 - [x] History modals still not opening on Android after APK 1.0.17 (nested touch fix was insufficient)
+
+## Bug Fixes Round 8
+- [x] Content Gaps badge text overflow on desktop — gapBadge and gapBadgeText need flexWrap so long content format strings wrap correctly

@@ -520,11 +520,15 @@ const styles = StyleSheet.create({
   gapBadge: {
     paddingHorizontal: 8,
     paddingVertical: 3,
+    flexShrink: 1,
+    flexWrap: "wrap",
     borderRadius: 6,
   },
   gapBadgeText: {
     fontSize: 11,
     fontWeight: "700",
+    flexShrink: 1,
+    flexWrap: "wrap",
   },
   gapTitle: {
     fontSize: 14,
