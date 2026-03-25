@@ -258,5 +258,5 @@
 - [x] History tab Android: detail modals do not open on physical Android device (works in web preview, broken on native)
 
 ## Regression Fixes Round 7
-- [x] Content Gaps text wrapping broken on desktop (regression from card restructure)
+- [x] Content Gaps text wrapping broken on desktop — reverted gapCard/gapTitle to exact working state from checkpoint f76501a
 - [x] History modals still not opening on Android after APK 1.0.17 (nested touch fix was insufficient)
