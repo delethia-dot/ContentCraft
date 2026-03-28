@@ -341,3 +341,12 @@
 - [x] Performance Tracker: remove Resonance Score field
 - [x] Performance Tracker: add 30-day metrics log (Views, Likes, Shares, Comments)
 - [x] Performance Tracker: add pattern summary (best platform, content type, day of week)
+
+## Parity Bug Fixes Round 1 (Mobile ↔ Desktop)
+- [x] Calendar: "Plan Content" button text not updated on desktop version
+- [x] Calendar: list item detail modal does not open on mobile or desktop
+- [x] Calendar: list items with trash icon do not appear on desktop
+- [x] Calendar: time picker not functional on desktop when adding a post
+- [x] History: ideas are not editable on desktop (edit modal missing)
+- [x] History: editing an idea does not update the linked calendar entry (mobile + desktop)
+- [x] Performance Tracker: desktop still shows old interface — all Phase 5 changes missing on desktop

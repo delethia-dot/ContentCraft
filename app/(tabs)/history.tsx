@@ -8,13 +8,54 @@ import {
   Alert,
   Platform,
   Share,
-  Modal,
   ScrollView,
   Clipboard,
   useWindowDimensions,
   TextInput,
-  Dimensions,
 } from "react-native";
+
+// ─── Cross-platform overlay (replaces Modal which breaks on web/desktop) ──────
+function OverlaySheet({
+  visible,
+  onClose,
+  children,
+  maxHeight,
+}: {
+  visible: boolean;
+  onClose: () => void;
+  children: React.ReactNode;
+  maxHeight?: number;
+}) {
+  const { height: winH } = useWindowDimensions();
+  if (!visible) return null;
+  const sheetMax = maxHeight ?? winH * 0.92;
+  return (
+    <View style={overlayStyles.root}>
+      <TouchableOpacity style={overlayStyles.backdrop} activeOpacity={1} onPress={onClose} />
+      <View style={[overlayStyles.sheet, { maxHeight: sheetMax }]}>{children}</View>
+    </View>
+  );
+}
+
+const overlayStyles = StyleSheet.create({
+  root: {
+    position: "absolute",
+    top: 0, left: 0, right: 0, bottom: 0,
+    zIndex: 9999,
+    justifyContent: "flex-end",
+  },
+  backdrop: {
+    position: "absolute",
+    top: 0, left: 0, right: 0, bottom: 0,
+    backgroundColor: "rgba(0,0,0,0.55)",
+  },
+  sheet: {
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    minHeight: "40%",
+    overflow: "hidden",
+  },
+});
 import { ScreenContainer } from "@/components/screen-container";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { useColors } from "@/hooks/use-colors";
@@ -90,73 +131,61 @@ function IdeaDetailModal({
   };
 
   return (
-    <Modal
-      visible={visible}
-      animationType="slide"
-      transparent={true}
-      onRequestClose={onClose}
-      statusBarTranslucent={true}
-      hardwareAccelerated={true}
-    >
-      <View style={modalStyles.overlay}>
-        <TouchableOpacity style={modalStyles.backdrop} activeOpacity={1} onPress={onClose} />
-        <View style={[modalStyles.sheet, { backgroundColor: colors.background }]}>
-          <View style={[modalStyles.handle, { backgroundColor: colors.border }]} />
-          <View style={modalStyles.header}>
-            <View style={{ flex: 1, gap: 6 }}>
-              <View style={modalStyles.badgeRow}>
-                <View style={[modalStyles.platformBadge, { backgroundColor: platformColor + "18", borderColor: platformColor + "40" }]}>
-                  <Text style={[modalStyles.platformBadgeText, { color: platformColor }]}>{platformLabel}</Text>
-                </View>
-                <View style={[modalStyles.typeBadge, { backgroundColor: colors.primary + "12" }]}>
-                  <Text style={[modalStyles.typeBadgeText, { color: colors.primary }]}>{idea.contentType}</Text>
-                </View>
+    <OverlaySheet visible={visible} onClose={onClose}>
+      <View style={[modalStyles.sheet, { backgroundColor: colors.background }]}>
+        <View style={[modalStyles.handle, { backgroundColor: colors.border }]} />
+        <View style={modalStyles.header}>
+          <View style={{ flex: 1, gap: 6 }}>
+            <View style={modalStyles.badgeRow}>
+              <View style={[modalStyles.platformBadge, { backgroundColor: platformColor + "18", borderColor: platformColor + "40" }]}>
+                <Text style={[modalStyles.platformBadgeText, { color: platformColor }]}>{platformLabel}</Text>
               </View>
-              <Text style={[modalStyles.title, { color: colors.foreground }]}>{idea.title}</Text>
-              <Text style={[modalStyles.subtitle, { color: colors.muted }]}>Niche: {idea.niche}</Text>
+              <View style={[modalStyles.typeBadge, { backgroundColor: colors.primary + "12" }]}>
+                <Text style={[modalStyles.typeBadgeText, { color: colors.primary }]}>{idea.contentType}</Text>
+              </View>
             </View>
-            <TouchableOpacity onPress={onClose} activeOpacity={0.7} style={[modalStyles.closeBtn, { backgroundColor: colors.surface }]}>
-              <IconSymbol name="xmark" size={16} color={colors.muted} />
-            </TouchableOpacity>
+            <Text style={[modalStyles.title, { color: colors.foreground }]}>{idea.title}</Text>
+            <Text style={[modalStyles.subtitle, { color: colors.muted }]}>Niche: {idea.niche}</Text>
           </View>
-
-          <ScrollView showsVerticalScrollIndicator={false} style={{ maxHeight: windowHeight * 0.9 - 220 }} contentContainerStyle={{ gap: 14, paddingBottom: 24 }}>
-            <View style={[modalStyles.section, { backgroundColor: colors.primary + "0A", borderLeftColor: colors.primary }]}>
-              <View style={modalStyles.sectionHeader}>
-                <IconSymbol name="bolt.fill" size={14} color={colors.primary} />
-                <Text style={[modalStyles.sectionLabel, { color: colors.primary }]}>HOOK</Text>
-              </View>
-              <Text style={[modalStyles.sectionText, { color: colors.foreground }]}>{idea.hook}</Text>
+          <TouchableOpacity onPress={onClose} activeOpacity={0.7} style={[modalStyles.closeBtn, { backgroundColor: colors.surface }]}>
+            <IconSymbol name="xmark" size={16} color={colors.muted} />
+          </TouchableOpacity>
+        </View>
+        <ScrollView showsVerticalScrollIndicator={false} style={{ maxHeight: windowHeight * 0.9 - 220 }} contentContainerStyle={{ gap: 14, paddingBottom: 24 }}>
+          <View style={[modalStyles.section, { backgroundColor: colors.primary + "0A", borderLeftColor: colors.primary }]}>
+            <View style={modalStyles.sectionHeader}>
+              <IconSymbol name="bolt.fill" size={14} color={colors.primary} />
+              <Text style={[modalStyles.sectionLabel, { color: colors.primary }]}>HOOK</Text>
             </View>
-            <View style={[modalStyles.section, { backgroundColor: colors.surface, borderLeftColor: colors.accent ?? "#B8860B" }]}>
-              <View style={modalStyles.sectionHeader}>
-                <IconSymbol name="doc.text.fill" size={14} color={colors.accent ?? "#B8860B"} />
-                <Text style={[modalStyles.sectionLabel, { color: colors.accent ?? "#B8860B" }]}>BODY</Text>
-              </View>
-              <Text style={[modalStyles.sectionText, { color: colors.foreground }]}>{idea.body}</Text>
-            </View>
-            <View style={[modalStyles.section, { backgroundColor: "#10B98108", borderLeftColor: "#10B981" }]}>
-              <View style={modalStyles.sectionHeader}>
-                <IconSymbol name="hand.thumbsup.fill" size={14} color="#10B981" />
-                <Text style={[modalStyles.sectionLabel, { color: "#10B981" }]}>CALL TO ACTION</Text>
-              </View>
-              <Text style={[modalStyles.sectionText, { color: colors.foreground }]}>{idea.cta}</Text>
-            </View>
-          </ScrollView>
-
-          <View style={modalStyles.actions}>
-            <TouchableOpacity onPress={handleCopy} activeOpacity={0.8} style={[modalStyles.actionBtn, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-              <IconSymbol name="doc.on.doc" size={18} color={colors.foreground} />
-              <Text style={[modalStyles.actionBtnText, { color: colors.foreground }]}>Copy All</Text>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={handleShare} activeOpacity={0.8} style={[modalStyles.actionBtn, { backgroundColor: colors.primary, borderColor: colors.primary }]}>
-              <IconSymbol name="square.and.arrow.up" size={18} color="#FFFFFF" />
-              <Text style={[modalStyles.actionBtnText, { color: "#FFFFFF" }]}>Share</Text>
-            </TouchableOpacity>
+            <Text style={[modalStyles.sectionText, { color: colors.foreground }]}>{idea.hook}</Text>
           </View>
+          <View style={[modalStyles.section, { backgroundColor: colors.surface, borderLeftColor: colors.accent ?? "#B8860B" }]}>
+            <View style={modalStyles.sectionHeader}>
+              <IconSymbol name="doc.text.fill" size={14} color={colors.accent ?? "#B8860B"} />
+              <Text style={[modalStyles.sectionLabel, { color: colors.accent ?? "#B8860B" }]}>BODY</Text>
+            </View>
+            <Text style={[modalStyles.sectionText, { color: colors.foreground }]}>{idea.body}</Text>
+          </View>
+          <View style={[modalStyles.section, { backgroundColor: "#10B98108", borderLeftColor: "#10B981" }]}>
+            <View style={modalStyles.sectionHeader}>
+              <IconSymbol name="hand.thumbsup.fill" size={14} color="#10B981" />
+              <Text style={[modalStyles.sectionLabel, { color: "#10B981" }]}>CALL TO ACTION</Text>
+            </View>
+            <Text style={[modalStyles.sectionText, { color: colors.foreground }]}>{idea.cta}</Text>
+          </View>
+        </ScrollView>
+        <View style={modalStyles.actions}>
+          <TouchableOpacity onPress={handleCopy} activeOpacity={0.8} style={[modalStyles.actionBtn, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+            <IconSymbol name="doc.on.doc" size={18} color={colors.foreground} />
+            <Text style={[modalStyles.actionBtnText, { color: colors.foreground }]}>Copy All</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={handleShare} activeOpacity={0.8} style={[modalStyles.actionBtn, { backgroundColor: colors.primary, borderColor: colors.primary }]}>
+            <IconSymbol name="square.and.arrow.up" size={18} color="#FFFFFF" />
+            <Text style={[modalStyles.actionBtnText, { color: "#FFFFFF" }]}>Share</Text>
+          </TouchableOpacity>
         </View>
       </View>
-    </Modal>
+    </OverlaySheet>
   );
 }
 
@@ -204,16 +233,7 @@ function AnalysisDetailModal({
   };
 
   return (
-    <Modal
-      visible={visible}
-      animationType="slide"
-      transparent={true}
-      onRequestClose={onClose}
-      statusBarTranslucent={true}
-      hardwareAccelerated={true}
-    >
-      <View style={modalStyles.overlay}>
-        <TouchableOpacity style={modalStyles.backdrop} activeOpacity={1} onPress={onClose} />
+    <OverlaySheet visible={visible} onClose={onClose}>
         <View style={[modalStyles.sheet, { backgroundColor: colors.background }]}>
           <View style={[modalStyles.handle, { backgroundColor: colors.border }]} />
           <View style={modalStyles.header}>
@@ -305,8 +325,7 @@ function AnalysisDetailModal({
             </TouchableOpacity>
           </View>
         </View>
-      </View>
-    </Modal>
+    </OverlaySheet>
   );
 }
 
@@ -349,16 +368,7 @@ function PromptDetailModal({
   };
 
   return (
-    <Modal
-      visible={visible}
-      animationType="slide"
-      transparent={true}
-      onRequestClose={onClose}
-      statusBarTranslucent={true}
-      hardwareAccelerated={true}
-    >
-      <View style={modalStyles.overlay}>
-        <TouchableOpacity style={modalStyles.backdrop} activeOpacity={1} onPress={onClose} />
+    <OverlaySheet visible={visible} onClose={onClose}>
         <View style={[modalStyles.sheet, { backgroundColor: colors.background }]}>
           <View style={[modalStyles.handle, { backgroundColor: colors.border }]} />
           <View style={modalStyles.header}>
@@ -436,8 +446,7 @@ function PromptDetailModal({
             </TouchableOpacity>
           </View>
         </View>
-      </View>
-    </Modal>
+    </OverlaySheet>
   );
 }
 
@@ -479,16 +488,7 @@ function CaptionDetailModal({
   };
 
   return (
-    <Modal
-      visible={visible}
-      animationType="slide"
-      transparent={true}
-      onRequestClose={onClose}
-      statusBarTranslucent={true}
-      hardwareAccelerated={true}
-    >
-      <View style={modalStyles.overlay}>
-        <TouchableOpacity style={modalStyles.backdrop} activeOpacity={1} onPress={onClose} />
+    <OverlaySheet visible={visible} onClose={onClose}>
         <View style={[modalStyles.sheet, { backgroundColor: colors.background }]}>
           <View style={[modalStyles.handle, { backgroundColor: colors.border }]} />
           <View style={modalStyles.header}>
@@ -544,8 +544,7 @@ function CaptionDetailModal({
             </TouchableOpacity>
           </View>
         </View>
-      </View>
-    </Modal>
+    </OverlaySheet>
   );
 }
 
@@ -591,16 +590,7 @@ function ExportModal({
   };
 
   return (
-    <Modal
-      visible={visible}
-      animationType="slide"
-      transparent={true}
-      onRequestClose={onClose}
-      statusBarTranslucent={true}
-      hardwareAccelerated={true}
-    >
-      <View style={modalStyles.overlay}>
-        <TouchableOpacity style={modalStyles.backdrop} activeOpacity={1} onPress={onClose} />
+    <OverlaySheet visible={visible} onClose={onClose}>
         <View style={[modalStyles.sheet, { backgroundColor: colors.background }]}>
           <View style={[modalStyles.handle, { backgroundColor: colors.border }]} />
           <View style={modalStyles.header}>
@@ -652,8 +642,7 @@ function ExportModal({
             </TouchableOpacity>
           </View>
         </View>
-      </View>
-    </Modal>
+    </OverlaySheet>
   );
 }
 
@@ -714,9 +703,7 @@ function ExportAnalysesModal({
   };
 
   return (
-    <Modal visible={visible} animationType="slide" transparent={true} onRequestClose={onClose} statusBarTranslucent={true} hardwareAccelerated={true}>
-      <View style={modalStyles.overlay}>
-        <TouchableOpacity style={modalStyles.backdrop} activeOpacity={1} onPress={onClose} />
+    <OverlaySheet visible={visible} onClose={onClose}>
         <View style={[modalStyles.sheet, { backgroundColor: colors.background }]}>
           <View style={[modalStyles.handle, { backgroundColor: colors.border }]} />
           <View style={modalStyles.header}>
@@ -742,8 +729,7 @@ function ExportAnalysesModal({
             </TouchableOpacity>
           </View>
         </View>
-      </View>
-    </Modal>
+    </OverlaySheet>
   );
 }
 
@@ -802,9 +788,7 @@ function ExportPromptsModal({
   };
 
   return (
-    <Modal visible={visible} animationType="slide" transparent={true} onRequestClose={onClose} statusBarTranslucent={true} hardwareAccelerated={true}>
-      <View style={modalStyles.overlay}>
-        <TouchableOpacity style={modalStyles.backdrop} activeOpacity={1} onPress={onClose} />
+    <OverlaySheet visible={visible} onClose={onClose}>
         <View style={[modalStyles.sheet, { backgroundColor: colors.background }]}>
           <View style={[modalStyles.handle, { backgroundColor: colors.border }]} />
           <View style={modalStyles.header}>
@@ -830,8 +814,7 @@ function ExportPromptsModal({
             </TouchableOpacity>
           </View>
         </View>
-      </View>
-    </Modal>
+    </OverlaySheet>
   );
 }
 
@@ -880,9 +863,7 @@ function ExportCaptionsModal({
   };
 
   return (
-    <Modal visible={visible} animationType="slide" transparent={true} onRequestClose={onClose} statusBarTranslucent={true} hardwareAccelerated={true}>
-      <View style={modalStyles.overlay}>
-        <TouchableOpacity style={modalStyles.backdrop} activeOpacity={1} onPress={onClose} />
+    <OverlaySheet visible={visible} onClose={onClose}>
         <View style={[modalStyles.sheet, { backgroundColor: colors.background }]}>
           <View style={[modalStyles.handle, { backgroundColor: colors.border }]} />
           <View style={modalStyles.header}>
@@ -908,8 +889,7 @@ function ExportCaptionsModal({
             </TouchableOpacity>
           </View>
         </View>
-      </View>
-    </Modal>
+    </OverlaySheet>
   );
 }
 
@@ -955,9 +935,7 @@ function VisualDetailModal({
   const platformColor = PLATFORMS.find((p) => p.id === visual.platform)?.color ?? "#F59E0B";
 
   return (
-    <Modal visible={visible} animationType="slide" transparent={true} onRequestClose={onClose} statusBarTranslucent={true} hardwareAccelerated={true}>
-      <View style={modalStyles.overlay}>
-        <TouchableOpacity style={modalStyles.backdrop} activeOpacity={1} onPress={onClose} />
+    <OverlaySheet visible={visible} onClose={onClose}>
         <View style={[modalStyles.sheet, { backgroundColor: colors.background, maxHeight: windowHeight * 0.92, minHeight: windowHeight * 0.75 }]}>
           <View style={[modalStyles.handle, { backgroundColor: colors.border }]} />
           <View style={modalStyles.header}>
@@ -1038,8 +1016,7 @@ function VisualDetailModal({
             </TouchableOpacity>
           </View>
         </View>
-      </View>
-    </Modal>
+    </OverlaySheet>
   );
 }
 
@@ -1093,9 +1070,7 @@ function ExportVisualsModal({
   };
 
   return (
-    <Modal visible={visible} animationType="slide" transparent={true} onRequestClose={onClose} statusBarTranslucent={true} hardwareAccelerated={true}>
-      <View style={modalStyles.overlay}>
-        <TouchableOpacity style={modalStyles.backdrop} activeOpacity={1} onPress={onClose} />
+    <OverlaySheet visible={visible} onClose={onClose}>
         <View style={[modalStyles.sheet, { backgroundColor: colors.background }]}>
           <View style={[modalStyles.handle, { backgroundColor: colors.border }]} />
           <View style={modalStyles.header}>
@@ -1121,8 +1096,7 @@ function ExportVisualsModal({
             </TouchableOpacity>
           </View>
         </View>
-      </View>
-    </Modal>
+    </OverlaySheet>
   );
 }
 
@@ -1131,7 +1105,7 @@ function ExportVisualsModal({
 export default function HistoryScreen() {
   const colors = useColors();
   const { savedIdeas, removeIdea, toggleStar, updateIdea } = useSavedIdeas();
-  const { savedPrompts, removePrompt, clearAllPrompts, savedCaptions, removeCaption, clearAllCaptions, savedVisuals, removeVisual, clearAllVisuals, addCalendarEntry } = useStorage();
+  const { savedPrompts, removePrompt, clearAllPrompts, savedCaptions, removeCaption, clearAllCaptions, savedVisuals, removeVisual, clearAllVisuals, addCalendarEntry, calendarEntries, updateCalendarEntry } = useStorage();
   const [activeTab, setActiveTab] = useState<Tab>("ideas");
   const [analyses, setAnalyses] = useState<NicheAnalysis[]>([]);
 
@@ -1240,9 +1214,14 @@ export default function HistoryScreen() {
   const saveEditedIdea = useCallback(async () => {
     if (!editingIdea) return;
     await updateIdea(editingIdea.id, { title: editTitle, hook: editHook, body: editBody, cta: editCta });
+    // Sync any linked calendar entries so ideaTitle stays up to date
+    const linked = calendarEntries.filter((e) => e.ideaId === editingIdea.id);
+    for (const entry of linked) {
+      await updateCalendarEntry(entry.id, { ideaTitle: editTitle });
+    }
     if (Platform.OS !== "web") Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     setShowEditIdeaModal(false);
-  }, [editingIdea, editTitle, editHook, editBody, editCta, updateIdea]);
+  }, [editingIdea, editTitle, editHook, editBody, editCta, updateIdea, calendarEntries, updateCalendarEntry]);
 
   const addIdeaToCalendar = useCallback(async () => {
     if (!editingIdea || !calendarDate) {
@@ -1550,7 +1529,7 @@ export default function HistoryScreen() {
   ];
 
   return (
-    <View style={{ flex: 1 }}>
+    <View style={{ flex: 1, position: "relative" }}>
     <ScreenContainer edges={["top", "left", "right"]}>
       {/* Sticky Header + Tabs — these never scroll */}
       <View style={[styles.stickyTop, { backgroundColor: colors.background }]}>
@@ -1853,22 +1832,12 @@ export default function HistoryScreen() {
         colors={colors}
       />
 
-      {/* Edit Idea Modal */}
-      <Modal
+      {/* Edit Idea — cross-platform overlay */}
+      <OverlaySheet
         visible={showEditIdeaModal}
-        transparent
-        animationType="slide"
-        statusBarTranslucent
-        onRequestClose={() => setShowEditIdeaModal(false)}
+        onClose={() => setShowEditIdeaModal(false)}
       >
-        <View style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.55)", justifyContent: "flex-end" }}>
-          <View style={{
-            backgroundColor: colors.background,
-            borderTopLeftRadius: 20,
-            borderTopRightRadius: 20,
-            maxHeight: Dimensions.get("window").height * 0.92,
-            minHeight: Dimensions.get("window").height * 0.6,
-          }}>
+        <View style={{ backgroundColor: colors.background, flex: 1, borderTopLeftRadius: 20, borderTopRightRadius: 20 }}>
             {/* Header */}
             <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", padding: 20, borderBottomWidth: 0.5, borderBottomColor: colors.border }}>
               <Text style={{ fontSize: 18, fontWeight: "700", color: colors.foreground }}>Edit Idea</Text>
@@ -1974,8 +1943,7 @@ export default function HistoryScreen() {
               </TouchableOpacity>
             </ScrollView>
           </View>
-        </View>
-      </Modal>
+      </OverlaySheet>
     </View>
   );
 }
