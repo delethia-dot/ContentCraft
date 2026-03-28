@@ -1,3 +1,4 @@
+// v2.1 - visualSuggestion adapter: handles legacy Railway format + new visualDirection format
 import React, { useState, useCallback } from "react";
 import {
   ScrollView,
@@ -742,12 +743,7 @@ export default function IdeasScreen() {
                             <Text style={[styles.ideaSectionLabel, { color: colors.accent }]}>CLOSING CTA</Text>
                             <Text style={[styles.ideaSectionText, { color: colors.foreground }]}>{(idea as any).postStructure.closingCTA}</Text>
                           </View>
-                          {(idea as any).visualSuggestion && (
-                            <View style={[styles.ideaSection, { backgroundColor: colors.surface }]}>
-                              <Text style={[styles.ideaSectionLabel, { color: colors.muted }]}>VISUAL SUGGESTION</Text>
-                              <Text style={[styles.ideaSectionText, { color: colors.foreground }]}>{(idea as any).visualSuggestion}</Text>
-                            </View>
-                          )}
+                          {/* visualSuggestion is handled by the Visual Direction section below */}
                         </>
                       )}
 
@@ -822,26 +818,55 @@ export default function IdeasScreen() {
                         <Text style={[styles.ideaSectionText, { color: colors.foreground }]}>{idea.cta}</Text>
                       </View>
 
-                      {/* Visual Direction Section — rendered as a named component for reliable web reconciliation */}
-                      {!(idea as any).visualDirection ? (
-                        <View style={[styles.visualSection, { borderColor: colors.border }]}>
-                          <View style={styles.visualHeader}>
-                            <IconSymbol name="camera.fill" size={14} color={colors.muted} />
-                            <Text style={[styles.visualTitle, { color: colors.muted }]}>Visual Direction</Text>
-                          </View>
-                          <Text style={[styles.bestPickReason, { color: colors.muted }]}>Visual direction not available for this idea. Regenerate to get visual suggestions.</Text>
-                        </View>
-                      ) : (
-                        <VisualDirectionSection
-                          idea={idea}
-                          visualDirection={(idea as any).visualDirection}
-                          visualTab={visualTab}
-                          setVisualTab={setVisualTab}
-                          saveVisual={saveVisual}
-                          router={router}
-                          colors={colors}
-                        />
-                      )}
+                      {/* Visual Direction Section — handles both new visualDirection and legacy visualSuggestion formats */}
+                      {(() => {
+                        const raw = idea as any;
+                        // New format: visualDirection with imageSuggestions/videoSuggestions
+                        let vd: VisualDirection | null = raw.visualDirection ?? null;
+                        // Legacy format: visualSuggestion with {type, description} — adapt to new shape
+                        if (!vd && raw.visualSuggestion) {
+                          const vs = raw.visualSuggestion;
+                          const desc = typeof vs === 'string' ? vs : (vs.description ?? '');
+                          const type = vs.type ?? '';
+                          const isVideo = /reel|video|short|tiktok/i.test(type);
+                          const stub: VisualSuggestion = {
+                            concept: desc,
+                            lighting: 'Natural, bright lighting',
+                            colors: 'Brand-consistent palette',
+                            cameraAngle: 'Eye-level shot',
+                            additionalElements: [],
+                            promptReadyDescription: desc,
+                          };
+                          vd = {
+                            imageSuggestions: isVideo ? [] : [stub, { ...stub, concept: 'Alternative: carousel with step-by-step visuals', promptReadyDescription: 'Carousel layout with clean typography and brand colors' }, { ...stub, concept: 'Alternative: single bold graphic with key stat', promptReadyDescription: 'Bold typographic graphic with accent color background' }],
+                            videoSuggestions: isVideo ? [stub, { ...stub, concept: 'Alternative: talking head with b-roll cutaways', promptReadyDescription: 'Talking head video with relevant b-roll footage' }, { ...stub, concept: 'Alternative: screen recording or tutorial walkthrough', promptReadyDescription: 'Tutorial-style screen recording with voiceover' }] : [],
+                            bestPick: isVideo ? 'video' : 'image',
+                            bestPickReason: desc,
+                          };
+                        }
+                        if (!vd) {
+                          return (
+                            <View style={[styles.visualSection, { borderColor: colors.border }]}>
+                              <View style={styles.visualHeader}>
+                                <IconSymbol name="camera.fill" size={14} color={colors.muted} />
+                                <Text style={[styles.visualTitle, { color: colors.muted }]}>Visual Direction</Text>
+                              </View>
+                              <Text style={[styles.bestPickReason, { color: colors.muted }]}>Visual direction not available. Regenerate to get visual suggestions.</Text>
+                            </View>
+                          );
+                        }
+                        return (
+                          <VisualDirectionSection
+                            idea={idea}
+                            visualDirection={vd}
+                            visualTab={visualTab}
+                            setVisualTab={setVisualTab}
+                            saveVisual={saveVisual}
+                            router={router}
+                            colors={colors}
+                          />
+                        );
+                      })()}
                     </View>
                   )}
 
