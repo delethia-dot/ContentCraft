@@ -350,3 +350,8 @@
 - [x] History: ideas are not editable on desktop (edit modal missing)
 - [x] History: editing an idea does not update the linked calendar entry (mobile + desktop)
 - [x] Performance Tracker: desktop still shows old interface — all Phase 5 changes missing on desktop
+
+## Idea Generation & Deployment Fixes
+- [ ] Fix: Generate Ideas times out after ~3 minutes on desktop with no error shown
+- [ ] Add user-facing error message and retry button when idea generation fails
+- [ ] Push all code changes to GitHub so Railway redeploys with latest fixes
