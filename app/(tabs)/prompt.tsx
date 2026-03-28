@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import {
   View,
   Text,
@@ -21,6 +21,7 @@ import { PLATFORMS, Platform as SocialPlatform } from "@/lib/types";
 import { trpc } from "@/lib/trpc";
 import * as Haptics from "expo-haptics";
 import { APP_WEB_URL } from "@/constants/app-url";
+import { useLocalSearchParams } from "expo-router";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -91,15 +92,24 @@ export default function PromptScreen() {
   const { niche } = useNiche();
   const { savePrompt } = useStorage();
 
-  const [mediaType, setMediaType] = useState<MediaType>("image");
+  const params = useLocalSearchParams<{ prefillSubject?: string; prefillAdditionalDetails?: string; prefillMediaType?: string }>();
+
+  const [mediaType, setMediaType] = useState<MediaType>((params.prefillMediaType as MediaType) ?? "image");
   const [selectedToolId, setSelectedToolId] = useState<string>("midjourney");
   const [customToolName, setCustomToolName] = useState("");
   const [selectedPlatform, setSelectedPlatform] = useState<SocialPlatform>("instagram");
   const [selectedStyle, setSelectedStyle] = useState("Photorealistic");
   const [selectedMood, setSelectedMood] = useState("Inspiring");
   const [selectedRatio, setSelectedRatio] = useState("1:1");
-  const [subject, setSubject] = useState("");
-  const [additionalDetails, setAdditionalDetails] = useState("");
+  const [subject, setSubject] = useState(params.prefillSubject ?? "");
+  const [additionalDetails, setAdditionalDetails] = useState(params.prefillAdditionalDetails ?? "");
+
+  // Re-apply params when navigating back to this screen with new prefill values
+  useEffect(() => {
+    if (params.prefillSubject) setSubject(params.prefillSubject);
+    if (params.prefillAdditionalDetails) setAdditionalDetails(params.prefillAdditionalDetails);
+    if (params.prefillMediaType) setMediaType(params.prefillMediaType as MediaType);
+  }, [params.prefillSubject, params.prefillAdditionalDetails, params.prefillMediaType]);
   const [generatedPrompt, setGeneratedPrompt] = useState<GeneratedPrompt | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [copiedField, setCopiedField] = useState<string | null>(null);

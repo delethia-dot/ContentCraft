@@ -292,3 +292,10 @@
 - [x] Idea Generator: add visualDirection field to every idea — 3 image suggestions, 3 video suggestions, best-pick recommendation, lighting, colors, camera angle, and prompt-ready elements
 - [x] Server: extend generateIdeas AI prompt to return visualDirection object for all content types and platforms
 - [x] ideas.tsx: render Visual Direction section on every expanded idea card
+
+## Feature Updates Round 15
+- [x] Visual Direction: "Use in Prompt Generator" shortcut pre-fills Subject/Scene with concept and Additional Details with lighting/colors/camera/elements
+- [x] prompt.tsx: read prefillSubject and prefillAdditionalDetails navigation params and apply to correct fields
+- [x] Visual Direction: "Save Visual" button stores visual direction suggestion to History (new SavedVisual type)
+- [x] History: add Visuals tab showing saved visual directions with export functionality
+- [x] Saved Ideas (History): add star/favorite toggle — starred ideas show a gold star badge and sort to top of list

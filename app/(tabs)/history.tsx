@@ -18,7 +18,7 @@ import { IconSymbol } from "@/components/ui/icon-symbol";
 import { useColors } from "@/hooks/use-colors";
 import { useSavedIdeas } from "@/lib/saved-ideas-context";
 import { useStorage } from "@/lib/storage-context";
-import { ContentIdea, UrlAnalysis, SavedPrompt, SavedCaption, PLATFORMS } from "@/lib/types";
+import { ContentIdea, UrlAnalysis, SavedPrompt, SavedCaption, SavedVisual, PLATFORMS } from "@/lib/types";
 import { APP_WEB_URL } from "@/constants/app-url";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Haptics from "expo-haptics";
@@ -52,7 +52,7 @@ type NicheAnalysis = {
   };
 };
 
-type Tab = "ideas" | "analyses" | "prompts" | "captions";
+type Tab = "ideas" | "analyses" | "prompts" | "captions" | "visuals";
 
 // ─── Idea Detail Modal ────────────────────────────────────────────────────────
 
@@ -911,12 +911,95 @@ function ExportCaptionsModal({
   );
 }
 
+// ─── Export Visuals Modal ────────────────────────────────────────────────────
+
+function ExportVisualsModal({
+  visuals,
+  visible,
+  onClose,
+  colors,
+}: {
+  visuals: SavedVisual[];
+  visible: boolean;
+  onClose: () => void;
+  colors: any;
+}) {
+  const [copied, setCopied] = useState(false);
+  const { height: windowHeight } = useWindowDimensions();
+
+  const exportText = visuals.length === 0
+    ? "No visual directions saved yet."
+    : visuals.map((v, idx) => {
+        const lines = [
+          `━━━ VISUAL ${idx + 1}: ${v.mediaType.toUpperCase()} | ${v.platform.toUpperCase()} ━━━`,
+          ``,
+          `💡 Concept:`,
+          v.concept,
+          ``,
+          `📌 From Idea: ${v.ideaTitle}`,
+        ];
+        if (v.lighting) lines.push(``, `💡 Lighting: ${v.lighting}`);
+        if (v.colors) lines.push(`🎨 Colors: ${v.colors}`);
+        if (v.cameraAngle) lines.push(`📷 Camera Angle: ${v.cameraAngle}`);
+        if (v.additionalElements?.length) lines.push(`✨ Elements: ${v.additionalElements.join(", ")}`);
+        if (v.promptReadyDescription) lines.push(``, `📋 Prompt-Ready Description:`, v.promptReadyDescription);
+        return lines.join("\n");
+      }).join("\n\n") + `\n\n✨ Created with ContentCraft\n${APP_WEB_URL}`;
+
+  const handleCopy = () => {
+    Clipboard.setString(exportText);
+    setCopied(true);
+    if (Platform.OS !== "web") Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    setTimeout(() => setCopied(false), 2500);
+  };
+
+  const handleShare = async () => {
+    try {
+      if (Platform.OS !== "web") Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      await Share.share({ message: exportText, title: "ContentCraft Visual Directions" });
+    } catch {}
+  };
+
+  return (
+    <Modal visible={visible} animationType="slide" transparent={true} onRequestClose={onClose} statusBarTranslucent={true} hardwareAccelerated={true}>
+      <View style={modalStyles.overlay}>
+        <TouchableOpacity style={modalStyles.backdrop} activeOpacity={1} onPress={onClose} />
+        <View style={[modalStyles.sheet, { backgroundColor: colors.background }]}>
+          <View style={[modalStyles.handle, { backgroundColor: colors.border }]} />
+          <View style={modalStyles.header}>
+            <View style={{ flex: 1 }}>
+              <Text style={[modalStyles.title, { color: colors.foreground }]}>Export Visual Directions</Text>
+              <Text style={[modalStyles.subtitle, { color: colors.muted }]}>{visuals.length} visual{visuals.length !== 1 ? "s" : ""}</Text>
+            </View>
+            <TouchableOpacity onPress={onClose} activeOpacity={0.7} style={[modalStyles.closeBtn, { backgroundColor: colors.surface }]}>
+              <IconSymbol name="xmark" size={16} color={colors.muted} />
+            </TouchableOpacity>
+          </View>
+          <ScrollView style={[exportStyles.previewBox, { backgroundColor: colors.surface, borderColor: colors.border, maxHeight: windowHeight * 0.9 - 220 }]} showsVerticalScrollIndicator={false}>
+            <Text style={[exportStyles.previewText, { color: colors.foreground }]}>{exportText}</Text>
+          </ScrollView>
+          <View style={modalStyles.actions}>
+            <TouchableOpacity onPress={handleCopy} activeOpacity={0.8} style={[modalStyles.actionBtn, { backgroundColor: copied ? "#10B981" : colors.surface, borderColor: copied ? "#10B981" : colors.border }]}>
+              <IconSymbol name="doc.on.doc" size={18} color={copied ? "#FFFFFF" : colors.foreground} />
+              <Text style={[modalStyles.actionBtnText, { color: copied ? "#FFFFFF" : colors.foreground }]}>{copied ? "Copied!" : "Copy All"}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={handleShare} activeOpacity={0.8} style={[modalStyles.actionBtn, { backgroundColor: "#F59E0B", borderColor: "#F59E0B" }]}>
+              <IconSymbol name="square.and.arrow.up" size={18} color="#FFFFFF" />
+              <Text style={[modalStyles.actionBtnText, { color: "#FFFFFF" }]}>Share</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
+    </Modal>
+  );
+}
+
 // ─── Main History Screen ──────────────────────────────────────────────────────
 
 export default function HistoryScreen() {
   const colors = useColors();
-  const { savedIdeas, removeIdea } = useSavedIdeas();
-  const { savedPrompts, removePrompt, clearAllPrompts, savedCaptions, removeCaption, clearAllCaptions } = useStorage();
+  const { savedIdeas, removeIdea, toggleStar } = useSavedIdeas();
+  const { savedPrompts, removePrompt, clearAllPrompts, savedCaptions, removeCaption, clearAllCaptions, savedVisuals, removeVisual, clearAllVisuals } = useStorage();
   const [activeTab, setActiveTab] = useState<Tab>("ideas");
   const [analyses, setAnalyses] = useState<NicheAnalysis[]>([]);
 
@@ -989,6 +1072,13 @@ export default function HistoryScreen() {
     ]);
   }, [clearAllCaptions]);
 
+  const clearAllVisualsFn = useCallback(() => {
+    Alert.alert("Clear All Visuals", "This will permanently delete all saved visual directions. Are you sure?", [
+      { text: "Cancel", style: "cancel" },
+      { text: "Clear All", style: "destructive", onPress: () => clearAllVisuals() },
+    ]);
+  }, [clearAllVisuals]);
+
   const shareIdea = useCallback(async (idea: ContentIdea) => {
     const platformLabel = PLATFORMS.find((p) => p.id === idea.platform)?.label ?? idea.platform;
     const text = `📌 ${idea.title}\n\n🎣 Hook:\n${idea.hook}\n\n📝 Body:\n${idea.body}\n\n📣 CTA:\n${idea.cta}\n\n🏷️ ${platformLabel} | ${idea.contentType} | ${idea.niche}\n\n✨ Created with ContentCraft\n${APP_WEB_URL}`;
@@ -1051,6 +1141,16 @@ export default function HistoryScreen() {
 
         <View style={styles.cardFooter}>
           <Text style={[styles.tapHint, { color: colors.primary }]}>Tap to view full idea →</Text>
+          <TouchableOpacity
+            onPress={() => {
+              if (Platform.OS !== "web") Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+              toggleStar(idea.id);
+            }}
+            activeOpacity={0.7}
+            style={[styles.iconBtn, { backgroundColor: idea.starred ? "#F59E0B18" : colors.surface }]}
+          >
+            <IconSymbol name={idea.starred ? "star.fill" : "star"} size={14} color={idea.starred ? "#F59E0B" : colors.muted} />
+          </TouchableOpacity>
           <TouchableOpacity
             onPress={() => shareIdea(idea)}
             activeOpacity={0.7}
@@ -1243,12 +1343,15 @@ export default function HistoryScreen() {
   const analysesEmpty = analyses.length === 0;
   const promptsEmpty = savedPrompts.length === 0;
   const captionsEmpty = savedCaptions.length === 0;
+  const visualsEmpty = savedVisuals.length === 0;
+  const [showExportVisualsModal, setShowExportVisualsModal] = useState(false);
 
   const TABS: { id: Tab; label: string; count: number; icon: any }[] = [
     { id: "ideas", label: "Ideas", count: savedIdeas.length, icon: "lightbulb.fill" },
     { id: "analyses", label: "Analyses", count: analyses.length, icon: "chart.line.uptrend.xyaxis" },
     { id: "prompts", label: "Prompts", count: savedPrompts.length, icon: "wand.and.stars" },
     { id: "captions", label: "Captions", count: savedCaptions.length, icon: "text.bubble.fill" },
+    { id: "visuals", label: "Visuals", count: savedVisuals.length, icon: "photo.fill" },
   ];
 
   return (
@@ -1289,6 +1392,12 @@ export default function HistoryScreen() {
                 <Text style={styles.exportBtnText}>Export</Text>
               </TouchableOpacity>
             )}
+            {activeTab === "visuals" && !visualsEmpty && (
+              <TouchableOpacity onPress={() => setShowExportVisualsModal(true)} activeOpacity={0.8} style={[styles.exportBtn, { backgroundColor: "rgba(255,255,255,0.15)", borderColor: "rgba(255,255,255,0.3)" }]}>
+                <IconSymbol name="square.and.arrow.up" size={15} color="#FFFFFF" />
+                <Text style={styles.exportBtnText}>Export</Text>
+              </TouchableOpacity>
+            )}
           </View>
         </View>
 
@@ -1323,10 +1432,10 @@ export default function HistoryScreen() {
         </View>
 
         {/* Clear All row */}
-        {((activeTab === "ideas" && !ideasEmpty) || (activeTab === "analyses" && !analysesEmpty) || (activeTab === "prompts" && !promptsEmpty) || (activeTab === "captions" && !captionsEmpty)) && (
+        {((activeTab === "ideas" && !ideasEmpty) || (activeTab === "analyses" && !analysesEmpty) || (activeTab === "prompts" && !promptsEmpty) || (activeTab === "captions" && !captionsEmpty) || (activeTab === "visuals" && !visualsEmpty)) && (
           <View style={[styles.clearRow, { borderBottomColor: colors.border }]}>
             <TouchableOpacity
-              onPress={activeTab === "ideas" ? clearAllIdeas : activeTab === "analyses" ? clearAllAnalyses : activeTab === "prompts" ? clearAllPromptsFn : clearAllCaptionsFn}
+              onPress={activeTab === "ideas" ? clearAllIdeas : activeTab === "analyses" ? clearAllAnalyses : activeTab === "prompts" ? clearAllPromptsFn : activeTab === "captions" ? clearAllCaptionsFn : clearAllVisualsFn}
               activeOpacity={0.7}
               style={styles.clearBtn}
             >
@@ -1398,7 +1507,7 @@ export default function HistoryScreen() {
             showsVerticalScrollIndicator={false}
           />
         )
-      ) : (
+      ) : activeTab === "captions" ? (
         captionsEmpty ? (
           <View style={styles.emptyState}>
             <View style={[styles.emptyIcon, { backgroundColor: colors.primary + "15" }]}>
@@ -1414,6 +1523,66 @@ export default function HistoryScreen() {
             data={savedCaptions}
             keyExtractor={(item) => item.id}
             renderItem={renderCaptionItem}
+            contentContainerStyle={styles.listContent}
+            showsVerticalScrollIndicator={false}
+          />
+        )
+      ) : (
+        visualsEmpty ? (
+          <View style={styles.emptyState}>
+            <View style={[styles.emptyIcon, { backgroundColor: "#F59E0B15" }]}>
+              <IconSymbol name="photo.fill" size={36} color="#F59E0B" />
+            </View>
+            <Text style={[styles.emptyTitle, { color: colors.foreground }]}>No Saved Visuals Yet</Text>
+            <Text style={[styles.emptySubtitle, { color: colors.muted }]}>
+              Generate ideas, expand a card, open the Visual Direction section, and tap Save Visual.
+            </Text>
+          </View>
+        ) : (
+          <FlatList
+            data={savedVisuals}
+            keyExtractor={(item) => item.id}
+            renderItem={({ item: visual }) => {
+              const platformColor = PLATFORMS.find((p) => p.id === visual.platform)?.color ?? colors.primary;
+              return (
+                <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+                  <View style={styles.cardHeader}>
+                    <View style={[styles.platformBadge, { backgroundColor: platformColor + "18", borderColor: platformColor + "40" }]}>
+                      <Text style={[styles.platformBadgeText, { color: platformColor }]}>{visual.platform}</Text>
+                    </View>
+                    <View style={[styles.typeBadge, { backgroundColor: "#F59E0B12" }]}>
+                      <Text style={[styles.typeBadgeText, { color: "#F59E0B" }]}>{visual.mediaType === "image" ? "Image" : "Video"}</Text>
+                    </View>
+                    <Text style={[styles.dateText, { color: colors.muted }]}>{formatDate(visual.savedAt)}</Text>
+                  </View>
+                  <Text style={[styles.ideaTitle, { color: colors.foreground }]} numberOfLines={2}>{visual.concept}</Text>
+                  <View style={[styles.hookBox, { backgroundColor: "#F59E0B08", borderLeftColor: "#F59E0B" }]}>
+                    <Text style={[styles.hookLabel, { color: "#F59E0B" }]}>From Idea</Text>
+                    <Text style={[styles.hookText, { color: colors.foreground }]} numberOfLines={1}>{visual.ideaTitle}</Text>
+                  </View>
+                  <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 6, paddingHorizontal: 12, paddingBottom: 8 }}>
+                    {visual.lighting ? <View style={[styles.typeBadge, { backgroundColor: colors.surface }]}><Text style={[styles.typeBadgeText, { color: colors.muted }]} numberOfLines={1}>💡 {visual.lighting}</Text></View> : null}
+                    {visual.colors ? <View style={[styles.typeBadge, { backgroundColor: colors.surface }]}><Text style={[styles.typeBadgeText, { color: colors.muted }]} numberOfLines={1}>🎨 {visual.colors}</Text></View> : null}
+                    {visual.cameraAngle ? <View style={[styles.typeBadge, { backgroundColor: colors.surface }]}><Text style={[styles.typeBadgeText, { color: colors.muted }]} numberOfLines={1}>📷 {visual.cameraAngle}</Text></View> : null}
+                  </View>
+                  <View style={styles.cardFooter}>
+                    <Text style={[styles.tapHint, { color: "#F59E0B" }]}>Visual Direction</Text>
+                    <TouchableOpacity
+                      onPress={() => {
+                        Alert.alert("Delete Visual", "Remove this saved visual direction?", [
+                          { text: "Cancel", style: "cancel" },
+                          { text: "Delete", style: "destructive", onPress: () => removeVisual(visual.id) },
+                        ]);
+                      }}
+                      activeOpacity={0.7}
+                      style={[styles.iconBtn, { backgroundColor: "#EF444412" }]}
+                    >
+                      <IconSymbol name="trash.fill" size={14} color="#EF4444" />
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              );
+            }}
             contentContainerStyle={styles.listContent}
             showsVerticalScrollIndicator={false}
           />
@@ -1467,6 +1636,12 @@ export default function HistoryScreen() {
         captions={savedCaptions}
         visible={showExportCaptionsModal}
         onClose={() => setShowExportCaptionsModal(false)}
+        colors={colors}
+      />
+      <ExportVisualsModal
+        visuals={savedVisuals}
+        visible={showExportVisualsModal}
+        onClose={() => setShowExportVisualsModal(false)}
         colors={colors}
       />
     </View>

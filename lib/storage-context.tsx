@@ -1,10 +1,11 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { SavedPrompt, SavedCaption, CalendarEntry } from "./types";
+import { SavedPrompt, SavedCaption, CalendarEntry, SavedVisual } from "./types";
 
 const PROMPTS_KEY = "@contentcraft_saved_prompts";
 const CAPTIONS_KEY = "@contentcraft_saved_captions";
 const CALENDAR_KEY = "@contentcraft_calendar_entries";
+const VISUALS_KEY = "@contentcraft_saved_visuals";
 
 interface StorageContextType {
   // Prompts
@@ -23,6 +24,11 @@ interface StorageContextType {
   updateCalendarEntry: (id: string, updates: Partial<CalendarEntry>) => Promise<void>;
   removeCalendarEntry: (id: string) => Promise<void>;
   getEntriesForDate: (date: string) => CalendarEntry[];
+  // Visuals
+  savedVisuals: SavedVisual[];
+  saveVisual: (visual: SavedVisual) => Promise<void>;
+  removeVisual: (id: string) => Promise<void>;
+  clearAllVisuals: () => Promise<void>;
 }
 
 const StorageContext = createContext<StorageContextType>({
@@ -39,22 +45,29 @@ const StorageContext = createContext<StorageContextType>({
   updateCalendarEntry: async () => {},
   removeCalendarEntry: async () => {},
   getEntriesForDate: () => [],
+  savedVisuals: [],
+  saveVisual: async () => {},
+  removeVisual: async () => {},
+  clearAllVisuals: async () => {},
 });
 
 export function StorageProvider({ children }: { children: React.ReactNode }) {
   const [savedPrompts, setSavedPrompts] = useState<SavedPrompt[]>([]);
   const [savedCaptions, setSavedCaptions] = useState<SavedCaption[]>([]);
   const [calendarEntries, setCalendarEntries] = useState<CalendarEntry[]>([]);
+  const [savedVisuals, setSavedVisuals] = useState<SavedVisual[]>([]);
 
   useEffect(() => {
     Promise.all([
       AsyncStorage.getItem(PROMPTS_KEY),
       AsyncStorage.getItem(CAPTIONS_KEY),
       AsyncStorage.getItem(CALENDAR_KEY),
-    ]).then(([prompts, captions, calendar]) => {
+      AsyncStorage.getItem(VISUALS_KEY),
+    ]).then(([prompts, captions, calendar, visuals]) => {
       if (prompts) setSavedPrompts(JSON.parse(prompts));
       if (captions) setSavedCaptions(JSON.parse(captions));
       if (calendar) setCalendarEntries(JSON.parse(calendar));
+      if (visuals) setSavedVisuals(JSON.parse(visuals));
     });
   }, []);
 
@@ -134,6 +147,29 @@ export function StorageProvider({ children }: { children: React.ReactNode }) {
     return calendarEntries.filter((e) => e.date === date);
   }, [calendarEntries]);
 
+  // ── Visuals ──────────────────────────────────────────────────────────────
+
+  const saveVisual = useCallback(async (visual: SavedVisual) => {
+    setSavedVisuals((prev) => {
+      const updated = [visual, ...prev.filter((v) => v.id !== visual.id)];
+      AsyncStorage.setItem(VISUALS_KEY, JSON.stringify(updated));
+      return updated;
+    });
+  }, []);
+
+  const removeVisual = useCallback(async (id: string) => {
+    setSavedVisuals((prev) => {
+      const updated = prev.filter((v) => v.id !== id);
+      AsyncStorage.setItem(VISUALS_KEY, JSON.stringify(updated));
+      return updated;
+    });
+  }, []);
+
+  const clearAllVisuals = useCallback(async () => {
+    setSavedVisuals([]);
+    await AsyncStorage.removeItem(VISUALS_KEY);
+  }, []);
+
   return (
     <StorageContext.Provider
       value={{
@@ -150,6 +186,10 @@ export function StorageProvider({ children }: { children: React.ReactNode }) {
         updateCalendarEntry,
         removeCalendarEntry,
         getEntriesForDate,
+        savedVisuals,
+        saveVisual,
+        removeVisual,
+        clearAllVisuals,
       }}
     >
       {children}

@@ -15,6 +15,7 @@ import { IconSymbol } from "@/components/ui/icon-symbol";
 import { useColors } from "@/hooks/use-colors";
 import { useNiche } from "@/lib/niche-context";
 import { useSavedIdeas } from "@/lib/saved-ideas-context";
+import { useStorage } from "@/lib/storage-context";
 import { NicheSheet } from "@/components/niche-sheet";
 import { PLATFORMS, CONTENT_TYPES, ContentIdea, Platform as SocialPlatform, ContentType } from "@/lib/types";
 import { trpc } from "@/lib/trpc";
@@ -27,6 +28,7 @@ export default function IdeasScreen() {
   const colors = useColors();
   const { niche } = useNiche();
   const { saveIdea, removeIdea, isIdeaSaved } = useSavedIdeas();
+  const { saveVisual } = useStorage();
   const router = useRouter();
   const [nicheSheetVisible, setNicheSheetVisible] = useState(false);
   const [selectedPlatform, setSelectedPlatform] = useState<SocialPlatform>("instagram");
@@ -663,6 +665,61 @@ export default function IdeasScreen() {
                                   </View>
                                   <Text style={[styles.promptReadyText, { color: colors.foreground }]}>{s.promptReadyDescription}</Text>
                                 </TouchableOpacity>
+                                {/* Action row: Use in Prompt Generator + Save Visual */}
+                                <View style={styles.visualCardActions}>
+                                  <TouchableOpacity
+                                    onPress={() => {
+                                      if (Platform.OS !== "web") Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                                      const additionalParts = [
+                                        s.lighting && `Lighting: ${s.lighting}`,
+                                        s.colors && `Colors: ${s.colors}`,
+                                        s.cameraAngle && `Camera: ${s.cameraAngle}`,
+                                        s.additionalElements && `Elements: ${Array.isArray(s.additionalElements) ? s.additionalElements.join(", ") : s.additionalElements}`,
+                                      ].filter(Boolean).join(" | ");
+                                      router.push({
+                                        pathname: "/(tabs)/prompt",
+                                        params: {
+                                          prefillSubject: s.concept,
+                                          prefillAdditionalDetails: additionalParts,
+                                          prefillMediaType: activeTab,
+                                        },
+                                      });
+                                    }}
+                                    activeOpacity={0.8}
+                                    style={[styles.visualActionBtn, { backgroundColor: colors.primary + "12", borderColor: colors.primary + "40" }]}
+                                  >
+                                    <IconSymbol name="wand.and.stars" size={13} color={colors.primary} />
+                                    <Text style={[styles.visualActionText, { color: colors.primary }]}>Use in Prompt Generator</Text>
+                                  </TouchableOpacity>
+                                  <TouchableOpacity
+                                    onPress={() => {
+                                      if (Platform.OS !== "web") Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                                      const visualId = `visual-${idea.id}-${activeTab}-${i}-${Date.now()}`;
+                                      saveVisual({
+                                        id: visualId,
+                                        ideaId: idea.id,
+                                        ideaTitle: idea.title,
+                                        platform: idea.platform,
+                                        contentType: idea.contentType,
+                                        mediaType: activeTab,
+                                        concept: s.concept,
+                                        lighting: s.lighting,
+                                        colors: s.colors,
+                                        cameraAngle: s.cameraAngle,
+                                        additionalElements: Array.isArray(s.additionalElements) ? s.additionalElements : [s.additionalElements],
+                                        promptReadyDescription: s.promptReadyDescription,
+                                        savedAt: new Date().toISOString(),
+                                      });
+                                      if (Platform.OS !== "web") Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+                                      Alert.alert("Visual Saved!", "This visual direction has been saved to your History.");
+                                    }}
+                                    activeOpacity={0.8}
+                                    style={[styles.visualActionBtn, { backgroundColor: "#F59E0B" + "12", borderColor: "#F59E0B" + "40" }]}
+                                  >
+                                    <IconSymbol name="star.fill" size={13} color="#F59E0B" />
+                                    <Text style={[styles.visualActionText, { color: "#F59E0B" }]}>Save Visual</Text>
+                                  </TouchableOpacity>
+                                </View>
                               </View>
                             ))}
                           </View>
@@ -1079,5 +1136,27 @@ const styles = StyleSheet.create({
   promptReadyText: {
     fontSize: 12,
     lineHeight: 17,
+  },
+  visualCardActions: {
+    flexDirection: "row",
+    gap: 8,
+    paddingHorizontal: 10,
+    paddingBottom: 10,
+    paddingTop: 4,
+  },
+  visualActionBtn: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 5,
+    paddingVertical: 8,
+    paddingHorizontal: 10,
+    borderRadius: 10,
+    borderWidth: 1,
+  },
+  visualActionText: {
+    fontSize: 12,
+    fontWeight: "700",
   },
 });

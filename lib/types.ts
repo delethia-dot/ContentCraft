@@ -12,6 +12,23 @@ export interface ContentIdea {
   niche: string;
   createdAt: string;
   saved?: boolean;
+  starred?: boolean;
+}
+
+export interface SavedVisual {
+  id: string;
+  ideaId: string;
+  ideaTitle: string;
+  platform: Platform;
+  contentType: ContentType;
+  mediaType: "image" | "video";
+  concept: string;
+  lighting: string;
+  colors: string;
+  cameraAngle: string;
+  additionalElements: string[];
+  promptReadyDescription: string;
+  savedAt: string;
 }
 
 export interface UrlAnalysis {
