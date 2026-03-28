@@ -10,6 +10,7 @@ interface SavedIdeasContextType {
   removeIdea: (id: string) => Promise<void>;
   isIdeaSaved: (id: string) => boolean;
   toggleStar: (id: string) => Promise<void>;
+  updateIdea: (id: string, updates: Partial<ContentIdea>) => Promise<void>;
 }
 
 const SavedIdeasContext = createContext<SavedIdeasContextType>({
@@ -18,6 +19,7 @@ const SavedIdeasContext = createContext<SavedIdeasContextType>({
   removeIdea: async () => {},
   isIdeaSaved: () => false,
   toggleStar: async () => {},
+  updateIdea: async () => {},
 });
 
 export function SavedIdeasProvider({ children }: { children: React.ReactNode }) {
@@ -61,8 +63,16 @@ export function SavedIdeasProvider({ children }: { children: React.ReactNode }) 
     });
   }, []);
 
+  const updateIdea = useCallback(async (id: string, updates: Partial<ContentIdea>) => {
+    setSavedIdeas((prev) => {
+      const updated = prev.map((i) => i.id === id ? { ...i, ...updates } : i);
+      persist(updated);
+      return updated;
+    });
+  }, []);
+
   return (
-    <SavedIdeasContext.Provider value={{ savedIdeas, saveIdea, removeIdea, isIdeaSaved, toggleStar }}>
+    <SavedIdeasContext.Provider value={{ savedIdeas, saveIdea, removeIdea, isIdeaSaved, toggleStar, updateIdea }}>
       {children}
     </SavedIdeasContext.Provider>
   );

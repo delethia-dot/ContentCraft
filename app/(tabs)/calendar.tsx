@@ -10,6 +10,7 @@ import {
   TextInput,
   Alert,
   Platform,
+  Dimensions,
 } from "react-native";
 import { ScreenContainer } from "@/components/screen-container";
 import { IconSymbol } from "@/components/ui/icon-symbol";
@@ -65,14 +66,30 @@ interface AddEntryModalProps {
   onAdd: (entry: Omit<CalendarEntry, "id">) => void;
   savedIdeas: { id: string; title: string; platform: SocialPlatform; contentType: ContentType }[];
   colors: ReturnType<typeof useColors>;
+  prefillTitle?: string;
+  prefillPlatform?: SocialPlatform;
+  prefillContentType?: ContentType;
+  prefillIdeaId?: string;
 }
 
-function AddEntryModal({ visible, selectedDate, onClose, onAdd, savedIdeas, colors }: AddEntryModalProps) {
+function AddEntryModal({ visible, selectedDate, onClose, onAdd, savedIdeas, colors, prefillTitle, prefillPlatform, prefillContentType, prefillIdeaId }: AddEntryModalProps) {
   const [title, setTitle] = useState("");
   const [selectedPlatform, setSelectedPlatform] = useState<SocialPlatform>("instagram");
   const [selectedContentType, setSelectedContentType] = useState<ContentType>("post");
   const [notes, setNotes] = useState("");
   const [selectedIdeaId, setSelectedIdeaId] = useState<string | null>(null);
+  const [postTime, setPostTime] = useState("09:00");
+  const [showTimePicker, setShowTimePicker] = useState(false);
+
+  // Pre-fill from linked idea when modal opens
+  React.useEffect(() => {
+    if (visible) {
+      if (prefillTitle) setTitle(prefillTitle);
+      if (prefillPlatform) setSelectedPlatform(prefillPlatform);
+      if (prefillContentType) setSelectedContentType(prefillContentType);
+      if (prefillIdeaId) setSelectedIdeaId(prefillIdeaId);
+    }
+  }, [visible, prefillTitle, prefillPlatform, prefillContentType, prefillIdeaId]);
 
   const handleAdd = () => {
     if (!title.trim() && !selectedIdeaId) {
@@ -88,10 +105,12 @@ function AddEntryModal({ visible, selectedDate, onClose, onAdd, savedIdeas, colo
       contentType: linkedIdea?.contentType ?? selectedContentType,
       notes: notes.trim() || undefined,
       completed: false,
+      postTime: postTime || undefined,
     });
     setTitle("");
     setNotes("");
     setSelectedIdeaId(null);
+    setPostTime("09:00");
     onClose();
   };
 
@@ -210,6 +229,28 @@ function AddEntryModal({ visible, selectedDate, onClose, onAdd, savedIdeas, colo
               </View>
             )}
 
+            {/* Time of Post */}
+            <View style={{ gap: 8 }}>
+              <Text style={[modalStyles.label, { color: colors.foreground }]}>Time of Post</Text>
+              <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
+                {["06:00", "07:00", "08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00", "21:00"].map((t) => {
+                  const isActive = postTime === t;
+                  const [h] = t.split(":").map(Number);
+                  const label = h === 0 ? "12:00 AM" : h < 12 ? `${h}:00 AM` : h === 12 ? "12:00 PM" : `${h - 12}:00 PM`;
+                  return (
+                    <TouchableOpacity
+                      key={t}
+                      onPress={() => setPostTime(t)}
+                      activeOpacity={0.8}
+                      style={[modalStyles.chip, { backgroundColor: isActive ? colors.primary : colors.surface, borderColor: isActive ? colors.primary : colors.border }]}
+                    >
+                      <Text style={[modalStyles.chipText, { color: isActive ? "#FFFFFF" : colors.foreground }]}>{label}</Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+            </View>
+
             {/* Notes */}
             <View style={{ gap: 8 }}>
               <Text style={[modalStyles.label, { color: colors.foreground }]}>Notes (optional)</Text>
@@ -231,7 +272,7 @@ function AddEntryModal({ visible, selectedDate, onClose, onAdd, savedIdeas, colo
               style={[modalStyles.addBtn, { backgroundColor: colors.primary }]}
             >
               <IconSymbol name="calendar.badge.plus" size={18} color="#FFFFFF" />
-              <Text style={modalStyles.addBtnText}>Schedule Post</Text>
+              <Text style={modalStyles.addBtnText}>Plan Content</Text>
             </TouchableOpacity>
 
             <View style={{ height: 20 }} />
@@ -257,6 +298,10 @@ const modalStyles = StyleSheet.create({
   ideaChipText: { fontSize: 12, fontWeight: "600", flexShrink: 1 },
   addBtn: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, paddingVertical: 16, borderRadius: 14 },
   addBtnText: { fontSize: 16, fontWeight: "800", color: "#FFFFFF" },
+  title: { fontSize: 16, fontWeight: "700", lineHeight: 22 },
+  subtitle: { fontSize: 13, marginTop: 2 },
+  closeBtn: { padding: 8 },
+  closeBtnText: { fontSize: 20, fontWeight: "400" },
 });
 
 // ─── Main Screen ──────────────────────────────────────────────────────────────
@@ -271,6 +316,8 @@ export default function CalendarScreen() {
   const [viewMode, setViewMode] = useState<"month" | "week">("month");
   const [selectedDate, setSelectedDate] = useState<string>(toDateStr(today));
   const [showAddModal, setShowAddModal] = useState(false);
+  const [selectedCalendarEntry, setSelectedCalendarEntry] = useState<CalendarEntry | null>(null);
+  const [showEntryDetailModal, setShowEntryDetailModal] = useState(false);
 
   const year = viewDate.getFullYear();
   const month = viewDate.getMonth();
@@ -507,8 +554,10 @@ export default function CalendarScreen() {
                 {selectedEntries.map((entry) => {
                   const pColor = PLATFORM_COLORS[entry.platform];
                   return (
-                    <View
+                    <TouchableOpacity
                       key={entry.id}
+                      onPress={() => { setSelectedCalendarEntry(entry); setShowEntryDetailModal(true); }}
+                      activeOpacity={0.85}
                       style={[styles.entryCard, { backgroundColor: colors.background, borderColor: pColor + "30", borderLeftColor: pColor, borderLeftWidth: 4 }]}
                     >
                       <View style={styles.entryCardTop}>
@@ -537,6 +586,9 @@ export default function CalendarScreen() {
                               </Text>
                             </View>
                           </View>
+                          {entry.postTime && (
+                            <Text style={[styles.entryNotes, { color: colors.primary }]}>🕐 {(() => { const [h] = entry.postTime.split(":").map(Number); return h === 0 ? "12:00 AM" : h < 12 ? `${h}:00 AM` : h === 12 ? "12:00 PM" : `${h - 12}:00 PM`; })()}</Text>
+                          )}
                           {entry.notes && (
                             <Text style={[styles.entryNotes, { color: colors.muted }]} numberOfLines={2}>{entry.notes}</Text>
                           )}
@@ -549,7 +601,7 @@ export default function CalendarScreen() {
                           <IconSymbol name="trash.fill" size={16} color={colors.muted} />
                         </TouchableOpacity>
                       </View>
-                    </View>
+                    </TouchableOpacity>
                   );
                 })}
               </View>
@@ -604,6 +656,79 @@ export default function CalendarScreen() {
         savedIdeas={savedIdeas.map((i) => ({ id: i.id, title: i.title, platform: i.platform, contentType: i.contentType }))}
         colors={colors}
       />
+
+      {/* Entry Detail Modal */}
+      <Modal
+        visible={showEntryDetailModal}
+        transparent
+        animationType="slide"
+        statusBarTranslucent
+        onRequestClose={() => setShowEntryDetailModal(false)}
+      >
+        <View style={[modalStyles.overlay, { backgroundColor: "rgba(0,0,0,0.55)" }]}>
+          <View style={[modalStyles.sheet, { backgroundColor: colors.surface, maxHeight: Dimensions.get("window").height * 0.75 }]}>
+            {selectedCalendarEntry && (() => {
+              const pColor = PLATFORM_COLORS[selectedCalendarEntry.platform];
+              const [h] = (selectedCalendarEntry.postTime ?? "09:00").split(":").map(Number);
+              const timeLabel = selectedCalendarEntry.postTime
+                ? (h === 0 ? "12:00 AM" : h < 12 ? `${h}:00 AM` : h === 12 ? "12:00 PM" : `${h - 12}:00 PM`)
+                : null;
+              return (
+                <>
+                  <View style={[modalStyles.header, { borderBottomColor: colors.border }]}>
+                    <View style={{ flex: 1 }}>
+                      <Text style={[modalStyles.title, { color: colors.foreground }]} numberOfLines={2}>{selectedCalendarEntry.ideaTitle}</Text>
+                      <Text style={[modalStyles.subtitle, { color: colors.muted }]}>
+                        {formatDisplayDate(selectedCalendarEntry.date)}{timeLabel ? ` · ${timeLabel}` : ""}
+                      </Text>
+                    </View>
+                    <TouchableOpacity onPress={() => setShowEntryDetailModal(false)} activeOpacity={0.7} style={modalStyles.closeBtn}>
+                      <Text style={[modalStyles.closeBtnText, { color: colors.muted }]}>✕</Text>
+                    </TouchableOpacity>
+                  </View>
+                  <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: 20, gap: 16 }} showsVerticalScrollIndicator={false}>
+                    <View style={{ flexDirection: "row", gap: 8, flexWrap: "wrap" }}>
+                      <View style={[styles.platformBadge, { backgroundColor: pColor + "15" }]}>
+                        <Text style={[styles.platformBadgeText, { color: pColor }]}>{selectedCalendarEntry.platform}</Text>
+                      </View>
+                      <View style={[styles.typeBadge, { backgroundColor: colors.primary + "12" }]}>
+                        <Text style={[styles.typeBadgeText, { color: colors.primary }]}>{CONTENT_TYPE_LABELS[selectedCalendarEntry.contentType]}</Text>
+                      </View>
+                      <View style={[styles.typeBadge, { backgroundColor: selectedCalendarEntry.completed ? "#10B98115" : "#F59E0B15" }]}>
+                        <Text style={[styles.typeBadgeText, { color: selectedCalendarEntry.completed ? "#10B981" : "#F59E0B" }]}>
+                          {selectedCalendarEntry.completed ? "Completed" : "Planned"}
+                        </Text>
+                      </View>
+                    </View>
+                    {selectedCalendarEntry.notes ? (
+                      <View style={[{ backgroundColor: colors.background, borderRadius: 12, padding: 14, borderWidth: 1, borderColor: colors.border }]}>
+                        <Text style={[{ fontSize: 12, fontWeight: "700", color: colors.muted, marginBottom: 6, textTransform: "uppercase", letterSpacing: 0.5 }]}>Notes</Text>
+                        <Text style={[{ fontSize: 14, color: colors.foreground, lineHeight: 20 }]}>{selectedCalendarEntry.notes}</Text>
+                      </View>
+                    ) : null}
+                    <View style={{ flexDirection: "row", gap: 10, marginTop: 8 }}>
+                      <TouchableOpacity
+                        onPress={() => { handleToggleComplete(selectedCalendarEntry.id, selectedCalendarEntry.completed); setShowEntryDetailModal(false); }}
+                        activeOpacity={0.85}
+                        style={[{ flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, paddingVertical: 13, borderRadius: 12, backgroundColor: selectedCalendarEntry.completed ? "#F59E0B" : "#10B981" }]}
+                      >
+                        <Text style={[{ fontSize: 14, fontWeight: "700", color: "#FFFFFF" }]}>{selectedCalendarEntry.completed ? "Mark Incomplete" : "Mark Complete"}</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        onPress={() => { handleDelete(selectedCalendarEntry.id); setShowEntryDetailModal(false); }}
+                        activeOpacity={0.85}
+                        style={[{ paddingHorizontal: 16, paddingVertical: 13, borderRadius: 12, backgroundColor: colors.error + "15", borderWidth: 1, borderColor: colors.error + "30" }]}
+                      >
+                        <IconSymbol name="trash.fill" size={18} color={colors.error} />
+                      </TouchableOpacity>
+                    </View>
+                  </ScrollView>
+                </>
+              );
+            })()}
+          </View>
+        </View>
+      </Modal>
     </ScreenContainer>
   );
 }

@@ -1,4 +1,5 @@
-import React, { useState, useCallback } from "react";
+"use client";
+import React, { useState, useCallback, useMemo } from "react";
 import {
   View,
   Text,
@@ -15,7 +16,8 @@ import { ScreenContainer } from "@/components/screen-container";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { useColors } from "@/hooks/use-colors";
 import { useNiche } from "@/lib/niche-context";
-import { PLATFORMS, Platform as SocialPlatform, CONTENT_TYPES } from "@/lib/types";
+import { useStorage } from "@/lib/storage-context";
+import { PLATFORMS, Platform as SocialPlatform, CONTENT_TYPES, CalendarEntry } from "@/lib/types";
 import { trpc } from "@/lib/trpc";
 import * as Haptics from "expo-haptics";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -32,7 +34,6 @@ interface TrackerEntry {
   views: number;
   shares: number;
   comments: number;
-  resonanceScore?: number;
   performanceRating: string;
   performanceScore: number;
   engagementRate: string;
@@ -40,7 +41,8 @@ interface TrackerEntry {
   strengths: string[];
   improvements: string[];
   nextPostTips: string[];
-  aiAccuracy?: string;
+  calendarEntryId?: string;
+  dayOfWeek?: string;
   createdAt: string;
 }
 
@@ -70,16 +72,139 @@ const RATING_LABELS: Record<string, string> = {
   poor: "Poor",
 };
 
+const CONTENT_TYPE_LABELS: Record<string, string> = {
+  post: "Post", reel: "Reel", story: "Story", carousel: "Carousel",
+  "long-form": "Long-form", short: "Short", image: "Image", video: "Video",
+  "talking-head": "Talking Head",
+};
+
+const DAY_NAMES = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+
+function formatDate(dateStr: string): string {
+  const [year, month, day] = dateStr.split("-").map(Number);
+  const d = new Date(year, month - 1, day);
+  return `${DAY_NAMES[d.getDay()]}, ${d.toLocaleDateString("en-US", { month: "short", day: "numeric" })}`;
+}
+
+// ─── Pattern Summary ──────────────────────────────────────────────────────────
+
+function PatternSummary({ entries, colors }: { entries: TrackerEntry[]; colors: ReturnType<typeof useColors> }) {
+  const stats = useMemo(() => {
+    if (entries.length < 2) return null;
+
+    // Best platform by avg score
+    const platformScores: Record<string, number[]> = {};
+    entries.forEach((e) => {
+      if (!platformScores[e.platform]) platformScores[e.platform] = [];
+      platformScores[e.platform].push(e.performanceScore);
+    });
+    const bestPlatform = Object.entries(platformScores)
+      .map(([p, scores]) => ({ p, avg: scores.reduce((a, b) => a + b, 0) / scores.length }))
+      .sort((a, b) => b.avg - a.avg)[0];
+
+    // Best content type by avg score
+    const ctScores: Record<string, number[]> = {};
+    entries.forEach((e) => {
+      if (!ctScores[e.contentType]) ctScores[e.contentType] = [];
+      ctScores[e.contentType].push(e.performanceScore);
+    });
+    const bestCT = Object.entries(ctScores)
+      .map(([ct, scores]) => ({ ct, avg: scores.reduce((a, b) => a + b, 0) / scores.length }))
+      .sort((a, b) => b.avg - a.avg)[0];
+
+    // Best day of week
+    const dayScores: Record<string, number[]> = {};
+    entries.forEach((e) => {
+      if (e.dayOfWeek) {
+        if (!dayScores[e.dayOfWeek]) dayScores[e.dayOfWeek] = [];
+        dayScores[e.dayOfWeek].push(e.performanceScore);
+      }
+    });
+    const bestDay = Object.keys(dayScores).length > 0
+      ? Object.entries(dayScores)
+          .map(([d, scores]) => ({ d, avg: scores.reduce((a, b) => a + b, 0) / scores.length }))
+          .sort((a, b) => b.avg - a.avg)[0]
+      : null;
+
+    // Avg score overall
+    const avgScore = Math.round(entries.reduce((sum, e) => sum + e.performanceScore, 0) / entries.length);
+
+    // High performer rate
+    const highCount = entries.filter((e) => ["excellent", "good"].includes(e.performanceRating)).length;
+    const highRate = Math.round((highCount / entries.length) * 100);
+
+    return { bestPlatform, bestCT, bestDay, avgScore, highRate };
+  }, [entries]);
+
+  if (!stats) return null;
+
+  const pColor = PLATFORM_COLORS[stats.bestPlatform.p as SocialPlatform] ?? colors.primary;
+
+  return (
+    <View style={[patternStyles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+      <View style={patternStyles.cardHeader}>
+        <IconSymbol name="sparkles" size={16} color={colors.accent} />
+        <Text style={[patternStyles.cardTitle, { color: colors.foreground }]}>30-Day Pattern Analysis</Text>
+        <Text style={[patternStyles.cardSub, { color: colors.muted }]}>{entries.length} posts logged</Text>
+      </View>
+
+      <View style={patternStyles.statsGrid}>
+        <View style={[patternStyles.statBox, { backgroundColor: pColor + "12", borderColor: pColor + "30" }]}>
+          <Text style={[patternStyles.statLabel, { color: colors.muted }]}>Best Platform</Text>
+          <Text style={[patternStyles.statValue, { color: pColor }]}>
+            {stats.bestPlatform.p.charAt(0).toUpperCase() + stats.bestPlatform.p.slice(1)}
+          </Text>
+          <Text style={[patternStyles.statScore, { color: colors.muted }]}>avg {Math.round(stats.bestPlatform.avg)}/100</Text>
+        </View>
+
+        <View style={[patternStyles.statBox, { backgroundColor: colors.primary + "12", borderColor: colors.primary + "30" }]}>
+          <Text style={[patternStyles.statLabel, { color: colors.muted }]}>Best Format</Text>
+          <Text style={[patternStyles.statValue, { color: colors.primary }]}>
+            {CONTENT_TYPE_LABELS[stats.bestCT.ct] ?? stats.bestCT.ct}
+          </Text>
+          <Text style={[patternStyles.statScore, { color: colors.muted }]}>avg {Math.round(stats.bestCT.avg)}/100</Text>
+        </View>
+
+        {stats.bestDay && (
+          <View style={[patternStyles.statBox, { backgroundColor: "#10B981" + "12", borderColor: "#10B981" + "30" }]}>
+            <Text style={[patternStyles.statLabel, { color: colors.muted }]}>Best Day</Text>
+            <Text style={[patternStyles.statValue, { color: "#10B981" }]}>{stats.bestDay.d}</Text>
+            <Text style={[patternStyles.statScore, { color: colors.muted }]}>avg {Math.round(stats.bestDay.avg)}/100</Text>
+          </View>
+        )}
+
+        <View style={[patternStyles.statBox, { backgroundColor: colors.accent + "12", borderColor: colors.accent + "30" }]}>
+          <Text style={[patternStyles.statLabel, { color: colors.muted }]}>High Performers</Text>
+          <Text style={[patternStyles.statValue, { color: colors.accent }]}>{stats.highRate}%</Text>
+          <Text style={[patternStyles.statScore, { color: colors.muted }]}>of all posts</Text>
+        </View>
+      </View>
+    </View>
+  );
+}
+
+const patternStyles = StyleSheet.create({
+  card: { borderRadius: 16, borderWidth: 1, padding: 16, gap: 12, marginBottom: 4 },
+  cardHeader: { flexDirection: "row", alignItems: "center", gap: 8 },
+  cardTitle: { fontSize: 14, fontWeight: "800", flex: 1 },
+  cardSub: { fontSize: 11 },
+  statsGrid: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
+  statBox: { borderRadius: 12, borderWidth: 1, padding: 10, alignItems: "center", gap: 2, minWidth: "45%", flex: 1 },
+  statLabel: { fontSize: 10, fontWeight: "600", textTransform: "uppercase", letterSpacing: 0.3 },
+  statValue: { fontSize: 15, fontWeight: "800" },
+  statScore: { fontSize: 10 },
+});
+
 // ─── Main Screen ──────────────────────────────────────────────────────────────
 
 export default function TrackerScreen() {
   const colors = useColors();
   const { niche } = useNiche();
+  const { calendarEntries } = useStorage();
 
   const [view, setView] = useState<"list" | "add">("list");
   const [entries, setEntries] = useState<TrackerEntry[]>([]);
   const [selectedEntry, setSelectedEntry] = useState<TrackerEntry | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
 
   // Form state
@@ -90,7 +215,8 @@ export default function TrackerScreen() {
   const [formLikes, setFormLikes] = useState("");
   const [formShares, setFormShares] = useState("");
   const [formComments, setFormComments] = useState("");
-  const [formResonanceScore, setFormResonanceScore] = useState("");
+  const [selectedCalendarId, setSelectedCalendarId] = useState<string | null>(null);
+  const [selectedDayOfWeek, setSelectedDayOfWeek] = useState<string | undefined>(undefined);
 
   const analyzeMutation = trpc.content.analyzePerformance.useMutation();
 
@@ -112,6 +238,32 @@ export default function TrackerScreen() {
     } catch {}
   };
 
+  // Calendar entries that haven't been tracked yet (completed ones are most useful)
+  const availableCalendarEntries = useMemo(() => {
+    const trackedIds = new Set(entries.map((e) => e.calendarEntryId).filter(Boolean));
+    return calendarEntries
+      .filter((ce) => !trackedIds.has(ce.id))
+      .sort((a, b) => b.date.localeCompare(a.date))
+      .slice(0, 20); // show most recent 20
+  }, [calendarEntries, entries]);
+
+  const handleSelectCalendarEntry = useCallback((ce: CalendarEntry) => {
+    setSelectedCalendarId(ce.id);
+    setFormTitle(ce.ideaTitle);
+    setFormPlatform(ce.platform);
+    setFormContentType(ce.contentType);
+    // Compute day of week from date
+    const [year, month, day] = ce.date.split("-").map(Number);
+    const d = new Date(year, month - 1, day);
+    setSelectedDayOfWeek(DAY_NAMES[d.getDay()]);
+    if (Platform.OS !== "web") Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+  }, []);
+
+  const handleClearCalendarEntry = useCallback(() => {
+    setSelectedCalendarId(null);
+    setSelectedDayOfWeek(undefined);
+  }, []);
+
   const handleAnalyze = useCallback(async () => {
     if (!formTitle.trim()) {
       Alert.alert("Missing Info", "Please enter a post title or description.");
@@ -121,7 +273,6 @@ export default function TrackerScreen() {
     const likes = parseInt(formLikes) || 0;
     const shares = parseInt(formShares) || 0;
     const comments = parseInt(formComments) || 0;
-    const resonanceScore = formResonanceScore ? parseInt(formResonanceScore) : undefined;
 
     if (Platform.OS !== "web") Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     setIsAnalyzing(true);
@@ -135,7 +286,6 @@ export default function TrackerScreen() {
         views,
         shares,
         comments,
-        resonanceScore,
       });
 
       const entry: TrackerEntry = {
@@ -148,7 +298,6 @@ export default function TrackerScreen() {
         views,
         shares,
         comments,
-        resonanceScore,
         performanceRating: (res as any).performanceRating,
         performanceScore: (res as any).performanceScore,
         engagementRate: (res as any).engagementRate,
@@ -156,7 +305,8 @@ export default function TrackerScreen() {
         strengths: (res as any).strengths ?? [],
         improvements: (res as any).improvements ?? [],
         nextPostTips: (res as any).nextPostTips ?? [],
-        aiAccuracy: (res as any).aiAccuracy,
+        calendarEntryId: selectedCalendarId ?? undefined,
+        dayOfWeek: selectedDayOfWeek,
         createdAt: new Date().toISOString(),
       };
 
@@ -167,7 +317,13 @@ export default function TrackerScreen() {
       setView("list");
 
       // Reset form
-      setFormTitle(""); setFormViews(""); setFormLikes(""); setFormShares(""); setFormComments(""); setFormResonanceScore("");
+      setFormTitle("");
+      setFormViews("");
+      setFormLikes("");
+      setFormShares("");
+      setFormComments("");
+      setSelectedCalendarId(null);
+      setSelectedDayOfWeek(undefined);
 
       if (Platform.OS !== "web") Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     } catch {
@@ -176,7 +332,7 @@ export default function TrackerScreen() {
     } finally {
       setIsAnalyzing(false);
     }
-  }, [formPlatform, formContentType, formTitle, formViews, formLikes, formShares, formComments, formResonanceScore, niche, analyzeMutation, entries]);
+  }, [formPlatform, formContentType, formTitle, formViews, formLikes, formShares, formComments, niche, analyzeMutation, entries, selectedCalendarId, selectedDayOfWeek]);
 
   const handleDelete = useCallback((id: string) => {
     Alert.alert("Delete Entry", "Remove this performance entry?", [
@@ -220,6 +376,54 @@ export default function TrackerScreen() {
           </View>
 
           <View style={styles.content}>
+            {/* From Calendar */}
+            {availableCalendarEntries.length > 0 && (
+              <View style={[styles.section, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+                <View style={styles.sectionHeaderRow}>
+                  <IconSymbol name="calendar" size={15} color={colors.accent} />
+                  <Text style={[styles.sectionTitle, { color: colors.foreground }]}>From Your Content Plan</Text>
+                </View>
+                <Text style={[styles.sectionHint, { color: colors.muted }]}>
+                  Tap a planned post to auto-fill the form below.
+                </Text>
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginHorizontal: -4 }}>
+                  <View style={styles.calendarChipRow}>
+                    {availableCalendarEntries.map((ce) => {
+                      const isSelected = selectedCalendarId === ce.id;
+                      const pColor = PLATFORM_COLORS[ce.platform];
+                      return (
+                        <TouchableOpacity
+                          key={ce.id}
+                          onPress={() => isSelected ? handleClearCalendarEntry() : handleSelectCalendarEntry(ce)}
+                          activeOpacity={0.8}
+                          style={[
+                            styles.calendarChip,
+                            {
+                              backgroundColor: isSelected ? pColor + "20" : colors.background,
+                              borderColor: isSelected ? pColor : colors.border,
+                            },
+                          ]}
+                        >
+                          <View style={[styles.calendarChipDot, { backgroundColor: pColor }]} />
+                          <View style={{ flex: 1 }}>
+                            <Text style={[styles.calendarChipTitle, { color: colors.foreground }]} numberOfLines={1}>
+                              {ce.ideaTitle}
+                            </Text>
+                            <Text style={[styles.calendarChipMeta, { color: colors.muted }]}>
+                              {ce.platform} · {formatDate(ce.date)}
+                            </Text>
+                          </View>
+                          {isSelected && (
+                            <IconSymbol name="checkmark.circle.fill" size={16} color={pColor} />
+                          )}
+                        </TouchableOpacity>
+                      );
+                    })}
+                  </View>
+                </ScrollView>
+              </View>
+            )}
+
             {/* Platform */}
             <View style={[styles.section, { backgroundColor: colors.surface, borderColor: colors.border }]}>
               <Text style={[styles.sectionTitle, { color: colors.foreground }]}>Platform</Text>
@@ -301,23 +505,6 @@ export default function TrackerScreen() {
               </View>
             </View>
 
-            {/* Optional AI Score */}
-            <View style={[styles.section, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-              <Text style={[styles.sectionTitle, { color: colors.foreground }]}>AI Resonance Score (Optional)</Text>
-              <Text style={[styles.sectionHint, { color: colors.muted }]}>
-                If this post was analyzed by ContentCraft, enter the score to compare AI prediction vs actual performance.
-              </Text>
-              <TextInput
-                value={formResonanceScore}
-                onChangeText={setFormResonanceScore}
-                placeholder="e.g. 78"
-                placeholderTextColor={colors.muted}
-                keyboardType="numeric"
-                returnKeyType="done"
-                style={[styles.textInput, { backgroundColor: colors.background, borderColor: colors.border, color: colors.foreground }]}
-              />
-            </View>
-
             {/* Analyze Button */}
             <TouchableOpacity
               onPress={handleAnalyze}
@@ -351,7 +538,7 @@ export default function TrackerScreen() {
           <View style={{ flex: 1 }}>
             <Text style={[styles.headerTitle, { color: "#FFFFFF" }]}>Performance Tracker</Text>
             <Text style={[styles.headerSub, { color: "rgba(255,255,255,0.6)" }]}>
-              Log posts & compare AI predictions vs actual results
+              Log posts & track what's working over time
             </Text>
           </View>
           <TouchableOpacity
@@ -370,7 +557,7 @@ export default function TrackerScreen() {
           <Text style={styles.emptyEmoji}>📊</Text>
           <Text style={[styles.emptyTitle, { color: colors.foreground }]}>No Posts Tracked Yet</Text>
           <Text style={[styles.emptyDesc, { color: colors.muted }]}>
-            Log your published posts to get AI-powered performance analysis and compare predictions with actual results.
+            Log your published posts to get AI-powered performance analysis and discover what content resonates most with your audience.
           </Text>
           <TouchableOpacity
             onPress={() => setView("add")}
@@ -388,7 +575,8 @@ export default function TrackerScreen() {
           contentContainerStyle={styles.listContent}
           showsVerticalScrollIndicator={false}
           ListHeaderComponent={
-            entries.length > 0 ? (
+            <>
+              {/* Summary Stats */}
               <View style={[styles.statsRow, { backgroundColor: colors.surface, borderColor: colors.border }]}>
                 <View style={styles.statItem}>
                   <Text style={[styles.statValue, { color: colors.foreground }]}>{entries.length}</Text>
@@ -409,7 +597,10 @@ export default function TrackerScreen() {
                   <Text style={[styles.statLabel, { color: colors.muted }]}>Avg Score</Text>
                 </View>
               </View>
-            ) : null
+
+              {/* Pattern Analysis */}
+              <PatternSummary entries={entries} colors={colors} />
+            </>
           }
           renderItem={({ item }) => {
             const pColor = PLATFORM_COLORS[item.platform];
@@ -446,6 +637,14 @@ export default function TrackerScreen() {
                   {item.title}
                 </Text>
 
+                {/* Day of week badge if available */}
+                {item.dayOfWeek && (
+                  <View style={[styles.dayBadge, { backgroundColor: colors.primary + "12" }]}>
+                    <IconSymbol name="calendar" size={11} color={colors.primary} />
+                    <Text style={[styles.dayBadgeText, { color: colors.primary }]}>Posted on {item.dayOfWeek}</Text>
+                  </View>
+                )}
+
                 {/* Metrics Row */}
                 <View style={styles.metricsRow}>
                   {[
@@ -465,13 +664,6 @@ export default function TrackerScreen() {
                 {isExpanded && (
                   <View style={[styles.expandedSection, { borderTopColor: colors.border }]}>
                     <Text style={[styles.expandedText, { color: colors.muted }]}>{item.benchmarkComparison}</Text>
-
-                    {item.resonanceScore !== undefined && item.aiAccuracy && (
-                      <View style={[styles.aiAccuracyBox, { backgroundColor: colors.primary + "10", borderColor: colors.primary + "25" }]}>
-                        <IconSymbol name="sparkles" size={13} color={colors.primary} />
-                        <Text style={[styles.aiAccuracyText, { color: colors.foreground }]}>{item.aiAccuracy}</Text>
-                      </View>
-                    )}
 
                     <View style={styles.insightSection}>
                       <Text style={[styles.insightTitle, { color: "#10B981" }]}>What Worked</Text>
@@ -535,6 +727,7 @@ const styles = StyleSheet.create({
   addBtnText: { fontSize: 13, fontWeight: "700", color: "#FFFFFF" },
   content: { padding: 16, gap: 12 },
   section: { borderRadius: 16, borderWidth: 1, padding: 16, gap: 12 },
+  sectionHeaderRow: { flexDirection: "row", alignItems: "center", gap: 6 },
   sectionTitle: { fontSize: 14, fontWeight: "700" },
   sectionHint: { fontSize: 12, lineHeight: 17, marginTop: -6 },
   chipWrap: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
@@ -570,14 +763,14 @@ const styles = StyleSheet.create({
   scoreText: { flex: 1, textAlign: "right", fontSize: 14, fontWeight: "800" },
   deleteBtn: { padding: 4 },
   entryTitle: { fontSize: 15, fontWeight: "700", lineHeight: 21 },
+  dayBadge: { flexDirection: "row", alignItems: "center", gap: 5, paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8, alignSelf: "flex-start" },
+  dayBadgeText: { fontSize: 11, fontWeight: "600" },
   metricsRow: { flexDirection: "row", gap: 8 },
   metricPill: { flex: 1, borderRadius: 8, padding: 8, alignItems: "center", gap: 2 },
   metricPillValue: { fontSize: 13, fontWeight: "800" },
   metricPillLabel: { fontSize: 10, fontWeight: "600" },
   expandedSection: { borderTopWidth: 1, paddingTop: 12, gap: 10 },
   expandedText: { fontSize: 13, lineHeight: 19 },
-  aiAccuracyBox: { flexDirection: "row", alignItems: "flex-start", gap: 8, borderRadius: 10, borderWidth: 1, padding: 10 },
-  aiAccuracyText: { flex: 1, fontSize: 12, lineHeight: 18 },
   insightSection: { gap: 6 },
   insightTitle: { fontSize: 12, fontWeight: "800", textTransform: "uppercase", letterSpacing: 0.5 },
   insightRow: { flexDirection: "row", alignItems: "flex-start", gap: 8 },
@@ -585,4 +778,9 @@ const styles = StyleSheet.create({
   insightText: { flex: 1, fontSize: 13, lineHeight: 19 },
   entryDate: { fontSize: 11, textAlign: "right" },
   expandHint: { alignItems: "center" },
+  calendarChipRow: { flexDirection: "row", gap: 8, paddingHorizontal: 4, paddingBottom: 4 },
+  calendarChip: { flexDirection: "row", alignItems: "center", gap: 8, borderRadius: 12, borderWidth: 1.5, padding: 10, maxWidth: 240, minWidth: 180 },
+  calendarChipDot: { width: 8, height: 8, borderRadius: 4, flexShrink: 0 },
+  calendarChipTitle: { fontSize: 13, fontWeight: "700", lineHeight: 18 },
+  calendarChipMeta: { fontSize: 11, lineHeight: 15 },
 });

@@ -73,6 +73,7 @@ export interface SavedCaption {
 export interface CalendarEntry {
   id: string;
   date: string; // ISO date string YYYY-MM-DD
+  postTime?: string; // HH:MM format e.g. "09:00"
   ideaId?: string;
   ideaTitle: string;
   platform: Platform;

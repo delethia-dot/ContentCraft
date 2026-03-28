@@ -12,6 +12,8 @@ import {
   ScrollView,
   Clipboard,
   useWindowDimensions,
+  TextInput,
+  Dimensions,
 } from "react-native";
 import { ScreenContainer } from "@/components/screen-container";
 import { IconSymbol } from "@/components/ui/icon-symbol";
@@ -1128,8 +1130,8 @@ function ExportVisualsModal({
 
 export default function HistoryScreen() {
   const colors = useColors();
-  const { savedIdeas, removeIdea, toggleStar } = useSavedIdeas();
-  const { savedPrompts, removePrompt, clearAllPrompts, savedCaptions, removeCaption, clearAllCaptions, savedVisuals, removeVisual, clearAllVisuals } = useStorage();
+  const { savedIdeas, removeIdea, toggleStar, updateIdea } = useSavedIdeas();
+  const { savedPrompts, removePrompt, clearAllPrompts, savedCaptions, removeCaption, clearAllCaptions, savedVisuals, removeVisual, clearAllVisuals, addCalendarEntry } = useStorage();
   const [activeTab, setActiveTab] = useState<Tab>("ideas");
   const [analyses, setAnalyses] = useState<NicheAnalysis[]>([]);
 
@@ -1148,6 +1150,17 @@ export default function HistoryScreen() {
   const [showExportCaptionsModal, setShowExportCaptionsModal] = useState(false);
   const [selectedVisual, setSelectedVisual] = useState<SavedVisual | null>(null);
   const [showVisualModal, setShowVisualModal] = useState(false);
+  // Edit idea modal state
+  const [editingIdea, setEditingIdea] = useState<ContentIdea | null>(null);
+  const [showEditIdeaModal, setShowEditIdeaModal] = useState(false);
+  const [editTitle, setEditTitle] = useState("");
+  const [editHook, setEditHook] = useState("");
+  const [editBody, setEditBody] = useState("");
+  const [editCta, setEditCta] = useState("");
+  const [showAddToCalendarFromEdit, setShowAddToCalendarFromEdit] = useState(false);
+  const [calendarDate, setCalendarDate] = useState("");
+  const [calendarTime, setCalendarTime] = useState("");
+  const [calendarNotes, setCalendarNotes] = useState("");
 
   const loadAnalyses = useCallback(async () => {
     const data = await AsyncStorage.getItem(SAVED_ANALYSES_KEY);
@@ -1211,6 +1224,49 @@ export default function HistoryScreen() {
     ]);
   }, [clearAllVisuals]);
 
+  const openEditIdea = useCallback((idea: ContentIdea) => {
+    setEditingIdea(idea);
+    setEditTitle(idea.title);
+    setEditHook(idea.hook);
+    setEditBody(idea.body);
+    setEditCta(idea.cta);
+    setCalendarDate("");
+    setCalendarTime("");
+    setCalendarNotes("");
+    setShowAddToCalendarFromEdit(false);
+    setShowEditIdeaModal(true);
+  }, []);
+
+  const saveEditedIdea = useCallback(async () => {
+    if (!editingIdea) return;
+    await updateIdea(editingIdea.id, { title: editTitle, hook: editHook, body: editBody, cta: editCta });
+    if (Platform.OS !== "web") Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    setShowEditIdeaModal(false);
+  }, [editingIdea, editTitle, editHook, editBody, editCta, updateIdea]);
+
+  const addIdeaToCalendar = useCallback(async () => {
+    if (!editingIdea || !calendarDate) {
+      Alert.alert("Date Required", "Please enter a date (YYYY-MM-DD) to add to the calendar.");
+      return;
+    }
+    const entry: import("@/lib/types").CalendarEntry = {
+      id: Date.now().toString(),
+      date: calendarDate,
+      postTime: calendarTime || undefined,
+      ideaId: editingIdea.id,
+      ideaTitle: editTitle || editingIdea.title,
+      platform: editingIdea.platform,
+      contentType: editingIdea.contentType,
+      notes: calendarNotes || undefined,
+      completed: false,
+    };
+    await addCalendarEntry(entry);
+    if (Platform.OS !== "web") Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    Alert.alert("Added to Calendar!", `"${entry.ideaTitle}" has been added to your Content Planning Calendar for ${calendarDate}.`);
+    setShowAddToCalendarFromEdit(false);
+    setShowEditIdeaModal(false);
+  }, [editingIdea, editTitle, calendarDate, calendarTime, calendarNotes, addCalendarEntry]);
+
   const shareIdea = useCallback(async (idea: ContentIdea) => {
     const platformLabel = PLATFORMS.find((p) => p.id === idea.platform)?.label ?? idea.platform;
     const text = `📌 ${idea.title}\n\n🎣 Hook:\n${idea.hook}\n\n📝 Body:\n${idea.body}\n\n📣 CTA:\n${idea.cta}\n\n🏷️ ${platformLabel} | ${idea.contentType} | ${idea.niche}\n\n✨ Created with ContentCraft\n${APP_WEB_URL}`;
@@ -1273,6 +1329,13 @@ export default function HistoryScreen() {
 
         <View style={styles.cardFooter}>
           <Text style={[styles.tapHint, { color: colors.primary }]}>Tap to view full idea →</Text>
+          <TouchableOpacity
+            onPress={() => openEditIdea(idea)}
+            activeOpacity={0.7}
+            style={[styles.iconBtn, { backgroundColor: colors.primary + "12" }]}
+          >
+            <IconSymbol name="pencil" size={14} color={colors.primary} />
+          </TouchableOpacity>
           <TouchableOpacity
             onPress={() => {
               if (Platform.OS !== "web") Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -1789,6 +1852,130 @@ export default function HistoryScreen() {
         onDelete={(id) => { removeVisual(id); setShowVisualModal(false); }}
         colors={colors}
       />
+
+      {/* Edit Idea Modal */}
+      <Modal
+        visible={showEditIdeaModal}
+        transparent
+        animationType="slide"
+        statusBarTranslucent
+        onRequestClose={() => setShowEditIdeaModal(false)}
+      >
+        <View style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.55)", justifyContent: "flex-end" }}>
+          <View style={{
+            backgroundColor: colors.background,
+            borderTopLeftRadius: 20,
+            borderTopRightRadius: 20,
+            maxHeight: Dimensions.get("window").height * 0.92,
+            minHeight: Dimensions.get("window").height * 0.6,
+          }}>
+            {/* Header */}
+            <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", padding: 20, borderBottomWidth: 0.5, borderBottomColor: colors.border }}>
+              <Text style={{ fontSize: 18, fontWeight: "700", color: colors.foreground }}>Edit Idea</Text>
+              <TouchableOpacity onPress={() => setShowEditIdeaModal(false)} activeOpacity={0.7}>
+                <IconSymbol name="xmark.circle.fill" size={26} color={colors.muted} />
+              </TouchableOpacity>
+            </View>
+            <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: 20, paddingBottom: 40 }} showsVerticalScrollIndicator={false}>
+              {/* Title */}
+              <Text style={{ fontSize: 13, fontWeight: "600", color: colors.muted, marginBottom: 6, textTransform: "uppercase", letterSpacing: 0.5 }}>Title</Text>
+              <TextInput
+                value={editTitle}
+                onChangeText={setEditTitle}
+                multiline
+                style={{ backgroundColor: colors.surface, borderRadius: 10, padding: 12, color: colors.foreground, fontSize: 15, borderWidth: 1, borderColor: colors.border, marginBottom: 16, minHeight: 60 }}
+                placeholderTextColor={colors.muted}
+              />
+              {/* Hook */}
+              <Text style={{ fontSize: 13, fontWeight: "600", color: colors.muted, marginBottom: 6, textTransform: "uppercase", letterSpacing: 0.5 }}>Hook</Text>
+              <TextInput
+                value={editHook}
+                onChangeText={setEditHook}
+                multiline
+                style={{ backgroundColor: colors.surface, borderRadius: 10, padding: 12, color: colors.foreground, fontSize: 15, borderWidth: 1, borderColor: colors.border, marginBottom: 16, minHeight: 80 }}
+                placeholderTextColor={colors.muted}
+              />
+              {/* Body */}
+              <Text style={{ fontSize: 13, fontWeight: "600", color: colors.muted, marginBottom: 6, textTransform: "uppercase", letterSpacing: 0.5 }}>Body</Text>
+              <TextInput
+                value={editBody}
+                onChangeText={setEditBody}
+                multiline
+                style={{ backgroundColor: colors.surface, borderRadius: 10, padding: 12, color: colors.foreground, fontSize: 15, borderWidth: 1, borderColor: colors.border, marginBottom: 16, minHeight: 100 }}
+                placeholderTextColor={colors.muted}
+              />
+              {/* CTA */}
+              <Text style={{ fontSize: 13, fontWeight: "600", color: colors.muted, marginBottom: 6, textTransform: "uppercase", letterSpacing: 0.5 }}>Call to Action</Text>
+              <TextInput
+                value={editCta}
+                onChangeText={setEditCta}
+                multiline
+                style={{ backgroundColor: colors.surface, borderRadius: 10, padding: 12, color: colors.foreground, fontSize: 15, borderWidth: 1, borderColor: colors.border, marginBottom: 24, minHeight: 60 }}
+                placeholderTextColor={colors.muted}
+              />
+
+              {/* Add to Calendar section */}
+              {!showAddToCalendarFromEdit ? (
+                <TouchableOpacity
+                  onPress={() => setShowAddToCalendarFromEdit(true)}
+                  activeOpacity={0.8}
+                  style={{ backgroundColor: colors.primary + "18", borderRadius: 12, padding: 14, flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 16 }}
+                >
+                  <IconSymbol name="calendar.badge.plus" size={18} color={colors.primary} />
+                  <Text style={{ color: colors.primary, fontWeight: "600", fontSize: 15 }}>Add to Content Planning Calendar</Text>
+                </TouchableOpacity>
+              ) : (
+                <View style={{ backgroundColor: colors.surface, borderRadius: 12, padding: 16, borderWidth: 1, borderColor: colors.border, marginBottom: 16 }}>
+                  <Text style={{ fontSize: 15, fontWeight: "700", color: colors.foreground, marginBottom: 12 }}>Add to Calendar</Text>
+                  <Text style={{ fontSize: 13, fontWeight: "600", color: colors.muted, marginBottom: 6 }}>Date (YYYY-MM-DD) *</Text>
+                  <TextInput
+                    value={calendarDate}
+                    onChangeText={setCalendarDate}
+                    placeholder="e.g. 2026-04-15"
+                    style={{ backgroundColor: colors.background, borderRadius: 8, padding: 10, color: colors.foreground, fontSize: 14, borderWidth: 1, borderColor: colors.border, marginBottom: 12 }}
+                    placeholderTextColor={colors.muted}
+                    returnKeyType="done"
+                  />
+                  <Text style={{ fontSize: 13, fontWeight: "600", color: colors.muted, marginBottom: 6 }}>Time (optional, HH:MM)</Text>
+                  <TextInput
+                    value={calendarTime}
+                    onChangeText={setCalendarTime}
+                    placeholder="e.g. 09:00"
+                    style={{ backgroundColor: colors.background, borderRadius: 8, padding: 10, color: colors.foreground, fontSize: 14, borderWidth: 1, borderColor: colors.border, marginBottom: 12 }}
+                    placeholderTextColor={colors.muted}
+                    returnKeyType="done"
+                  />
+                  <Text style={{ fontSize: 13, fontWeight: "600", color: colors.muted, marginBottom: 6 }}>Notes (optional)</Text>
+                  <TextInput
+                    value={calendarNotes}
+                    onChangeText={setCalendarNotes}
+                    placeholder="Any notes for this post..."
+                    multiline
+                    style={{ backgroundColor: colors.background, borderRadius: 8, padding: 10, color: colors.foreground, fontSize: 14, borderWidth: 1, borderColor: colors.border, marginBottom: 16, minHeight: 60 }}
+                    placeholderTextColor={colors.muted}
+                  />
+                  <TouchableOpacity
+                    onPress={addIdeaToCalendar}
+                    activeOpacity={0.85}
+                    style={{ backgroundColor: colors.primary, borderRadius: 10, padding: 14, alignItems: "center" }}
+                  >
+                    <Text style={{ color: "#fff", fontWeight: "700", fontSize: 15 }}>Save to Calendar</Text>
+                  </TouchableOpacity>
+                </View>
+              )}
+
+              {/* Save Changes button */}
+              <TouchableOpacity
+                onPress={saveEditedIdea}
+                activeOpacity={0.85}
+                style={{ backgroundColor: colors.primary, borderRadius: 12, padding: 16, alignItems: "center" }}
+              >
+                <Text style={{ color: "#fff", fontWeight: "700", fontSize: 16 }}>Save Changes</Text>
+              </TouchableOpacity>
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }

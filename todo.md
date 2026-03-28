@@ -331,3 +331,13 @@
 - [ ] Apply correct previous fix for History visuals not opening (find from git history)
 - [ ] Fix SOP PDF cover page: prepared-for name visible, white text on dark green background
 - [x] Fix VisualDetailModal on Android — modal opens but only shows bottom strip, needs full screen height so all content is visible
+
+## Client-Requested Feature Updates (Approved)
+- [x] Fix "Schedule Post" button text to "Plan Content" in calendar add/edit modal
+- [x] Add time-of-post picker to Content Planning Calendar
+- [x] Add calendar list item detail modal (tap item → slide-up detail sheet)
+- [x] Make saved ideas in History editable, with Save and Add to Calendar flow
+- [x] Performance Tracker: auto-populate from calendar when post is planned
+- [x] Performance Tracker: remove Resonance Score field
+- [x] Performance Tracker: add 30-day metrics log (Views, Likes, Shares, Comments)
+- [x] Performance Tracker: add pattern summary (best platform, content type, day of week)
