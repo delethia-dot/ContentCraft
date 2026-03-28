@@ -34,6 +34,7 @@ export default function IdeasScreen() {
   const [ideas, setIdeas] = useState<ContentIdea[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [visualTab, setVisualTab] = useState<Record<string, "image" | "video">>({});
 
   const generateMutation = trpc.content.generateIdeas.useMutation();
 
@@ -572,6 +573,101 @@ export default function IdeasScreen() {
                         <Text style={[styles.ideaSectionLabel, { color: colors.accent }]}>CALL TO ACTION</Text>
                         <Text style={[styles.ideaSectionText, { color: colors.foreground }]}>{idea.cta}</Text>
                       </View>
+
+                      {/* Visual Direction Section */}
+                      {(idea as any).visualDirection && (() => {
+                        const vd = (idea as any).visualDirection;
+                        const activeTab = visualTab[idea.id] ?? (vd.bestPick === "video" ? "video" : "image");
+                        const suggestions = activeTab === "image" ? vd.imageSuggestions : vd.videoSuggestions;
+                        return (
+                          <View style={[styles.visualSection, { borderColor: colors.border }]}>
+                            {/* Section header */}
+                            <View style={styles.visualHeader}>
+                              <IconSymbol name="camera.fill" size={14} color={colors.primary} />
+                              <Text style={[styles.visualTitle, { color: colors.foreground }]}>Visual Direction</Text>
+                              {vd.bestPick && (
+                                <View style={[styles.bestPickBadge, { backgroundColor: vd.bestPick === "video" ? "#FF0000" + "18" : "#E1306C" + "18", borderColor: vd.bestPick === "video" ? "#FF0000" + "50" : "#E1306C" + "50" }]}>
+                                  <Text style={[styles.bestPickText, { color: vd.bestPick === "video" ? "#FF0000" : "#E1306C" }]}>Best: {vd.bestPick === "video" ? "Video" : "Image"}</Text>
+                                </View>
+                              )}
+                            </View>
+                            {/* Best pick reason */}
+                            {vd.bestPickReason && (
+                              <Text style={[styles.bestPickReason, { color: colors.muted }]}>{vd.bestPickReason}</Text>
+                            )}
+                            {/* Image / Video tab toggle */}
+                            <View style={[styles.visualTabRow, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+                              {(["image", "video"] as const).map((tab) => (
+                                <TouchableOpacity
+                                  key={tab}
+                                  onPress={() => setVisualTab((prev) => ({ ...prev, [idea.id]: tab }))}
+                                  activeOpacity={0.8}
+                                  style={[
+                                    styles.visualTabBtn,
+                                    activeTab === tab && { backgroundColor: colors.primary },
+                                  ]}
+                                >
+                                  <IconSymbol
+                                    name={tab === "image" ? "photo.fill" : "video.fill"}
+                                    size={13}
+                                    color={activeTab === tab ? "#FFFFFF" : colors.muted}
+                                  />
+                                  <Text style={[styles.visualTabText, { color: activeTab === tab ? "#FFFFFF" : colors.muted }]}>
+                                    {tab === "image" ? "Image" : "Video"}
+                                  </Text>
+                                </TouchableOpacity>
+                              ))}
+                            </View>
+                            {/* Suggestion cards */}
+                            {Array.isArray(suggestions) && suggestions.map((s: any, i: number) => (
+                              <View key={i} style={[styles.visualCard, { backgroundColor: colors.background, borderColor: colors.border }]}>
+                                <View style={styles.visualCardHeader}>
+                                  <View style={[styles.visualCardNum, { backgroundColor: colors.primary }]}>
+                                    <Text style={styles.visualCardNumText}>{i + 1}</Text>
+                                  </View>
+                                  <Text style={[styles.visualCardConcept, { color: colors.foreground }]}>{s.concept}</Text>
+                                </View>
+                                <View style={styles.visualMeta}>
+                                  <View style={styles.visualMetaRow}>
+                                    <Text style={[styles.visualMetaLabel, { color: colors.muted }]}>Lighting</Text>
+                                    <Text style={[styles.visualMetaValue, { color: colors.foreground }]}>{s.lighting}</Text>
+                                  </View>
+                                  <View style={styles.visualMetaRow}>
+                                    <Text style={[styles.visualMetaLabel, { color: colors.muted }]}>Colors</Text>
+                                    <Text style={[styles.visualMetaValue, { color: colors.foreground }]}>{s.colors}</Text>
+                                  </View>
+                                  <View style={styles.visualMetaRow}>
+                                    <Text style={[styles.visualMetaLabel, { color: colors.muted }]}>Camera</Text>
+                                    <Text style={[styles.visualMetaValue, { color: colors.foreground }]}>{s.cameraAngle}</Text>
+                                  </View>
+                                  {s.additionalElements && (
+                                    <View style={styles.visualMetaRow}>
+                                      <Text style={[styles.visualMetaLabel, { color: colors.muted }]}>Elements</Text>
+                                      <Text style={[styles.visualMetaValue, { color: colors.foreground }]}>{Array.isArray(s.additionalElements) ? s.additionalElements.join(" · ") : s.additionalElements}</Text>
+                                    </View>
+                                  )}
+                                </View>
+                                {/* Prompt-ready description */}
+                                <TouchableOpacity
+                                  onPress={async () => {
+                                    await Clipboard.setStringAsync(s.promptReadyDescription);
+                                    if (Platform.OS !== "web") Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+                                    Alert.alert("Copied!", "Prompt-ready description copied. Paste it into the Prompt Generator.");
+                                  }}
+                                  activeOpacity={0.8}
+                                  style={[styles.promptReadyBox, { backgroundColor: colors.primary + "08", borderColor: colors.primary + "30" }]}
+                                >
+                                  <View style={styles.promptReadyHeader}>
+                                    <IconSymbol name="wand.and.stars" size={13} color={colors.primary} />
+                                    <Text style={[styles.promptReadyLabel, { color: colors.primary }]}>Prompt-Ready — Tap to Copy</Text>
+                                  </View>
+                                  <Text style={[styles.promptReadyText, { color: colors.foreground }]}>{s.promptReadyDescription}</Text>
+                                </TouchableOpacity>
+                              </View>
+                            ))}
+                          </View>
+                        );
+                      })()}
                     </View>
                   )}
 
@@ -854,5 +950,134 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "700",
     letterSpacing: -0.2,
+  },
+  visualSection: {
+    borderTopWidth: 1,
+    paddingTop: 14,
+    marginTop: 4,
+    gap: 10,
+  },
+  visualHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    flexWrap: "wrap",
+  },
+  visualTitle: {
+    fontSize: 13,
+    fontWeight: "800",
+    letterSpacing: 0.4,
+    textTransform: "uppercase",
+    flex: 1,
+  },
+  bestPickBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 8,
+    borderWidth: 1,
+  },
+  bestPickText: {
+    fontSize: 11,
+    fontWeight: "700",
+  },
+  bestPickReason: {
+    fontSize: 12,
+    lineHeight: 17,
+    fontStyle: "italic",
+  },
+  visualTabRow: {
+    flexDirection: "row",
+    borderRadius: 10,
+    borderWidth: 1,
+    overflow: "hidden",
+  },
+  visualTabBtn: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 5,
+    paddingVertical: 8,
+    borderRadius: 9,
+  },
+  visualTabText: {
+    fontSize: 13,
+    fontWeight: "600",
+  },
+  visualCard: {
+    borderRadius: 12,
+    borderWidth: 1,
+    overflow: "hidden",
+  },
+  visualCardHeader: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: 8,
+    padding: 12,
+    paddingBottom: 8,
+  },
+  visualCardNum: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: 1,
+    flexShrink: 0,
+  },
+  visualCardNumText: {
+    color: "#FFFFFF",
+    fontSize: 11,
+    fontWeight: "800",
+  },
+  visualCardConcept: {
+    fontSize: 13,
+    lineHeight: 18,
+    fontWeight: "600",
+    flex: 1,
+  },
+  visualMeta: {
+    paddingHorizontal: 12,
+    paddingBottom: 10,
+    gap: 6,
+  },
+  visualMetaRow: {
+    flexDirection: "row",
+    gap: 8,
+    alignItems: "flex-start",
+  },
+  visualMetaLabel: {
+    fontSize: 11,
+    fontWeight: "700",
+    width: 60,
+    flexShrink: 0,
+    marginTop: 1,
+  },
+  visualMetaValue: {
+    fontSize: 12,
+    lineHeight: 17,
+    flex: 1,
+  },
+  promptReadyBox: {
+    margin: 10,
+    marginTop: 4,
+    borderRadius: 10,
+    borderWidth: 1,
+    padding: 10,
+    gap: 5,
+  },
+  promptReadyHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 5,
+  },
+  promptReadyLabel: {
+    fontSize: 11,
+    fontWeight: "700",
+    letterSpacing: 0.3,
+  },
+  promptReadyText: {
+    fontSize: 12,
+    lineHeight: 17,
   },
 });

@@ -70,11 +70,30 @@ export const contentRouter = router({
       const formatKey = contentType as string;
       const extraInstructions = formatInstructions[formatKey] ?? formatInstructions["post"];
 
+      const visualDirectionInstructions = `
+For EVERY idea, also include a "visualDirection" object with:
+- "imageSuggestions": array of exactly 3 objects, each with:
+  - "concept": vivid description of the image concept (what to show, who, setting)
+  - "lighting": specific lighting direction (e.g. "golden hour backlight", "soft studio diffused", "dramatic side lighting")
+  - "colors": color palette or mood (e.g. "warm earth tones with terracotta accents", "high-contrast black and white")
+  - "cameraAngle": specific angle (e.g. "low angle looking up", "overhead flat lay", "tight close-up", "wide establishing shot")
+  - "additionalElements": 2-3 specific props, textures, or styling details that make this image compelling
+  - "promptReadyDescription": a single detailed sentence combining all elements, ready to paste into an AI image generator
+- "videoSuggestions": array of exactly 3 objects, each with:
+  - "concept": vivid description of the video concept (scene, action, pacing)
+  - "lighting": specific lighting setup (e.g. "ring light for talking head", "natural window light", "neon accent lighting")
+  - "colors": color grading or palette direction (e.g. "warm cinematic grade", "cool desaturated tones")
+  - "cameraAngle": specific shot type (e.g. "handheld POV", "static tripod medium shot", "slow push-in close-up")
+  - "additionalElements": 2-3 specific visual elements (transitions, text overlays, b-roll style, music mood)
+  - "promptReadyDescription": a single detailed sentence combining all elements, ready to paste into an AI video generator
+- "bestPick": either "image" or "video" — which format will perform better for this specific idea on ${platform}
+- "bestPickReason": 1-2 sentences explaining why that format is the stronger choice for this idea and platform`;
+
       const response = await invokeLLM({
         messages: [
           {
             role: "system",
-            content: `You are an expert social media content strategist and copywriter. Generate exactly 5 unique, high-quality content ideas with FULL format-specific details. Return ONLY valid JSON with no markdown.`,
+            content: `You are an expert social media content strategist, copywriter, and visual director. Generate exactly 5 unique, high-quality content ideas with FULL format-specific details AND detailed visual direction for both image and video. Return ONLY valid JSON with no markdown.`,
           },
           {
             role: "user",
@@ -82,8 +101,9 @@ export const contentRouter = router({
 Platform style: ${platformGuide[platform]}
 
 ${extraInstructions}
+${visualDirectionInstructions}
 
-Return JSON in this exact format — include ALL format-specific fields described above:
+Return JSON in this exact format — include ALL format-specific fields AND the visualDirection object for every idea:
 {
   "ideas": [
     {
@@ -96,6 +116,7 @@ Return JSON in this exact format — include ALL format-specific fields describe
       "contentType": "${contentType}",
       "niche": "${niche}",
       "createdAt": "ISO date string",
+      "visualDirection": { ... as described above ... },
       ... (include all format-specific fields as described above)
     }
   ]

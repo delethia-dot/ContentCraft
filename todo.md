@@ -287,3 +287,8 @@
 
 ## Feature Updates Round 13
 - [x] Add "Use in Caption Writer" shortcut button on Talking Head idea cards — pre-fills Caption Writer with idea title and platform
+
+## Feature Updates Round 14
+- [x] Idea Generator: add visualDirection field to every idea — 3 image suggestions, 3 video suggestions, best-pick recommendation, lighting, colors, camera angle, and prompt-ready elements
+- [x] Server: extend generateIdeas AI prompt to return visualDirection object for all content types and platforms
+- [x] ideas.tsx: render Visual Direction section on every expanded idea card
