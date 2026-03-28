@@ -310,3 +310,8 @@
 ## Bug Fixes Round 17
 - [x] Netlify SPA routing: add _redirects file so all routes serve index.html (fixes 404 on idea card expansion on desktop)
 - [x] Ensure _redirects is always included in future Expo web builds via public/ folder
+
+## Bug Fixes Round 18 - Desktop Visual Direction & Blank Screen
+- [x] Fix intermittent blank screen on idea card expansion: replace IIFE in JSX with proper VisualDirectionSection component
+- [x] Fix Visual Direction not rendering on desktop: extract IIFE into named component to avoid React reconciler issues on web
+- [x] Rebuild and redeploy to Netlify with clean build
