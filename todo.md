@@ -284,3 +284,6 @@
 
 ## Bug Fixes Round 12
 - [x] Talking Head content type: clicking Generate 5 Ideas does nothing — Railway server was running old code without talking-head in contentTypeSchema; redeployed server to Railway
+
+## Feature Updates Round 13
+- [x] Add "Use in Caption Writer" shortcut button on Talking Head idea cards — pre-fills Caption Writer with idea title and platform

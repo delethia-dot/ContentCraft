@@ -1,4 +1,5 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useEffect } from "react";
+import { useLocalSearchParams } from "expo-router";
 import {
   View,
   Text,
@@ -71,9 +72,18 @@ export default function CaptionScreen() {
   const { niche } = useNiche();
   const { saveCaption } = useStorage();
 
-  const [selectedPlatform, setSelectedPlatform] = useState<SocialPlatform>("instagram");
+  const params = useLocalSearchParams<{ prefillTopic?: string; prefillPlatform?: string }>();
+  const [selectedPlatform, setSelectedPlatform] = useState<SocialPlatform>(
+    (params.prefillPlatform as SocialPlatform) ?? "instagram"
+  );
   const [selectedTone, setSelectedTone] = useState<Tone>("casual");
-  const [topic, setTopic] = useState("");
+  const [topic, setTopic] = useState(params.prefillTopic ?? "");
+
+  // Re-apply params when navigated here with new values
+  useEffect(() => {
+    if (params.prefillTopic) setTopic(params.prefillTopic);
+    if (params.prefillPlatform) setSelectedPlatform(params.prefillPlatform as SocialPlatform);
+  }, [params.prefillTopic, params.prefillPlatform]);
   const [includeHashtags, setIncludeHashtags] = useState(true);
   const [includeEmojis, setIncludeEmojis] = useState(true);
   const [result, setResult] = useState<CaptionResult | null>(null);

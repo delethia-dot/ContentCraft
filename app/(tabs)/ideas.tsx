@@ -21,11 +21,13 @@ import { trpc } from "@/lib/trpc";
 import * as Haptics from "expo-haptics";
 import * as Clipboard from "expo-clipboard";
 import { DesktopContainer } from "@/components/desktop-container";
+import { useRouter } from "expo-router";
 
 export default function IdeasScreen() {
   const colors = useColors();
   const { niche } = useNiche();
   const { saveIdea, removeIdea, isIdeaSaved } = useSavedIdeas();
+  const router = useRouter();
   const [nicheSheetVisible, setNicheSheetVisible] = useState(false);
   const [selectedPlatform, setSelectedPlatform] = useState<SocialPlatform>("instagram");
   const [selectedContentType, setSelectedContentType] = useState<ContentType>("post");
@@ -545,6 +547,24 @@ export default function IdeasScreen() {
                               <Text style={[styles.ideaSectionText, { color: colors.foreground }]}>{(idea as any).estimatedDuration}</Text>
                             </View>
                           )}
+                          {/* Use in Caption Writer shortcut */}
+                          <TouchableOpacity
+                            onPress={() => {
+                              if (Platform.OS !== "web") Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                              router.push({
+                                pathname: "/(tabs)/caption",
+                                params: {
+                                  prefillTopic: idea.title,
+                                  prefillPlatform: idea.platform,
+                                },
+                              });
+                            }}
+                            activeOpacity={0.8}
+                            style={[styles.captionShortcutBtn, { backgroundColor: "#E1306C" + "12", borderColor: "#E1306C" + "40" }]}
+                          >
+                            <IconSymbol name="text.bubble.fill" size={15} color="#E1306C" />
+                            <Text style={[styles.captionShortcutText, { color: "#E1306C" }]}>Use in Caption Writer</Text>
+                          </TouchableOpacity>
                         </>
                       )}
                       {/* CTA always at bottom */}
@@ -818,5 +838,21 @@ const styles = StyleSheet.create({
     fontSize: 14,
     textAlign: "center",
     lineHeight: 21,
+  },
+  captionShortcutBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+    marginTop: 4,
+  },
+  captionShortcutText: {
+    fontSize: 14,
+    fontWeight: "700",
+    letterSpacing: -0.2,
   },
 });
