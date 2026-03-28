@@ -322,3 +322,7 @@
 - [x] Change "No posts scheduled" to "Your calendar is empty. Start planning."
 - [x] Change "+ Schedule" button to "Plan Content"
 - [x] Fix history tab visuals not opening to show full details
+
+## Round N - Name Fix & History Visuals
+- [x] Update SOP PDF to use Delethia Johnson instead of Dee Dee Johnson
+- [x] Fix History tab Visuals sub-tab: tapping a visual card must open full detail modal

@@ -967,19 +967,19 @@ function VisualDetailModal({
               <IconSymbol name="xmark" size={16} color={colors.muted} />
             </TouchableOpacity>
           </View>
-          <ScrollView showsVerticalScrollIndicator={false} style={{ flex: 1 }} contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 20, gap: 14 }}>
+          <ScrollView showsVerticalScrollIndicator={false} style={{ flex: 1 }} contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 20 }}>
             {/* From Idea */}
-            <View style={[{ backgroundColor: platformColor + "12", borderLeftWidth: 3, borderLeftColor: platformColor, borderRadius: 10, padding: 12 }]}>
+            <View style={[{ backgroundColor: platformColor + "12", borderLeftWidth: 3, borderLeftColor: platformColor, borderRadius: 10, padding: 12, marginBottom: 14 }]}>
               <Text style={[{ fontSize: 11, fontWeight: "700", color: platformColor, marginBottom: 3, textTransform: "uppercase", letterSpacing: 0.5 }]}>From Idea</Text>
               <Text style={[{ fontSize: 14, color: colors.foreground, fontWeight: "600" }]}>{visual.ideaTitle}</Text>
             </View>
             {/* Concept */}
-            <View style={[{ backgroundColor: colors.surface, borderRadius: 12, padding: 14, borderWidth: 1, borderColor: colors.border }]}>
+            <View style={[{ backgroundColor: colors.surface, borderRadius: 12, padding: 14, borderWidth: 1, borderColor: colors.border, marginBottom: 14 }]}>
               <Text style={[{ fontSize: 12, fontWeight: "700", color: colors.muted, marginBottom: 6, textTransform: "uppercase", letterSpacing: 0.5 }]}>Concept</Text>
               <Text style={[{ fontSize: 14, color: colors.foreground, lineHeight: 21 }]}>{visual.concept}</Text>
             </View>
             {/* Details Grid */}
-            <View style={{ gap: 8 }}>
+            <View style={{ gap: 8, marginBottom: 14 }}>
               {visual.lighting ? (
                 <View style={[{ backgroundColor: colors.surface, borderRadius: 10, padding: 12, borderWidth: 1, borderColor: colors.border, flexDirection: "row", gap: 10, alignItems: "flex-start" }]}>
                   <Text style={{ fontSize: 16 }}>💡</Text>
@@ -1019,7 +1019,7 @@ function VisualDetailModal({
             </View>
             {/* Prompt-Ready Description */}
             {visual.promptReadyDescription ? (
-              <View style={[{ backgroundColor: "#F59E0B10", borderRadius: 12, padding: 14, borderWidth: 1, borderColor: "#F59E0B40" }]}>
+              <View style={[{ backgroundColor: "#F59E0B10", borderRadius: 12, padding: 14, borderWidth: 1, borderColor: "#F59E0B40", marginBottom: 14 }]}>
                 <Text style={[{ fontSize: 12, fontWeight: "700", color: "#F59E0B", marginBottom: 6, textTransform: "uppercase", letterSpacing: 0.5 }]}>📋 Prompt-Ready Description</Text>
                 <Text style={[{ fontSize: 13, color: colors.foreground, lineHeight: 20, fontStyle: "italic" }]}>{visual.promptReadyDescription}</Text>
               </View>
