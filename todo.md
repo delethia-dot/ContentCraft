@@ -330,3 +330,4 @@
 ## Proper Fixes Round
 - [ ] Apply correct previous fix for History visuals not opening (find from git history)
 - [ ] Fix SOP PDF cover page: prepared-for name visible, white text on dark green background
+- [x] Fix VisualDetailModal on Android — modal opens but only shows bottom strip, needs full screen height so all content is visible

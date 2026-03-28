@@ -956,7 +956,7 @@ function VisualDetailModal({
     <Modal visible={visible} animationType="slide" transparent={true} onRequestClose={onClose} statusBarTranslucent={true} hardwareAccelerated={true}>
       <View style={modalStyles.overlay}>
         <TouchableOpacity style={modalStyles.backdrop} activeOpacity={1} onPress={onClose} />
-        <View style={[modalStyles.sheet, { backgroundColor: colors.background, maxHeight: windowHeight * 0.92 }]}>
+        <View style={[modalStyles.sheet, { backgroundColor: colors.background, maxHeight: windowHeight * 0.92, minHeight: windowHeight * 0.75 }]}>
           <View style={[modalStyles.handle, { backgroundColor: colors.border }]} />
           <View style={modalStyles.header}>
             <View style={{ flex: 1 }}>
@@ -1890,7 +1890,7 @@ const modalStyles = StyleSheet.create({
   sheet: {
     borderTopLeftRadius: 24, borderTopRightRadius: 24,
     paddingTop: 12, paddingHorizontal: 20, paddingBottom: 32,
-    maxHeight: "90%", elevation: 32,
+    elevation: 32,
     shadowColor: "#000", shadowOffset: { width: 0, height: -4 }, shadowOpacity: 0.2, shadowRadius: 16,
   },
   handle: { width: 40, height: 4, borderRadius: 2, alignSelf: "center", marginBottom: 16 },
