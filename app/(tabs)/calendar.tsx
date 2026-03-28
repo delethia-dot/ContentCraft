@@ -346,9 +346,9 @@ export default function CalendarScreen() {
               <IconSymbol name="calendar" size={22} color="#FFFFFF" />
             </View>
             <View style={{ flex: 1 }}>
-              <Text style={[styles.headerTitle, { color: "#FFFFFF" }]}>Content Calendar</Text>
+              <Text style={[styles.headerTitle, { color: "#FFFFFF" }]}>Content Planning Calendar</Text>
               <Text style={[styles.headerSub, { color: "rgba(255,255,255,0.6)" }]}>
-                Plan and schedule your content
+                Your content roadmap, built for planning, not posting.
               </Text>
             </View>
             <TouchableOpacity
@@ -492,15 +492,15 @@ export default function CalendarScreen() {
                 style={[styles.addBtn, { backgroundColor: colors.primary }]}
               >
                 <IconSymbol name="plus" size={16} color="#FFFFFF" />
-                <Text style={styles.addBtnText}>Schedule</Text>
+                <Text style={styles.addBtnText}>Plan Content</Text>
               </TouchableOpacity>
             </View>
 
             {selectedEntries.length === 0 ? (
               <View style={styles.emptyDay}>
                 <IconSymbol name="calendar.badge.plus" size={32} color={colors.muted} />
-                <Text style={[styles.emptyDayText, { color: colors.muted }]}>No posts scheduled</Text>
-                <Text style={[styles.emptyDayHint, { color: colors.muted }]}>Tap "Schedule" to add a post</Text>
+                <Text style={[styles.emptyDayText, { color: colors.muted }]}>Your calendar is empty. Start planning.</Text>
+                <Text style={[styles.emptyDayHint, { color: colors.muted }]}>Tap "Plan Content" to add a post</Text>
               </View>
             ) : (
               <View style={{ gap: 8 }}>

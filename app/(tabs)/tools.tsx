@@ -47,8 +47,8 @@ const TOOLS: Tool[] = [
   },
   {
     id: "calendar",
-    title: "Content Calendar",
-    description: "Schedule your ideas to specific dates and platforms. Plan your posting strategy.",
+    title: "Content Planning Calendar",
+    description: "Your content roadmap, built for planning, not posting.",
     icon: "calendar",
     route: "/(tabs)/calendar",
     color: "#0D9488",

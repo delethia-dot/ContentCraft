@@ -315,3 +315,10 @@
 - [x] Fix intermittent blank screen on idea card expansion: replace IIFE in JSX with proper VisualDirectionSection component
 - [x] Fix Visual Direction not rendering on desktop: extract IIFE into named component to avoid React reconciler issues on web
 - [x] Rebuild and redeploy to Netlify with clean build
+
+## UI Text & History Fix Round 12
+- [x] Rename "Content Calendar" to "Content Planning Calendar" in Tools tab
+- [x] Change calendar description to "Your content roadmap, built for planning, not posting."
+- [x] Change "No posts scheduled" to "Your calendar is empty. Start planning."
+- [x] Change "+ Schedule" button to "Plan Content"
+- [x] Fix history tab visuals not opening to show full details

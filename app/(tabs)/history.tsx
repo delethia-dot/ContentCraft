@@ -911,6 +911,136 @@ function ExportCaptionsModal({
   );
 }
 
+// ─── Visual Detail Modal ────────────────────────────────────────────────────
+
+function VisualDetailModal({
+  visual,
+  visible,
+  onClose,
+  onDelete,
+  colors,
+}: {
+  visual: SavedVisual | null;
+  visible: boolean;
+  onClose: () => void;
+  onDelete: (id: string) => void;
+  colors: any;
+}) {
+  const { height: windowHeight } = useWindowDimensions();
+  const [copied, setCopied] = useState(false);
+
+  if (!visual) return null;
+
+  const handleCopy = () => {
+    const text = [
+      `🎨 Visual Direction — ${visual.mediaType === "image" ? "Image" : "Video"}`,
+      `Platform: ${visual.platform} | Content Type: ${visual.contentType}`,
+      `From Idea: ${visual.ideaTitle}`,
+      ``,
+      `Concept: ${visual.concept}`,
+      visual.lighting ? `Lighting: ${visual.lighting}` : "",
+      visual.colors ? `Colors: ${visual.colors}` : "",
+      visual.cameraAngle ? `Camera Angle: ${visual.cameraAngle}` : "",
+      visual.additionalElements?.length ? `Elements: ${Array.isArray(visual.additionalElements) ? visual.additionalElements.join(", ") : visual.additionalElements}` : "",
+      visual.promptReadyDescription ? `\nPrompt-Ready Description:\n${visual.promptReadyDescription}` : "",
+    ].filter(Boolean).join("\n");
+    Clipboard.setString(text);
+    setCopied(true);
+    if (Platform.OS !== "web") Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    setTimeout(() => setCopied(false), 2500);
+  };
+
+  const platformColor = PLATFORMS.find((p) => p.id === visual.platform)?.color ?? "#F59E0B";
+
+  return (
+    <Modal visible={visible} animationType="slide" transparent={true} onRequestClose={onClose} statusBarTranslucent={true} hardwareAccelerated={true}>
+      <View style={modalStyles.overlay}>
+        <TouchableOpacity style={modalStyles.backdrop} activeOpacity={1} onPress={onClose} />
+        <View style={[modalStyles.sheet, { backgroundColor: colors.background, maxHeight: windowHeight * 0.92 }]}>
+          <View style={[modalStyles.handle, { backgroundColor: colors.border }]} />
+          <View style={modalStyles.header}>
+            <View style={{ flex: 1 }}>
+              <Text style={[modalStyles.title, { color: colors.foreground }]}>{visual.mediaType === "image" ? "Image" : "Video"} Visual Direction</Text>
+              <Text style={[modalStyles.subtitle, { color: colors.muted }]}>{visual.platform} · {visual.contentType}</Text>
+            </View>
+            <TouchableOpacity onPress={onClose} activeOpacity={0.7} style={[modalStyles.closeBtn, { backgroundColor: colors.surface }]}>
+              <IconSymbol name="xmark" size={16} color={colors.muted} />
+            </TouchableOpacity>
+          </View>
+          <ScrollView showsVerticalScrollIndicator={false} style={{ flex: 1 }} contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 20, gap: 14 }}>
+            {/* From Idea */}
+            <View style={[{ backgroundColor: platformColor + "12", borderLeftWidth: 3, borderLeftColor: platformColor, borderRadius: 10, padding: 12 }]}>
+              <Text style={[{ fontSize: 11, fontWeight: "700", color: platformColor, marginBottom: 3, textTransform: "uppercase", letterSpacing: 0.5 }]}>From Idea</Text>
+              <Text style={[{ fontSize: 14, color: colors.foreground, fontWeight: "600" }]}>{visual.ideaTitle}</Text>
+            </View>
+            {/* Concept */}
+            <View style={[{ backgroundColor: colors.surface, borderRadius: 12, padding: 14, borderWidth: 1, borderColor: colors.border }]}>
+              <Text style={[{ fontSize: 12, fontWeight: "700", color: colors.muted, marginBottom: 6, textTransform: "uppercase", letterSpacing: 0.5 }]}>Concept</Text>
+              <Text style={[{ fontSize: 14, color: colors.foreground, lineHeight: 21 }]}>{visual.concept}</Text>
+            </View>
+            {/* Details Grid */}
+            <View style={{ gap: 8 }}>
+              {visual.lighting ? (
+                <View style={[{ backgroundColor: colors.surface, borderRadius: 10, padding: 12, borderWidth: 1, borderColor: colors.border, flexDirection: "row", gap: 10, alignItems: "flex-start" }]}>
+                  <Text style={{ fontSize: 16 }}>💡</Text>
+                  <View style={{ flex: 1 }}>
+                    <Text style={[{ fontSize: 11, fontWeight: "700", color: colors.muted, marginBottom: 2 }]}>LIGHTING</Text>
+                    <Text style={[{ fontSize: 13, color: colors.foreground, lineHeight: 19 }]}>{visual.lighting}</Text>
+                  </View>
+                </View>
+              ) : null}
+              {visual.colors ? (
+                <View style={[{ backgroundColor: colors.surface, borderRadius: 10, padding: 12, borderWidth: 1, borderColor: colors.border, flexDirection: "row", gap: 10, alignItems: "flex-start" }]}>
+                  <Text style={{ fontSize: 16 }}>🎨</Text>
+                  <View style={{ flex: 1 }}>
+                    <Text style={[{ fontSize: 11, fontWeight: "700", color: colors.muted, marginBottom: 2 }]}>COLORS</Text>
+                    <Text style={[{ fontSize: 13, color: colors.foreground, lineHeight: 19 }]}>{visual.colors}</Text>
+                  </View>
+                </View>
+              ) : null}
+              {visual.cameraAngle ? (
+                <View style={[{ backgroundColor: colors.surface, borderRadius: 10, padding: 12, borderWidth: 1, borderColor: colors.border, flexDirection: "row", gap: 10, alignItems: "flex-start" }]}>
+                  <Text style={{ fontSize: 16 }}>📷</Text>
+                  <View style={{ flex: 1 }}>
+                    <Text style={[{ fontSize: 11, fontWeight: "700", color: colors.muted, marginBottom: 2 }]}>CAMERA ANGLE</Text>
+                    <Text style={[{ fontSize: 13, color: colors.foreground, lineHeight: 19 }]}>{visual.cameraAngle}</Text>
+                  </View>
+                </View>
+              ) : null}
+              {visual.additionalElements && (Array.isArray(visual.additionalElements) ? visual.additionalElements.length > 0 : visual.additionalElements) ? (
+                <View style={[{ backgroundColor: colors.surface, borderRadius: 10, padding: 12, borderWidth: 1, borderColor: colors.border, flexDirection: "row", gap: 10, alignItems: "flex-start" }]}>
+                  <Text style={{ fontSize: 16 }}>✨</Text>
+                  <View style={{ flex: 1 }}>
+                    <Text style={[{ fontSize: 11, fontWeight: "700", color: colors.muted, marginBottom: 2 }]}>ADDITIONAL ELEMENTS</Text>
+                    <Text style={[{ fontSize: 13, color: colors.foreground, lineHeight: 19 }]}>{Array.isArray(visual.additionalElements) ? visual.additionalElements.join(", ") : visual.additionalElements}</Text>
+                  </View>
+                </View>
+              ) : null}
+            </View>
+            {/* Prompt-Ready Description */}
+            {visual.promptReadyDescription ? (
+              <View style={[{ backgroundColor: "#F59E0B10", borderRadius: 12, padding: 14, borderWidth: 1, borderColor: "#F59E0B40" }]}>
+                <Text style={[{ fontSize: 12, fontWeight: "700", color: "#F59E0B", marginBottom: 6, textTransform: "uppercase", letterSpacing: 0.5 }]}>📋 Prompt-Ready Description</Text>
+                <Text style={[{ fontSize: 13, color: colors.foreground, lineHeight: 20, fontStyle: "italic" }]}>{visual.promptReadyDescription}</Text>
+              </View>
+            ) : null}
+          </ScrollView>
+          <View style={[modalStyles.actions, { paddingBottom: 8 }]}>
+            <TouchableOpacity onPress={handleCopy} activeOpacity={0.8} style={[modalStyles.actionBtn, { backgroundColor: copied ? "#10B981" : colors.surface, borderColor: copied ? "#10B981" : colors.border, flex: 1 }]}>
+              <IconSymbol name="doc.on.doc" size={18} color={copied ? "#FFFFFF" : colors.foreground} />
+              <Text style={[modalStyles.actionBtnText, { color: copied ? "#FFFFFF" : colors.foreground }]}>{copied ? "Copied!" : "Copy"}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => onDelete(visual.id)} activeOpacity={0.8} style={[modalStyles.actionBtn, { backgroundColor: "#EF444415", borderColor: "#EF444440", flex: 1 }]}>
+              <IconSymbol name="trash.fill" size={18} color="#EF4444" />
+              <Text style={[modalStyles.actionBtnText, { color: "#EF4444" }]}>Delete</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
+    </Modal>
+  );
+}
+
 // ─── Export Visuals Modal ────────────────────────────────────────────────────
 
 function ExportVisualsModal({
@@ -1016,6 +1146,8 @@ export default function HistoryScreen() {
   const [showExportAnalysesModal, setShowExportAnalysesModal] = useState(false);
   const [showExportPromptsModal, setShowExportPromptsModal] = useState(false);
   const [showExportCaptionsModal, setShowExportCaptionsModal] = useState(false);
+  const [selectedVisual, setSelectedVisual] = useState<SavedVisual | null>(null);
+  const [showVisualModal, setShowVisualModal] = useState(false);
 
   const loadAnalyses = useCallback(async () => {
     const data = await AsyncStorage.getItem(SAVED_ANALYSES_KEY);
@@ -1545,7 +1677,11 @@ export default function HistoryScreen() {
             renderItem={({ item: visual }) => {
               const platformColor = PLATFORMS.find((p) => p.id === visual.platform)?.color ?? colors.primary;
               return (
-                <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+                <TouchableOpacity
+                  activeOpacity={0.75}
+                  onPress={() => { setSelectedVisual(visual); setShowVisualModal(true); }}
+                  style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}
+                >
                   <View style={styles.cardHeader}>
                     <View style={[styles.platformBadge, { backgroundColor: platformColor + "18", borderColor: platformColor + "40" }]}>
                       <Text style={[styles.platformBadgeText, { color: platformColor }]}>{visual.platform}</Text>
@@ -1566,9 +1702,10 @@ export default function HistoryScreen() {
                     {visual.cameraAngle ? <View style={[styles.typeBadge, { backgroundColor: colors.surface }]}><Text style={[styles.typeBadgeText, { color: colors.muted }]} numberOfLines={1}>📷 {visual.cameraAngle}</Text></View> : null}
                   </View>
                   <View style={styles.cardFooter}>
-                    <Text style={[styles.tapHint, { color: "#F59E0B" }]}>Visual Direction</Text>
+                    <Text style={[styles.tapHint, { color: "#F59E0B" }]}>Tap to view details</Text>
                     <TouchableOpacity
-                      onPress={() => {
+                      onPress={(e) => {
+                        e.stopPropagation();
                         Alert.alert("Delete Visual", "Remove this saved visual direction?", [
                           { text: "Cancel", style: "cancel" },
                           { text: "Delete", style: "destructive", onPress: () => removeVisual(visual.id) },
@@ -1580,7 +1717,7 @@ export default function HistoryScreen() {
                       <IconSymbol name="trash.fill" size={14} color="#EF4444" />
                     </TouchableOpacity>
                   </View>
-                </View>
+                </TouchableOpacity>
               );
             }}
             contentContainerStyle={styles.listContent}
@@ -1642,6 +1779,13 @@ export default function HistoryScreen() {
         visuals={savedVisuals}
         visible={showExportVisualsModal}
         onClose={() => setShowExportVisualsModal(false)}
+        colors={colors}
+      />
+      <VisualDetailModal
+        visual={selectedVisual}
+        visible={showVisualModal}
+        onClose={() => setShowVisualModal(false)}
+        onDelete={(id) => { removeVisual(id); setShowVisualModal(false); }}
         colors={colors}
       />
     </View>
