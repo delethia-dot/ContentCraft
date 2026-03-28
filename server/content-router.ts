@@ -681,6 +681,37 @@ Return JSON in this exact format:
       };
     }),
 
+  generateVisualDirection: publicProcedure
+    .input(
+      z.object({
+        ideaId: z.string(),
+        title: z.string(),
+        body: z.string(),
+        platform: platformSchema,
+        contentType: z.string(),
+        niche: z.string(),
+      })
+    )
+    .mutation(async ({ input }) => {
+      const { ideaId, title, body, platform, contentType, niche } = input;
+      const response = await invokeLLM({
+        messages: [
+          {
+            role: "system",
+            content: `You are an expert social media visual director. Generate detailed visual direction for a ${contentType} content idea on ${platform}. Return ONLY valid JSON with no markdown.`,
+          },
+          {
+            role: "user",
+            content: `Generate visual direction for this ${contentType} idea on ${platform} in the "${niche}" niche:\nTitle: ${title}\nDescription: ${body}\n\nReturn JSON in this exact format:\n{\n  "imageSuggestions": [\n    {\n      "concept": "vivid description of image concept",\n      "lighting": "specific lighting direction",\n      "colors": "color palette or mood",\n      "cameraAngle": "specific angle",\n      "additionalElements": "2-3 props or styling details",\n      "promptReadyDescription": "single detailed sentence ready to paste into AI image generator"\n    }\n  ],\n  "videoSuggestions": [\n    {\n      "concept": "vivid description of video concept",\n      "lighting": "specific lighting setup",\n      "colors": "color grading direction",\n      "cameraAngle": "specific shot type",\n      "additionalElements": "2-3 visual elements like transitions or text overlays",\n      "promptReadyDescription": "single detailed sentence ready to paste into AI video generator"\n    }\n  ],\n  "bestPick": "image or video",\n  "bestPickReason": "1-2 sentences explaining why that format is stronger for this idea on ${platform}"\n}\nProvide exactly 3 items in imageSuggestions and exactly 3 items in videoSuggestions.`,
+          },
+        ],
+        response_format: { type: "json_object" },
+      });
+      const raw = response.choices[0].message.content as string;
+      const parsed = JSON.parse(raw);
+      return { ideaId, visualDirection: parsed };
+    }),
+
   getFrameworkAdvice: publicProcedure
     .input(
       z.object({

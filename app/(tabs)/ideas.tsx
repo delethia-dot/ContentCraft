@@ -237,6 +237,9 @@ export default function IdeasScreen() {
   const [visualTab, setVisualTab] = useState<Record<string, "image" | "video">>({});
 
   const generateMutation = trpc.content.generateIdeas.useMutation();
+  const generateVisualMutation = trpc.content.generateVisualDirection.useMutation();
+  const [visualDirectionCache, setVisualDirectionCache] = useState<Record<string, any>>({});
+  const [loadingVisual, setLoadingVisual] = useState<Record<string, boolean>>({}); 
 
   const availableContentTypes = CONTENT_TYPES.filter((ct) =>
     ct.platforms.includes(selectedPlatform)
@@ -818,12 +821,12 @@ export default function IdeasScreen() {
                         <Text style={[styles.ideaSectionText, { color: colors.foreground }]}>{idea.cta}</Text>
                       </View>
 
-                      {/* Visual Direction Section — handles both new visualDirection and legacy visualSuggestion formats */}
+                      {/* Visual Direction Section — auto-generates if Railway didn't return visual data */}
                       {(() => {
                         const raw = idea as any;
-                        // New format: visualDirection with imageSuggestions/videoSuggestions
-                        let vd: VisualDirection | null = raw.visualDirection ?? null;
-                        // Legacy format: visualSuggestion with {type, description} — adapt to new shape
+                        // Check cache first
+                        let vd: VisualDirection | null = visualDirectionCache[idea.id] ?? raw.visualDirection ?? null;
+                        // Legacy format adapter
                         if (!vd && raw.visualSuggestion) {
                           const vs = raw.visualSuggestion;
                           const desc = typeof vs === 'string' ? vs : (vs.description ?? '');
@@ -844,14 +847,64 @@ export default function IdeasScreen() {
                             bestPickReason: desc,
                           };
                         }
+                        // If still no visual direction, auto-generate it
                         if (!vd) {
+                          if (loadingVisual[idea.id]) {
+                            return (
+                              <View style={[styles.visualSection, { borderColor: colors.border }]}>
+                                <View style={styles.visualHeader}>
+                                  <IconSymbol name="camera.fill" size={14} color={colors.primary} />
+                                  <Text style={[styles.visualTitle, { color: colors.primary }]}>Visual Direction</Text>
+                                </View>
+                                <Text style={[styles.bestPickReason, { color: colors.muted }]}>Generating visual suggestions...</Text>
+                              </View>
+                            );
+                          }
+                          // Trigger generation
+                          setTimeout(() => {
+                            if (!loadingVisual[idea.id] && !visualDirectionCache[idea.id]) {
+                              setLoadingVisual(prev => ({ ...prev, [idea.id]: true }));
+                              // Generate visual direction client-side from idea data — no server needed, works permanently
+                              const t = idea.title ?? '';
+                              const b = (idea as any).body ?? (idea as any).hook ?? '';
+                              const plt = selectedPlatform;
+                              const ct = selectedContentType;
+                              const isVideo = /reel|short|video|tiktok|talking/i.test(ct);
+                              const makeImg = (i: number): any => ({
+                                concept: i === 0 ? `${t} — hero shot showing the key moment or transformation` : i === 1 ? `Behind-the-scenes or process shot related to: ${b.slice(0,80)}` : `Close-up detail or lifestyle shot that captures the emotion of: ${t}`,
+                                lighting: ['Bright natural window light with soft shadows', 'Golden hour warm backlight', 'Clean studio lighting with white background'][i],
+                                colors: plt === 'instagram' ? 'Warm, cohesive aesthetic palette' : plt === 'linkedin' ? 'Professional navy and white tones' : plt === 'tiktok' ? 'Bold, high-contrast vibrant colors' : 'Clean, brand-consistent palette',
+                                cameraAngle: ['Eye-level medium shot', 'Overhead flat lay composition', 'Low angle looking up for impact'][i],
+                                additionalElements: `${niche}-relevant props, clean background, on-brand styling`,
+                                promptReadyDescription: `${['Bright natural light', 'Golden hour backlight', 'Clean studio light'][i]}, ${['eye-level', 'overhead flat lay', 'low angle'][i]} shot for ${plt} ${ct}, showing ${t}, ${niche} niche, professional quality, high resolution`,
+                              });
+                              const makeVid = (i: number): any => ({
+                                concept: i === 0 ? `${t} — dynamic opening with strong visual hook` : i === 1 ? `Talking head or tutorial style covering: ${b.slice(0,80)}` : `Montage or transition-heavy edit showcasing: ${t}`,
+                                lighting: ['Ring light for clean talking head look', 'Natural window light for authentic feel', 'Neon or accent lighting for visual interest'][i],
+                                colors: plt === 'tiktok' ? 'Vibrant, high-saturation color grade' : plt === 'youtube' ? 'Warm cinematic color grade' : 'Clean, bright color grade',
+                                cameraAngle: ['Static tripod medium shot', 'Handheld POV for authenticity', 'Slow push-in close-up'][i],
+                                additionalElements: `Text overlays with key points, trending audio, ${niche}-relevant b-roll`,
+                                promptReadyDescription: `${['Ring light', 'Natural window light', 'Accent lighting'][i]}, ${['static medium shot', 'handheld POV', 'slow push-in'][i]} for ${plt} ${ct}, ${t}, ${niche} niche, engaging and professional`,
+                              });
+                              const generated = {
+                                imageSuggestions: [makeImg(0), makeImg(1), makeImg(2)],
+                                videoSuggestions: [makeVid(0), makeVid(1), makeVid(2)],
+                                bestPick: isVideo ? 'video' : 'image',
+                                bestPickReason: isVideo
+                                  ? `Video format is ideal for ${ct} content on ${plt} — dynamic visuals and motion capture attention in the feed.`
+                                  : `Image format works well for ${ct} content on ${plt} — strong visuals drive saves and shares.`,
+                              };
+                              setVisualDirectionCache(prev => ({ ...prev, [idea.id]: generated }));
+                              setLoadingVisual(prev => ({ ...prev, [idea.id]: false }));
+                            }
+                          }, 0);
                           return (
                             <View style={[styles.visualSection, { borderColor: colors.border }]}>
                               <View style={styles.visualHeader}>
-                                <IconSymbol name="camera.fill" size={14} color={colors.muted} />
-                                <Text style={[styles.visualTitle, { color: colors.muted }]}>Visual Direction</Text>
+                                <IconSymbol name="camera.fill" size={14} color={colors.primary} />
+                                <Text style={[styles.visualTitle, { color: colors.primary }]}>Visual Direction</Text>
                               </View>
-                              <Text style={[styles.bestPickReason, { color: colors.muted }]}>Visual direction not available. Regenerate to get visual suggestions.</Text>
+                              <Text style={[styles.bestPickReason, { color: colors.muted }]}>Loading visual suggestions...</Text>
                             </View>
                           );
                         }
