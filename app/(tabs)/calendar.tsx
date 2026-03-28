@@ -10,6 +10,7 @@ import {
   Platform,
   Dimensions,
   useWindowDimensions,
+  Modal,
 } from "react-native";
 import { ScreenContainer } from "@/components/screen-container";
 import { IconSymbol } from "@/components/ui/icon-symbol";
@@ -57,7 +58,8 @@ function formatDisplayDate(dateStr: string): string {
 }
 
 // ─── Cross-platform overlay sheet ────────────────────────────────────────────
-// Replaces React Native Modal (which doesn't render properly on web/desktop)
+// Uses Modal on native (works perfectly) and a fixed-position View on web
+// (position:absolute fails on web because it's relative to parent, not viewport)
 
 interface OverlaySheetProps {
   visible: boolean;
@@ -68,26 +70,56 @@ interface OverlaySheetProps {
 
 function OverlaySheet({ visible, onClose, children, maxHeight }: OverlaySheetProps) {
   const { height: winH } = useWindowDimensions();
-  if (!visible) return null;
-  const sheetMax = maxHeight ?? winH * 0.9;
-  return (
-    <View style={overlayStyles.root}>
-      {/* Backdrop */}
-      <TouchableOpacity style={overlayStyles.backdrop} activeOpacity={1} onPress={onClose} />
-      {/* Sheet */}
-      <View style={[overlayStyles.sheet, { maxHeight: sheetMax }]}>
-        {children}
+  const sheetMax = maxHeight ?? winH * 0.85;
+
+  if (Platform.OS === "web") {
+    // On web: use a fixed-position overlay that covers the full viewport
+    if (!visible) return null;
+    return (
+      <View
+        style={[
+          overlayStyles.webRoot,
+          // @ts-ignore - position fixed is web-only
+          { position: "fixed" as any },
+        ]}
+      >
+        <TouchableOpacity style={overlayStyles.backdrop} activeOpacity={1} onPress={onClose} />
+        <View style={[overlayStyles.sheet, { maxHeight: sheetMax }]}>
+          {children}
+        </View>
       </View>
-    </View>
+    );
+  }
+
+  // On native: use Modal which properly renders above everything
+  return (
+    <Modal
+      visible={visible}
+      transparent
+      animationType="slide"
+      onRequestClose={onClose}
+      statusBarTranslucent
+    >
+      <View style={overlayStyles.nativeRoot}>
+        <TouchableOpacity style={overlayStyles.backdrop} activeOpacity={1} onPress={onClose} />
+        <View style={[overlayStyles.sheet, { maxHeight: sheetMax }]}>
+          {children}
+        </View>
+      </View>
+    </Modal>
   );
 }
 
 const overlayStyles = StyleSheet.create({
-  root: {
-    position: "absolute",
+  webRoot: {
     top: 0, left: 0, right: 0, bottom: 0,
     zIndex: 9999,
     justifyContent: "flex-end",
+  },
+  nativeRoot: {
+    flex: 1,
+    justifyContent: "flex-end",
+    backgroundColor: "transparent",
   },
   backdrop: {
     position: "absolute",
@@ -97,7 +129,7 @@ const overlayStyles = StyleSheet.create({
   sheet: {
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
-    minHeight: "50%",
+    minHeight: "50%" as any,
     overflow: "hidden",
   },
 });

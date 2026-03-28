@@ -355,3 +355,7 @@
 - [ ] Fix: Generate Ideas times out after ~3 minutes on desktop with no error shown
 - [ ] Add user-facing error message and retry button when idea generation fails
 - [ ] Push all code changes to GitHub so Railway redeploys with latest fixes
+
+## Critical Bugs (Round 2)
+- [ ] Calendar detail modal still not opening on mobile or desktop after OverlaySheet conversion
+- [ ] Desktop changes not appearing despite Railway deployment and browser cache clear

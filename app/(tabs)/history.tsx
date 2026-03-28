@@ -12,9 +12,11 @@ import {
   Clipboard,
   useWindowDimensions,
   TextInput,
+  Modal,
 } from "react-native";
 
-// ─── Cross-platform overlay (replaces Modal which breaks on web/desktop) ──────
+// ─── Cross-platform overlay sheet ────────────────────────────────────────────
+// Modal on native (renders above everything), position:fixed on web (covers full viewport)
 function OverlaySheet({
   visible,
   onClose,
@@ -27,22 +29,50 @@ function OverlaySheet({
   maxHeight?: number;
 }) {
   const { height: winH } = useWindowDimensions();
-  if (!visible) return null;
   const sheetMax = maxHeight ?? winH * 0.92;
+
+  if (Platform.OS === "web") {
+    if (!visible) return null;
+    return (
+      <View
+        style={[
+          overlayStyles.webRoot,
+          // @ts-ignore - position fixed is web-only
+          { position: "fixed" as any },
+        ]}
+      >
+        <TouchableOpacity style={overlayStyles.backdrop} activeOpacity={1} onPress={onClose} />
+        <View style={[overlayStyles.sheet, { maxHeight: sheetMax }]}>{children}</View>
+      </View>
+    );
+  }
+
   return (
-    <View style={overlayStyles.root}>
-      <TouchableOpacity style={overlayStyles.backdrop} activeOpacity={1} onPress={onClose} />
-      <View style={[overlayStyles.sheet, { maxHeight: sheetMax }]}>{children}</View>
-    </View>
+    <Modal
+      visible={visible}
+      transparent
+      animationType="slide"
+      onRequestClose={onClose}
+      statusBarTranslucent
+    >
+      <View style={overlayStyles.nativeRoot}>
+        <TouchableOpacity style={overlayStyles.backdrop} activeOpacity={1} onPress={onClose} />
+        <View style={[overlayStyles.sheet, { maxHeight: sheetMax }]}>{children}</View>
+      </View>
+    </Modal>
   );
 }
 
 const overlayStyles = StyleSheet.create({
-  root: {
-    position: "absolute",
+  webRoot: {
     top: 0, left: 0, right: 0, bottom: 0,
     zIndex: 9999,
     justifyContent: "flex-end",
+  },
+  nativeRoot: {
+    flex: 1,
+    justifyContent: "flex-end",
+    backgroundColor: "transparent",
   },
   backdrop: {
     position: "absolute",
@@ -52,7 +82,7 @@ const overlayStyles = StyleSheet.create({
   sheet: {
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
-    minHeight: "40%",
+    minHeight: "40%" as any,
     overflow: "hidden",
   },
 });
