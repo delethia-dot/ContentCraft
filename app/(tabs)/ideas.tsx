@@ -55,6 +55,7 @@ export default function IdeasScreen() {
       });
       setIdeas(result.ideas as ContentIdea[]);
       setExpandedId(null);
+      setVisualTab({});
       if (Platform.OS !== "web") Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     } catch (e) {
       Alert.alert("Error", "Failed to generate ideas. Please try again.");
@@ -149,13 +150,61 @@ export default function IdeasScreen() {
   const handleSaveToggle = useCallback(
     async (idea: ContentIdea) => {
       if (Platform.OS !== "web") Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      // Image/video content types save to Visuals in History
+      if (idea.contentType === "image" || idea.contentType === "video") {
+        const vd = (idea as any).visualDirection;
+        if (vd && vd.imageSuggestions?.length) {
+          // Save all image suggestions as visuals
+          vd.imageSuggestions.forEach((s: any, i: number) => {
+            saveVisual({
+              id: `visual-${idea.id}-image-${i}-${Date.now()}`,
+              ideaId: idea.id,
+              ideaTitle: idea.title,
+              platform: idea.platform,
+              contentType: idea.contentType,
+              mediaType: "image",
+              concept: s.concept,
+              lighting: s.lighting,
+              colors: s.colors,
+              cameraAngle: s.cameraAngle,
+              additionalElements: Array.isArray(s.additionalElements) ? s.additionalElements : [s.additionalElements],
+              promptReadyDescription: s.promptReadyDescription,
+              savedAt: new Date().toISOString(),
+            });
+          });
+        }
+        if (vd && vd.videoSuggestions?.length) {
+          // Save all video suggestions as visuals
+          vd.videoSuggestions.forEach((s: any, i: number) => {
+            saveVisual({
+              id: `visual-${idea.id}-video-${i}-${Date.now()}`,
+              ideaId: idea.id,
+              ideaTitle: idea.title,
+              platform: idea.platform,
+              contentType: idea.contentType,
+              mediaType: "video",
+              concept: s.concept,
+              lighting: s.lighting,
+              colors: s.colors,
+              cameraAngle: s.cameraAngle,
+              additionalElements: Array.isArray(s.additionalElements) ? s.additionalElements : [s.additionalElements],
+              promptReadyDescription: s.promptReadyDescription,
+              savedAt: new Date().toISOString(),
+            });
+          });
+        }
+        // Also save the idea itself so it appears in Ideas tab too
+        if (!isIdeaSaved(idea.id)) await saveIdea(idea);
+        Alert.alert("Saved to Visuals!", "This idea and its visual directions have been saved to the Visuals section in History.");
+        return;
+      }
       if (isIdeaSaved(idea.id)) {
         await removeIdea(idea.id);
       } else {
         await saveIdea(idea);
       }
     },
-    [isIdeaSaved, saveIdea, removeIdea]
+    [isIdeaSaved, saveIdea, removeIdea, saveVisual]
   );
 
   return (
@@ -577,6 +626,15 @@ export default function IdeasScreen() {
                       </View>
 
                       {/* Visual Direction Section */}
+                      {!(idea as any).visualDirection && (
+                        <View style={[styles.visualSection, { borderColor: colors.border }]}>
+                          <View style={styles.visualHeader}>
+                            <IconSymbol name="camera.fill" size={14} color={colors.muted} />
+                            <Text style={[styles.visualTitle, { color: colors.muted }]}>Visual Direction</Text>
+                          </View>
+                          <Text style={[styles.bestPickReason, { color: colors.muted }]}>Visual direction not available for this idea. Regenerate to get visual suggestions.</Text>
+                        </View>
+                      )}
                       {(idea as any).visualDirection && (() => {
                         const vd = (idea as any).visualDirection;
                         const activeTab = visualTab[idea.id] ?? (vd.bestPick === "video" ? "video" : "image");

@@ -1727,7 +1727,7 @@ const styles = StyleSheet.create({
   hookLabel: { fontSize: 10, fontWeight: "800", textTransform: "uppercase", letterSpacing: 0.5 },
   hookText: { fontSize: 13, lineHeight: 19 },
   cardFooter: { flexDirection: "row", alignItems: "center", gap: 8, marginTop: 2 },
-  tapHint: { flex: 1, fontSize: 11, fontWeight: "600", fontStyle: "italic" },
+  tapHint: { flex: 1, flexShrink: 1, fontSize: 11, fontWeight: "600", fontStyle: "italic" },
   iconBtn: { width: 32, height: 32, borderRadius: 8, alignItems: "center", justifyContent: "center" },
   scorePill: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8 },
   scorePillText: { fontSize: 11, fontWeight: "700" },

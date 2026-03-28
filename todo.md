@@ -299,3 +299,10 @@
 - [x] Visual Direction: "Save Visual" button stores visual direction suggestion to History (new SavedVisual type)
 - [x] History: add Visuals tab showing saved visual directions with export functionality
 - [x] Saved Ideas (History): add star/favorite toggle — starred ideas show a gold star badge and sort to top of list
+
+## Bug Fixes Round 16
+- [x] Standalone image/video content type: Save button now routes to saveVisual (Visuals tab) instead of saveIdea
+- [x] Visual Direction section missing on some idea cards 2014 added fallback placeholder when visualDirection absent
+- [ ] Intermittent idea card rendering — tapping generated idea sometimes does not expand
+- [x] Star/favorite icon 2014 confirmed in code; fixed tapHint flexShrink so buttons never clip
+- [x] Use in Prompt Generator button 2014 verified wired correctly, no change needed
