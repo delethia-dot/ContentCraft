@@ -281,3 +281,6 @@
 - [x] Idea Generator: add "Talking Head" content type with topics best suited for talking head videos
 - [x] Idea Generator: server prompt for Talking Head — industry insights, how-to tutorials, Q&As, company announcements, storytelling
 - [x] Prompt Generator: replace Sora with Hedra as a video AI tool option
+
+## Bug Fixes Round 12
+- [x] Talking Head content type: clicking Generate 5 Ideas does nothing — Railway server was running old code without talking-head in contentTypeSchema; redeployed server to Railway
