@@ -306,3 +306,7 @@
 - [ ] Intermittent idea card rendering — tapping generated idea sometimes does not expand
 - [x] Star/favorite icon 2014 confirmed in code; fixed tapHint flexShrink so buttons never clip
 - [x] Use in Prompt Generator button 2014 verified wired correctly, no change needed
+
+## Bug Fixes Round 17
+- [x] Netlify SPA routing: add _redirects file so all routes serve index.html (fixes 404 on idea card expansion on desktop)
+- [x] Ensure _redirects is always included in future Expo web builds via public/ folder
