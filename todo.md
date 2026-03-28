@@ -326,3 +326,7 @@
 ## Round N - Name Fix & History Visuals
 - [x] Update SOP PDF to use Delethia Johnson instead of Dee Dee Johnson
 - [x] Fix History tab Visuals sub-tab: tapping a visual card must open full detail modal
+
+## Proper Fixes Round
+- [ ] Apply correct previous fix for History visuals not opening (find from git history)
+- [ ] Fix SOP PDF cover page: prepared-for name visible, white text on dark green background

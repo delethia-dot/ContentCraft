@@ -1677,35 +1677,36 @@ export default function HistoryScreen() {
             renderItem={({ item: visual }) => {
               const platformColor = PLATFORMS.find((p) => p.id === visual.platform)?.color ?? colors.primary;
               return (
-                <TouchableOpacity
-                  activeOpacity={0.75}
-                  onPress={() => { setSelectedVisual(visual); setShowVisualModal(true); }}
-                  style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}
-                >
-                  <View style={styles.cardHeader}>
-                    <View style={[styles.platformBadge, { backgroundColor: platformColor + "18", borderColor: platformColor + "40" }]}>
-                      <Text style={[styles.platformBadgeText, { color: platformColor }]}>{visual.platform}</Text>
+                <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+                  <TouchableOpacity
+                    onPress={() => { setSelectedVisual(visual); setShowVisualModal(true); }}
+                    activeOpacity={0.85}
+                    style={{ flexGrow: 1, flexShrink: 1 }}
+                  >
+                    <View style={styles.cardHeader}>
+                      <View style={[styles.platformBadge, { backgroundColor: platformColor + "18", borderColor: platformColor + "40" }]}>
+                        <Text style={[styles.platformBadgeText, { color: platformColor }]}>{visual.platform}</Text>
+                      </View>
+                      <View style={[styles.typeBadge, { backgroundColor: "#F59E0B12" }]}>
+                        <Text style={[styles.typeBadgeText, { color: "#F59E0B" }]}>{visual.mediaType === "image" ? "Image" : "Video"}</Text>
+                      </View>
+                      <Text style={[styles.dateText, { color: colors.muted }]}>{formatDate(visual.savedAt)}</Text>
                     </View>
-                    <View style={[styles.typeBadge, { backgroundColor: "#F59E0B12" }]}>
-                      <Text style={[styles.typeBadgeText, { color: "#F59E0B" }]}>{visual.mediaType === "image" ? "Image" : "Video"}</Text>
+                    <Text style={[styles.ideaTitle, { color: colors.foreground }]} numberOfLines={2}>{visual.concept}</Text>
+                    <View style={[styles.hookBox, { backgroundColor: "#F59E0B08", borderLeftColor: "#F59E0B" }]}>
+                      <Text style={[styles.hookLabel, { color: "#F59E0B" }]}>From Idea</Text>
+                      <Text style={[styles.hookText, { color: colors.foreground }]} numberOfLines={1}>{visual.ideaTitle}</Text>
                     </View>
-                    <Text style={[styles.dateText, { color: colors.muted }]}>{formatDate(visual.savedAt)}</Text>
-                  </View>
-                  <Text style={[styles.ideaTitle, { color: colors.foreground }]} numberOfLines={2}>{visual.concept}</Text>
-                  <View style={[styles.hookBox, { backgroundColor: "#F59E0B08", borderLeftColor: "#F59E0B" }]}>
-                    <Text style={[styles.hookLabel, { color: "#F59E0B" }]}>From Idea</Text>
-                    <Text style={[styles.hookText, { color: colors.foreground }]} numberOfLines={1}>{visual.ideaTitle}</Text>
-                  </View>
-                  <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 6, paddingHorizontal: 12, paddingBottom: 8 }}>
-                    {visual.lighting ? <View style={[styles.typeBadge, { backgroundColor: colors.surface }]}><Text style={[styles.typeBadgeText, { color: colors.muted }]} numberOfLines={1}>💡 {visual.lighting}</Text></View> : null}
-                    {visual.colors ? <View style={[styles.typeBadge, { backgroundColor: colors.surface }]}><Text style={[styles.typeBadgeText, { color: colors.muted }]} numberOfLines={1}>🎨 {visual.colors}</Text></View> : null}
-                    {visual.cameraAngle ? <View style={[styles.typeBadge, { backgroundColor: colors.surface }]}><Text style={[styles.typeBadgeText, { color: colors.muted }]} numberOfLines={1}>📷 {visual.cameraAngle}</Text></View> : null}
-                  </View>
+                    <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 6, paddingHorizontal: 12, paddingBottom: 8 }}>
+                      {visual.lighting ? <View style={[styles.typeBadge, { backgroundColor: colors.surface }]}><Text style={[styles.typeBadgeText, { color: colors.muted }]} numberOfLines={1}>💡 {visual.lighting}</Text></View> : null}
+                      {visual.colors ? <View style={[styles.typeBadge, { backgroundColor: colors.surface }]}><Text style={[styles.typeBadgeText, { color: colors.muted }]} numberOfLines={1}>🎨 {visual.colors}</Text></View> : null}
+                      {visual.cameraAngle ? <View style={[styles.typeBadge, { backgroundColor: colors.surface }]}><Text style={[styles.typeBadgeText, { color: colors.muted }]} numberOfLines={1}>📷 {visual.cameraAngle}</Text></View> : null}
+                    </View>
+                  </TouchableOpacity>
                   <View style={styles.cardFooter}>
-                    <Text style={[styles.tapHint, { color: "#F59E0B" }]}>Tap to view details</Text>
+                    <Text style={[styles.tapHint, { color: "#F59E0B" }]}>Tap to view details →</Text>
                     <TouchableOpacity
-                      onPress={(e) => {
-                        e.stopPropagation();
+                      onPress={() => {
                         Alert.alert("Delete Visual", "Remove this saved visual direction?", [
                           { text: "Cancel", style: "cancel" },
                           { text: "Delete", style: "destructive", onPress: () => removeVisual(visual.id) },
@@ -1717,7 +1718,7 @@ export default function HistoryScreen() {
                       <IconSymbol name="trash.fill" size={14} color="#EF4444" />
                     </TouchableOpacity>
                   </View>
-                </TouchableOpacity>
+                </View>
               );
             }}
             contentContainerStyle={styles.listContent}
