@@ -41,7 +41,7 @@ const PRESET_TOOLS: PresetTool[] = [
   { id: "stable-diffusion", label: "Stable Diffusion", mediaTypes: ["image"], color: "#F97316", description: "Open-source generation" },
   { id: "ideogram", label: "Ideogram", mediaTypes: ["image"], color: "#0284C7", description: "Text-in-image specialist" },
   { id: "adobe-firefly", label: "Adobe Firefly", mediaTypes: ["image"], color: "#FF0000", description: "Commercial-safe images" },
-  { id: "sora", label: "Sora", mediaTypes: ["video"], color: "#0EA5E9", description: "OpenAI video generator" },
+  { id: "hedra", label: "Hedra", mediaTypes: ["video"], color: "#0EA5E9", description: "AI talking head video generator" },
   { id: "runway", label: "Runway Gen-3", mediaTypes: ["video"], color: "#EC4899", description: "Professional AI video" },
   { id: "kling", label: "Kling AI", mediaTypes: ["video"], color: "#8B5CF6", description: "Cinematic AI video" },
   { id: "pika", label: "Pika", mediaTypes: ["video"], color: "#F59E0B", description: "Quick video generation" },

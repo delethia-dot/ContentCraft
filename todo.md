@@ -273,3 +273,11 @@
 ## Critical APK Fix
 - [x] APK crashes on any feature tap when sandbox is offline — hardcoded Railway URL fallback in getApiBaseUrl() so native builds always reach the production server
 - [x] Niche Intelligence silent catch replaced with proper Alert so failures show a message instead of crashing silently
+
+## Feature Updates Round 11
+- [x] History: add export functionality to Analyses tab (compile all analyses into exportable text block)
+- [x] History: add export functionality to Prompts tab (compile all prompts into exportable text block)
+- [x] History: add export functionality to Captions tab (compile all captions into exportable text block)
+- [x] Idea Generator: add "Talking Head" content type with topics best suited for talking head videos
+- [x] Idea Generator: server prompt for Talking Head — industry insights, how-to tutorials, Q&As, company announcements, storytelling
+- [x] Prompt Generator: replace Sora with Hedra as a video AI tool option

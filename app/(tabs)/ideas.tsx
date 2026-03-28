@@ -109,6 +109,19 @@ export default function IdeasScreen() {
       }
       lines.push(``, `Conclusion: ${idea.outline.conclusion}`);
       if (idea.seoAngle) lines.push(`SEO Angle: ${idea.seoAngle}`);
+    } else if (idea.talkingHeadScript) {
+      lines.push(`--- TALKING HEAD SCRIPT ---`);
+      lines.push(`Opening Hook: ${idea.talkingHeadScript.openingHook}`);
+      if (Array.isArray(idea.talkingHeadScript.keyTalkingPoints)) {
+        lines.push(``, `Key Talking Points:`);
+        idea.talkingHeadScript.keyTalkingPoints.forEach((pt: string) => lines.push(`• ${pt}`));
+      }
+      lines.push(``, `Personality Angle: ${idea.talkingHeadScript.personalityAngle}`);
+      lines.push(`Closing Line: ${idea.talkingHeadScript.closingLine}`);
+      if (idea.topicCategory) lines.push(``, `Topic Category: ${idea.topicCategory}`);
+      if (idea.estimatedDuration) lines.push(`Duration: ${idea.estimatedDuration}`);
+      if (idea.expertiseAngle) lines.push(`Expertise Angle: ${idea.expertiseAngle}`);
+      if (idea.audienceProblemSolved) lines.push(`Audience Problem Solved: ${idea.audienceProblemSolved}`);
     } else if (idea.postStructure) {
       lines.push(idea.postStructure.openingLine);
       lines.push(``, idea.postStructure.mainContent);
@@ -487,6 +500,53 @@ export default function IdeasScreen() {
                         </>
                       )}
 
+                      {/* Talking Head Script */}
+                      {(idea as any).talkingHeadScript && (
+                        <>
+                          <View style={[styles.ideaSection, { backgroundColor: colors.primary + "08" }]}>
+                            <Text style={[styles.ideaSectionLabel, { color: colors.primary }]}>OPENING HOOK (ON CAMERA)</Text>
+                            <Text style={[styles.ideaSectionText, { color: colors.foreground }]}>{(idea as any).talkingHeadScript.openingHook}</Text>
+                          </View>
+                          {Array.isArray((idea as any).talkingHeadScript.keyTalkingPoints) && (idea as any).talkingHeadScript.keyTalkingPoints.map((pt: string, i: number) => (
+                            <View key={i} style={[styles.ideaSection, { backgroundColor: colors.surface }]}>
+                              <Text style={[styles.ideaSectionLabel, { color: colors.muted }]}>TALKING POINT {i + 1}</Text>
+                              <Text style={[styles.ideaSectionText, { color: colors.foreground }]}>{pt}</Text>
+                            </View>
+                          ))}
+                          <View style={[styles.ideaSection, { backgroundColor: colors.surface }]}>
+                            <Text style={[styles.ideaSectionLabel, { color: colors.muted }]}>PERSONALITY ANGLE</Text>
+                            <Text style={[styles.ideaSectionText, { color: colors.foreground }]}>{(idea as any).talkingHeadScript.personalityAngle}</Text>
+                          </View>
+                          <View style={[styles.ideaSection, { backgroundColor: colors.navy + "10" }]}>
+                            <Text style={[styles.ideaSectionLabel, { color: colors.navy }]}>CLOSING LINE</Text>
+                            <Text style={[styles.ideaSectionText, { color: colors.foreground }]}>{(idea as any).talkingHeadScript.closingLine}</Text>
+                          </View>
+                          {(idea as any).topicCategory && (
+                            <View style={[styles.ideaSection, { backgroundColor: colors.surface }]}>
+                              <Text style={[styles.ideaSectionLabel, { color: colors.muted }]}>TOPIC CATEGORY</Text>
+                              <Text style={[styles.ideaSectionText, { color: colors.foreground }]}>{(idea as any).topicCategory.replace(/-/g, ' ').replace(/\b\w/g, (c: string) => c.toUpperCase())}</Text>
+                            </View>
+                          )}
+                          {(idea as any).expertiseAngle && (
+                            <View style={[styles.ideaSection, { backgroundColor: colors.surface }]}>
+                              <Text style={[styles.ideaSectionLabel, { color: colors.muted }]}>EXPERTISE ANGLE</Text>
+                              <Text style={[styles.ideaSectionText, { color: colors.foreground }]}>{(idea as any).expertiseAngle}</Text>
+                            </View>
+                          )}
+                          {(idea as any).audienceProblemSolved && (
+                            <View style={[styles.ideaSection, { backgroundColor: colors.accent + "08" }]}>
+                              <Text style={[styles.ideaSectionLabel, { color: colors.accent }]}>AUDIENCE PROBLEM SOLVED</Text>
+                              <Text style={[styles.ideaSectionText, { color: colors.foreground }]}>{(idea as any).audienceProblemSolved}</Text>
+                            </View>
+                          )}
+                          {(idea as any).estimatedDuration && (
+                            <View style={[styles.ideaSection, { backgroundColor: colors.surface }]}>
+                              <Text style={[styles.ideaSectionLabel, { color: colors.muted }]}>ESTIMATED DURATION</Text>
+                              <Text style={[styles.ideaSectionText, { color: colors.foreground }]}>{(idea as any).estimatedDuration}</Text>
+                            </View>
+                          )}
+                        </>
+                      )}
                       {/* CTA always at bottom */}
                       <View style={[styles.ideaSection, { backgroundColor: colors.accent + "08" }]}>
                         <Text style={[styles.ideaSectionLabel, { color: colors.accent }]}>CALL TO ACTION</Text>

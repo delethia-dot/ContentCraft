@@ -38,6 +38,7 @@ const CONTENT_TYPE_LABELS: Record<ContentType, string> = {
   short: "Short",
   image: "Image",
   video: "Video",
+  "talking-head": "Talking Head",
 };
 
 const DAYS_OF_WEEK = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
@@ -94,7 +95,7 @@ function AddEntryModal({ visible, selectedDate, onClose, onAdd, savedIdeas, colo
     onClose();
   };
 
-  const CONTENT_TYPES: ContentType[] = ["post", "reel", "story", "carousel", "image", "video", "short", "long-form"];
+  const CONTENT_TYPES: ContentType[] = ["post", "reel", "story", "carousel", "image", "video", "short", "long-form", "talking-head"];
 
   return (
     <Modal visible={visible} transparent animationType="slide" statusBarTranslucent hardwareAccelerated>

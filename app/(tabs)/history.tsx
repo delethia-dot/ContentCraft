@@ -655,6 +655,262 @@ function ExportModal({
   );
 }
 
+// ─── Export Analyses Modal ──────────────────────────────────────────────────
+
+function ExportAnalysesModal({
+  analyses,
+  visible,
+  onClose,
+  colors,
+}: {
+  analyses: NicheAnalysis[];
+  visible: boolean;
+  onClose: () => void;
+  colors: any;
+}) {
+  const [copied, setCopied] = useState(false);
+
+  const exportText = analyses.length === 0
+    ? "No analyses saved yet."
+    : analyses.map((a, idx) => {
+        const r = a.result;
+        const lines = [
+          `━━━ ANALYSIS ${idx + 1}: ${a.niche.toUpperCase()} ━━━`,
+          a.platform && a.platform !== "all" ? `Platform: ${a.platform}` : "Platform: All",
+          `Date: ${formatDate(a.savedAt)}`,
+          ``,
+          `📋 Overview:`,
+          r.nicheOverview,
+        ];
+        if (r.quickWins?.length) {
+          lines.push(``, `⚡ Quick Wins:`);
+          r.quickWins.forEach((w, i) => lines.push(`${i + 1}. ${w}`));
+        }
+        if (r.contentPillars?.length) {
+          lines.push(``, `📌 Content Pillars:`);
+          r.contentPillars.forEach((p, i) => lines.push(`${i + 1}. ${p.pillar}: ${p.description}`));
+        }
+        if (r.contentGaps?.length) {
+          lines.push(``, `🔍 Content Gaps:`);
+          r.contentGaps.forEach((g) => lines.push(`• ${g.gap} → ${g.opportunity}`));
+        }
+        return lines.join("\n");
+      }).join("\n\n") + `\n\n✨ Analyzed with ContentCraft\n${APP_WEB_URL}`;
+
+  const handleCopy = () => {
+    Clipboard.setString(exportText);
+    setCopied(true);
+    if (Platform.OS !== "web") Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    setTimeout(() => setCopied(false), 2500);
+  };
+
+  const handleShare = async () => {
+    try {
+      if (Platform.OS !== "web") Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      await Share.share({ message: exportText, title: "ContentCraft Niche Analyses" });
+    } catch {}
+  };
+
+  return (
+    <Modal visible={visible} animationType="slide" transparent={true} onRequestClose={onClose} statusBarTranslucent={true} hardwareAccelerated={true}>
+      <View style={modalStyles.overlay}>
+        <TouchableOpacity style={modalStyles.backdrop} activeOpacity={1} onPress={onClose} />
+        <View style={[modalStyles.sheet, { backgroundColor: colors.background }]}>
+          <View style={[modalStyles.handle, { backgroundColor: colors.border }]} />
+          <View style={modalStyles.header}>
+            <View style={{ flex: 1 }}>
+              <Text style={[modalStyles.title, { color: colors.foreground }]}>Export Analyses</Text>
+              <Text style={[modalStyles.subtitle, { color: colors.muted }]}>{analyses.length} niche intelligence report{analyses.length !== 1 ? "s" : ""}</Text>
+            </View>
+            <TouchableOpacity onPress={onClose} activeOpacity={0.7} style={[modalStyles.closeBtn, { backgroundColor: colors.surface }]}>
+              <IconSymbol name="xmark" size={16} color={colors.muted} />
+            </TouchableOpacity>
+          </View>
+          <ScrollView style={[exportStyles.previewBox, { backgroundColor: colors.surface, borderColor: colors.border }]} showsVerticalScrollIndicator={false}>
+            <Text style={[exportStyles.previewText, { color: colors.foreground }]}>{exportText}</Text>
+          </ScrollView>
+          <View style={modalStyles.actions}>
+            <TouchableOpacity onPress={handleCopy} activeOpacity={0.8} style={[modalStyles.actionBtn, { backgroundColor: copied ? "#10B981" : colors.surface, borderColor: copied ? "#10B981" : colors.border }]}>
+              <IconSymbol name="doc.on.doc" size={18} color={copied ? "#FFFFFF" : colors.foreground} />
+              <Text style={[modalStyles.actionBtnText, { color: copied ? "#FFFFFF" : colors.foreground }]}>{copied ? "Copied!" : "Copy All"}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={handleShare} activeOpacity={0.8} style={[modalStyles.actionBtn, { backgroundColor: colors.primary, borderColor: colors.primary }]}>
+              <IconSymbol name="square.and.arrow.up" size={18} color="#FFFFFF" />
+              <Text style={[modalStyles.actionBtnText, { color: "#FFFFFF" }]}>Share</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
+    </Modal>
+  );
+}
+
+// ─── Export Prompts Modal ─────────────────────────────────────────────────────
+
+function ExportPromptsModal({
+  prompts,
+  visible,
+  onClose,
+  colors,
+}: {
+  prompts: SavedPrompt[];
+  visible: boolean;
+  onClose: () => void;
+  colors: any;
+}) {
+  const [copied, setCopied] = useState(false);
+
+  const exportText = prompts.length === 0
+    ? "No prompts saved yet."
+    : prompts.map((p, idx) => {
+        const lines = [
+          `━━━ PROMPT ${idx + 1}: ${p.tool.toUpperCase()} | ${p.mediaType.toUpperCase()} ━━━`,
+          `Subject: ${p.subject}`,
+          `Platform: ${p.platform}`,
+          ``,
+          `📝 Main Prompt:`,
+          p.mainPrompt,
+        ];
+        if (p.negativePrompt) {
+          lines.push(``, `🚫 Negative Prompt:`, p.negativePrompt);
+        }
+        if (p.variations?.length) {
+          lines.push(``, `🔄 Variations:`);
+          p.variations.forEach((v, i) => lines.push(`${i + 1}. ${v}`));
+        }
+        if (p.tips?.length) {
+          lines.push(``, `💡 Tips:`);
+          p.tips.forEach((t) => lines.push(`• ${t}`));
+        }
+        return lines.join("\n");
+      }).join("\n\n") + `\n\n✨ Created with ContentCraft\n${APP_WEB_URL}`;
+
+  const handleCopy = () => {
+    Clipboard.setString(exportText);
+    setCopied(true);
+    if (Platform.OS !== "web") Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    setTimeout(() => setCopied(false), 2500);
+  };
+
+  const handleShare = async () => {
+    try {
+      if (Platform.OS !== "web") Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      await Share.share({ message: exportText, title: "ContentCraft AI Prompts" });
+    } catch {}
+  };
+
+  return (
+    <Modal visible={visible} animationType="slide" transparent={true} onRequestClose={onClose} statusBarTranslucent={true} hardwareAccelerated={true}>
+      <View style={modalStyles.overlay}>
+        <TouchableOpacity style={modalStyles.backdrop} activeOpacity={1} onPress={onClose} />
+        <View style={[modalStyles.sheet, { backgroundColor: colors.background }]}>
+          <View style={[modalStyles.handle, { backgroundColor: colors.border }]} />
+          <View style={modalStyles.header}>
+            <View style={{ flex: 1 }}>
+              <Text style={[modalStyles.title, { color: colors.foreground }]}>Export Prompts</Text>
+              <Text style={[modalStyles.subtitle, { color: colors.muted }]}>{prompts.length} AI prompt{prompts.length !== 1 ? "s" : ""}</Text>
+            </View>
+            <TouchableOpacity onPress={onClose} activeOpacity={0.7} style={[modalStyles.closeBtn, { backgroundColor: colors.surface }]}>
+              <IconSymbol name="xmark" size={16} color={colors.muted} />
+            </TouchableOpacity>
+          </View>
+          <ScrollView style={[exportStyles.previewBox, { backgroundColor: colors.surface, borderColor: colors.border }]} showsVerticalScrollIndicator={false}>
+            <Text style={[exportStyles.previewText, { color: colors.foreground }]}>{exportText}</Text>
+          </ScrollView>
+          <View style={modalStyles.actions}>
+            <TouchableOpacity onPress={handleCopy} activeOpacity={0.8} style={[modalStyles.actionBtn, { backgroundColor: copied ? "#10B981" : colors.surface, borderColor: copied ? "#10B981" : colors.border }]}>
+              <IconSymbol name="doc.on.doc" size={18} color={copied ? "#FFFFFF" : colors.foreground} />
+              <Text style={[modalStyles.actionBtnText, { color: copied ? "#FFFFFF" : colors.foreground }]}>{copied ? "Copied!" : "Copy All"}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={handleShare} activeOpacity={0.8} style={[modalStyles.actionBtn, { backgroundColor: colors.primary, borderColor: colors.primary }]}>
+              <IconSymbol name="square.and.arrow.up" size={18} color="#FFFFFF" />
+              <Text style={[modalStyles.actionBtnText, { color: "#FFFFFF" }]}>Share</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
+    </Modal>
+  );
+}
+
+// ─── Export Captions Modal ────────────────────────────────────────────────────
+
+function ExportCaptionsModal({
+  captions,
+  visible,
+  onClose,
+  colors,
+}: {
+  captions: SavedCaption[];
+  visible: boolean;
+  onClose: () => void;
+  colors: any;
+}) {
+  const [copied, setCopied] = useState(false);
+
+  const exportText = captions.length === 0
+    ? "No captions saved yet."
+    : captions.map((c, idx) => {
+        const lines = [
+          `━━━ CAPTION ${idx + 1}: ${c.platform.toUpperCase()} | ${c.tone.toUpperCase()} ━━━`,
+          ``,
+          `📝 Caption:`,
+          c.caption,
+        ];
+        if (c.hashtags?.length) {
+          lines.push(``, `#️⃣ Hashtags:`, c.hashtags.join(" "));
+        }
+        return lines.join("\n");
+      }).join("\n\n") + `\n\n✨ Created with ContentCraft\n${APP_WEB_URL}`;
+
+  const handleCopy = () => {
+    Clipboard.setString(exportText);
+    setCopied(true);
+    if (Platform.OS !== "web") Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    setTimeout(() => setCopied(false), 2500);
+  };
+
+  const handleShare = async () => {
+    try {
+      if (Platform.OS !== "web") Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      await Share.share({ message: exportText, title: "ContentCraft Captions" });
+    } catch {}
+  };
+
+  return (
+    <Modal visible={visible} animationType="slide" transparent={true} onRequestClose={onClose} statusBarTranslucent={true} hardwareAccelerated={true}>
+      <View style={modalStyles.overlay}>
+        <TouchableOpacity style={modalStyles.backdrop} activeOpacity={1} onPress={onClose} />
+        <View style={[modalStyles.sheet, { backgroundColor: colors.background }]}>
+          <View style={[modalStyles.handle, { backgroundColor: colors.border }]} />
+          <View style={modalStyles.header}>
+            <View style={{ flex: 1 }}>
+              <Text style={[modalStyles.title, { color: colors.foreground }]}>Export Captions</Text>
+              <Text style={[modalStyles.subtitle, { color: colors.muted }]}>{captions.length} caption{captions.length !== 1 ? "s" : ""}</Text>
+            </View>
+            <TouchableOpacity onPress={onClose} activeOpacity={0.7} style={[modalStyles.closeBtn, { backgroundColor: colors.surface }]}>
+              <IconSymbol name="xmark" size={16} color={colors.muted} />
+            </TouchableOpacity>
+          </View>
+          <ScrollView style={[exportStyles.previewBox, { backgroundColor: colors.surface, borderColor: colors.border }]} showsVerticalScrollIndicator={false}>
+            <Text style={[exportStyles.previewText, { color: colors.foreground }]}>{exportText}</Text>
+          </ScrollView>
+          <View style={modalStyles.actions}>
+            <TouchableOpacity onPress={handleCopy} activeOpacity={0.8} style={[modalStyles.actionBtn, { backgroundColor: copied ? "#10B981" : colors.surface, borderColor: copied ? "#10B981" : colors.border }]}>
+              <IconSymbol name="doc.on.doc" size={18} color={copied ? "#FFFFFF" : colors.foreground} />
+              <Text style={[modalStyles.actionBtnText, { color: copied ? "#FFFFFF" : colors.foreground }]}>{copied ? "Copied!" : "Copy All"}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={handleShare} activeOpacity={0.8} style={[modalStyles.actionBtn, { backgroundColor: colors.primary, borderColor: colors.primary }]}>
+              <IconSymbol name="square.and.arrow.up" size={18} color="#FFFFFF" />
+              <Text style={[modalStyles.actionBtnText, { color: "#FFFFFF" }]}>Share</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
+    </Modal>
+  );
+}
+
 // ─── Main History Screen ──────────────────────────────────────────────────────
 
 export default function HistoryScreen() {
@@ -674,6 +930,9 @@ export default function HistoryScreen() {
   const [selectedCaption, setSelectedCaption] = useState<SavedCaption | null>(null);
   const [showCaptionModal, setShowCaptionModal] = useState(false);
   const [showExportModal, setShowExportModal] = useState(false);
+  const [showExportAnalysesModal, setShowExportAnalysesModal] = useState(false);
+  const [showExportPromptsModal, setShowExportPromptsModal] = useState(false);
+  const [showExportCaptionsModal, setShowExportCaptionsModal] = useState(false);
 
   const loadAnalyses = useCallback(async () => {
     const data = await AsyncStorage.getItem(SAVED_ANALYSES_KEY);
@@ -1007,11 +1266,25 @@ export default function HistoryScreen() {
               </Text>
             </View>
             {activeTab === "ideas" && !ideasEmpty && (
-              <TouchableOpacity
-                onPress={() => setShowExportModal(true)}
-                activeOpacity={0.8}
-                style={[styles.exportBtn, { backgroundColor: "rgba(255,255,255,0.15)", borderColor: "rgba(255,255,255,0.3)" }]}
-              >
+              <TouchableOpacity onPress={() => setShowExportModal(true)} activeOpacity={0.8} style={[styles.exportBtn, { backgroundColor: "rgba(255,255,255,0.15)", borderColor: "rgba(255,255,255,0.3)" }]}>
+                <IconSymbol name="square.and.arrow.up" size={15} color="#FFFFFF" />
+                <Text style={styles.exportBtnText}>Export</Text>
+              </TouchableOpacity>
+            )}
+            {activeTab === "analyses" && !analysesEmpty && (
+              <TouchableOpacity onPress={() => setShowExportAnalysesModal(true)} activeOpacity={0.8} style={[styles.exportBtn, { backgroundColor: "rgba(255,255,255,0.15)", borderColor: "rgba(255,255,255,0.3)" }]}>
+                <IconSymbol name="square.and.arrow.up" size={15} color="#FFFFFF" />
+                <Text style={styles.exportBtnText}>Export</Text>
+              </TouchableOpacity>
+            )}
+            {activeTab === "prompts" && !promptsEmpty && (
+              <TouchableOpacity onPress={() => setShowExportPromptsModal(true)} activeOpacity={0.8} style={[styles.exportBtn, { backgroundColor: "rgba(255,255,255,0.15)", borderColor: "rgba(255,255,255,0.3)" }]}>
+                <IconSymbol name="square.and.arrow.up" size={15} color="#FFFFFF" />
+                <Text style={styles.exportBtnText}>Export</Text>
+              </TouchableOpacity>
+            )}
+            {activeTab === "captions" && !captionsEmpty && (
+              <TouchableOpacity onPress={() => setShowExportCaptionsModal(true)} activeOpacity={0.8} style={[styles.exportBtn, { backgroundColor: "rgba(255,255,255,0.15)", borderColor: "rgba(255,255,255,0.3)" }]}>
                 <IconSymbol name="square.and.arrow.up" size={15} color="#FFFFFF" />
                 <Text style={styles.exportBtnText}>Export</Text>
               </TouchableOpacity>
@@ -1176,6 +1449,24 @@ export default function HistoryScreen() {
         ideas={savedIdeas}
         visible={showExportModal}
         onClose={() => setShowExportModal(false)}
+        colors={colors}
+      />
+      <ExportAnalysesModal
+        analyses={analyses}
+        visible={showExportAnalysesModal}
+        onClose={() => setShowExportAnalysesModal(false)}
+        colors={colors}
+      />
+      <ExportPromptsModal
+        prompts={savedPrompts}
+        visible={showExportPromptsModal}
+        onClose={() => setShowExportPromptsModal(false)}
+        colors={colors}
+      />
+      <ExportCaptionsModal
+        captions={savedCaptions}
+        visible={showExportCaptionsModal}
+        onClose={() => setShowExportCaptionsModal(false)}
         colors={colors}
       />
     </View>

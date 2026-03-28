@@ -3,7 +3,7 @@ import { publicProcedure, router } from "./_core/trpc";
 import { invokeLLM } from "./_core/llm";
 
 const platformSchema = z.enum(["instagram", "facebook", "tiktok", "youtube", "linkedin"]);
-const contentTypeSchema = z.enum(["post", "reel", "story", "carousel", "long-form", "short", "image", "video"]);
+const contentTypeSchema = z.enum(["post", "reel", "story", "carousel", "long-form", "short", "image", "video", "talking-head"]);
 
 export const contentRouter = router({
   generateIdeas: publicProcedure
@@ -59,6 +59,12 @@ export const contentRouter = router({
 - "storyFrames": array of {frameNumber, content, interactiveElement} (e.g. poll, question sticker, swipe-up)
 - "frameCount": recommended number of frames (3-7)
 - "goal": awareness | engagement | traffic | sales`,
+        "talking-head": `For each talking head video idea, focus on topics best delivered by a person speaking directly to camera — industry insights, how-to tutorials, Q&As, company announcements, and storytelling. Include:
+- "talkingHeadScript": object with "openingHook" (exact first 5-10 seconds on camera), "keyTalkingPoints" (array of 3-5 points the speaker covers), "personalityAngle" (e.g. authoritative, relatable, vulnerable, inspiring), "closingLine" (final on-camera line before CTA)
+- "topicCategory": one of: industry-insight | how-to-tutorial | qa-session | company-announcement | storytelling
+- "estimatedDuration": e.g. "2-4 minutes"
+- "expertiseAngle": what specific expertise or lived experience the speaker draws on to make this authentic
+- "audienceProblemSolved": the specific audience pain point this talking head addresses`,
       };
 
       const formatKey = contentType as string;
@@ -246,7 +252,7 @@ Return JSON in this exact format:
       const toolGuides: Record<string, string> = {
         midjourney: "Use Midjourney v6 syntax: descriptive subject, style keywords, lighting, camera, --ar ratio, --style raw, --v 6",
         dalle: "Use DALL-E 3 syntax: clear descriptive prose, specify art style, lighting, composition, mood",
-        sora: "Use OpenAI Sora syntax: describe scene, camera movement, duration, lighting, cinematic style",
+        hedra: "Use Hedra syntax: describe the speaker appearance, background setting, speaking style, emotional tone, and any specific gestures or expressions for the talking head video",
         runway: "Use Runway Gen-3 syntax: describe visual scene, motion direction, camera angle, atmosphere",
         "stable-diffusion": "Use Stable Diffusion syntax: subject, style tags, quality boosters like (masterpiece:1.2), negative prompts",
         kling: "Use Kling AI syntax: describe scene cinematically, include camera movement, lighting, and mood",
