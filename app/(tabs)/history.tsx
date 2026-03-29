@@ -32,7 +32,7 @@ function OverlaySheet({
   return (
     <View style={overlayStyles.root}>
       <TouchableOpacity style={overlayStyles.backdrop} activeOpacity={1} onPress={onClose} />
-      <View style={[overlayStyles.sheet, { maxHeight: sheetMax }]}>{children}</View>
+      <View style={[overlayStyles.sheet, { maxHeight: sheetMax, flex: 1 }]}>{children}</View>
     </View>
   );
 }
@@ -148,7 +148,7 @@ function IdeaDetailModal({
             <Text style={[modalStyles.subtitle, { color: colors.muted }]}>Niche: {idea.niche}</Text>
           </View>
         </View>
-        <ScrollView showsVerticalScrollIndicator={false} style={{ maxHeight: windowHeight * 0.9 - 220 }} contentContainerStyle={{ gap: 14, paddingBottom: 24 }}>
+        <ScrollView showsVerticalScrollIndicator={false} style={{ flex: 1 }} contentContainerStyle={{ gap: 14, paddingBottom: 16 }}>
           <View style={[modalStyles.section, { backgroundColor: colors.primary + "0A", borderLeftColor: colors.primary }]}>
             <View style={modalStyles.sectionHeader}>
               <IconSymbol name="bolt.fill" size={14} color={colors.primary} />
@@ -256,7 +256,7 @@ function AnalysisDetailModal({
             </View>
           </View>
 
-          <ScrollView showsVerticalScrollIndicator={false} style={{ maxHeight: windowHeight * 0.9 - 220 }} contentContainerStyle={{ gap: 14, paddingBottom: 24 }}>
+          <ScrollView showsVerticalScrollIndicator={false} style={{ flex: 1 }} contentContainerStyle={{ gap: 14, paddingBottom: 16 }}>
             <View style={[modalStyles.section, { backgroundColor: colors.surface, borderLeftColor: colors.primary }]}>
               <View style={modalStyles.sectionHeader}>
                 <IconSymbol name="doc.text.fill" size={14} color={colors.primary} />
@@ -390,7 +390,7 @@ function PromptDetailModal({
             </View>
           </View>
 
-          <ScrollView showsVerticalScrollIndicator={false} style={{ maxHeight: windowHeight * 0.9 - 220 }} contentContainerStyle={{ gap: 14, paddingBottom: 24 }}>
+          <ScrollView showsVerticalScrollIndicator={false} style={{ flex: 1 }} contentContainerStyle={{ gap: 14, paddingBottom: 16 }}>
             <View style={[modalStyles.section, { backgroundColor: toolColor + "08", borderLeftColor: toolColor }]}>
               <View style={modalStyles.sectionHeader}>
                 <IconSymbol name="wand.and.stars" size={14} color={toolColor} />
@@ -511,7 +511,7 @@ function CaptionDetailModal({
             </View>
           </View>
 
-          <ScrollView showsVerticalScrollIndicator={false} style={{ maxHeight: windowHeight * 0.9 - 220 }} contentContainerStyle={{ gap: 14, paddingBottom: 24 }}>
+          <ScrollView showsVerticalScrollIndicator={false} style={{ flex: 1 }} contentContainerStyle={{ gap: 14, paddingBottom: 16 }}>
             <View style={[modalStyles.section, { backgroundColor: pColor + "08", borderLeftColor: pColor }]}>
               <View style={modalStyles.sectionHeader}>
                 <IconSymbol name="text.bubble.fill" size={14} color={pColor} />
@@ -717,7 +717,7 @@ function ExportAnalysesModal({
               <Text style={[modalStyles.subtitle, { color: colors.muted }]}>{analyses.length} niche intelligence report{analyses.length !== 1 ? "s" : ""}</Text>
             </View>
           </View>
-          <ScrollView style={[exportStyles.previewBox, { backgroundColor: colors.surface, borderColor: colors.border }]} showsVerticalScrollIndicator={false}>
+          <ScrollView style={[exportStyles.previewBox, { backgroundColor: colors.surface, borderColor: colors.border, flex: 1 }]} showsVerticalScrollIndicator={false}>
             <Text style={[exportStyles.previewText, { color: colors.foreground }]}>{exportText}</Text>
           </ScrollView>
           <View style={modalStyles.actions}>
@@ -803,7 +803,7 @@ function ExportPromptsModal({
               <Text style={[modalStyles.subtitle, { color: colors.muted }]}>{prompts.length} AI prompt{prompts.length !== 1 ? "s" : ""}</Text>
             </View>
           </View>
-          <ScrollView style={[exportStyles.previewBox, { backgroundColor: colors.surface, borderColor: colors.border }]} showsVerticalScrollIndicator={false}>
+          <ScrollView style={[exportStyles.previewBox, { backgroundColor: colors.surface, borderColor: colors.border, flex: 1 }]} showsVerticalScrollIndicator={false}>
             <Text style={[exportStyles.previewText, { color: colors.foreground }]}>{exportText}</Text>
           </ScrollView>
           <View style={modalStyles.actions}>
@@ -879,7 +879,7 @@ function ExportCaptionsModal({
               <Text style={[modalStyles.subtitle, { color: colors.muted }]}>{captions.length} caption{captions.length !== 1 ? "s" : ""}</Text>
             </View>
           </View>
-          <ScrollView style={[exportStyles.previewBox, { backgroundColor: colors.surface, borderColor: colors.border }]} showsVerticalScrollIndicator={false}>
+          <ScrollView style={[exportStyles.previewBox, { backgroundColor: colors.surface, borderColor: colors.border, flex: 1 }]} showsVerticalScrollIndicator={false}>
             <Text style={[exportStyles.previewText, { color: colors.foreground }]}>{exportText}</Text>
           </ScrollView>
           <View style={modalStyles.actions}>
@@ -944,7 +944,7 @@ function VisualDetailModal({
 
   return (
     <OverlaySheet visible={visible} onClose={onClose}>
-        <View style={[modalStyles.sheet, { backgroundColor: colors.background, maxHeight: windowHeight * 0.92, minHeight: windowHeight * 0.75 }]}>
+        <View style={[modalStyles.sheet, { backgroundColor: colors.background }]}>
           <View style={[modalStyles.handle, { backgroundColor: colors.border }]} />
           <View style={modalStyles.header}>
             <View style={{ flex: 1 }}>
@@ -1088,7 +1088,7 @@ function ExportVisualsModal({
               <Text style={[modalStyles.subtitle, { color: colors.muted }]}>{visuals.length} visual{visuals.length !== 1 ? "s" : ""}</Text>
             </View>
           </View>
-          <ScrollView style={[exportStyles.previewBox, { backgroundColor: colors.surface, borderColor: colors.border, maxHeight: windowHeight * 0.9 - 220 }]} showsVerticalScrollIndicator={false}>
+               <ScrollView style={[exportStyles.previewBox, { backgroundColor: colors.surface, borderColor: colors.border, flex: 1 }]} showsVerticalScrollIndicator={false}>
             <Text style={[exportStyles.previewText, { color: colors.foreground }]}>{exportText}</Text>
           </ScrollView>
           <View style={modalStyles.actions}>
@@ -1110,7 +1110,7 @@ function ExportVisualsModal({
   );
 }
 
-// ─── Main History Screen ──────────────────────────────────────────────────────
+// ─── Main History Screenreen ──────────────────────────────────────────────────────
 
 export default function HistoryScreen() {
   const colors = useColors();
@@ -2053,8 +2053,9 @@ const modalStyles = StyleSheet.create({
   overlay: { flex: 1, justifyContent: "flex-end", backgroundColor: "transparent" },
   backdrop: { position: "absolute", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0,0,0,0.55)" },
   sheet: {
+    flex: 1,
     borderTopLeftRadius: 24, borderTopRightRadius: 24,
-    paddingTop: 12, paddingHorizontal: 20, paddingBottom: 32,
+    paddingTop: 12, paddingHorizontal: 20, paddingBottom: 20,
     elevation: 32,
     shadowColor: "#000", shadowOffset: { width: 0, height: -4 }, shadowOpacity: 0.2, shadowRadius: 16,
   },
