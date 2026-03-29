@@ -147,9 +147,6 @@ function IdeaDetailModal({
             <Text style={[modalStyles.title, { color: colors.foreground }]}>{idea.title}</Text>
             <Text style={[modalStyles.subtitle, { color: colors.muted }]}>Niche: {idea.niche}</Text>
           </View>
-          <TouchableOpacity onPress={onClose} activeOpacity={0.7} style={[modalStyles.closeBtn, { backgroundColor: colors.surface }]}>
-            <IconSymbol name="xmark" size={16} color={colors.muted} />
-          </TouchableOpacity>
         </View>
         <ScrollView showsVerticalScrollIndicator={false} style={{ maxHeight: windowHeight * 0.9 - 220 }} contentContainerStyle={{ gap: 14, paddingBottom: 24 }}>
           <View style={[modalStyles.section, { backgroundColor: colors.primary + "0A", borderLeftColor: colors.primary }]}>
@@ -184,6 +181,10 @@ function IdeaDetailModal({
             <Text style={[modalStyles.actionBtnText, { color: "#FFFFFF" }]}>Share</Text>
           </TouchableOpacity>
         </View>
+        <TouchableOpacity onPress={onClose} activeOpacity={0.8} style={[modalStyles.closeBottomBtn, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+          <IconSymbol name="xmark" size={16} color={colors.muted} />
+          <Text style={[modalStyles.closeBottomBtnText, { color: colors.muted }]}>Close</Text>
+        </TouchableOpacity>
       </View>
     </OverlaySheet>
   );
@@ -253,9 +254,6 @@ function AnalysisDetailModal({
               <Text style={[modalStyles.title, { color: colors.foreground }]}>{analysis.niche}</Text>
               <Text style={[modalStyles.subtitle, { color: colors.muted }]}>{formatDate(analysis.savedAt)}</Text>
             </View>
-            <TouchableOpacity onPress={onClose} activeOpacity={0.7} style={[modalStyles.closeBtn, { backgroundColor: colors.surface }]}>
-              <IconSymbol name="xmark" size={16} color={colors.muted} />
-            </TouchableOpacity>
           </View>
 
           <ScrollView showsVerticalScrollIndicator={false} style={{ maxHeight: windowHeight * 0.9 - 220 }} contentContainerStyle={{ gap: 14, paddingBottom: 24 }}>
@@ -324,6 +322,10 @@ function AnalysisDetailModal({
               <Text style={[modalStyles.actionBtnText, { color: "#FFFFFF" }]}>Share</Text>
             </TouchableOpacity>
           </View>
+          <TouchableOpacity onPress={onClose} activeOpacity={0.8} style={[modalStyles.closeBottomBtn, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+            <IconSymbol name="xmark" size={16} color={colors.muted} />
+            <Text style={[modalStyles.closeBottomBtnText, { color: colors.muted }]}>Close</Text>
+          </TouchableOpacity>
         </View>
     </OverlaySheet>
   );
@@ -386,9 +388,6 @@ function PromptDetailModal({
                 {prompt.platform.charAt(0).toUpperCase() + prompt.platform.slice(1)} · {prompt.estimatedQuality}
               </Text>
             </View>
-            <TouchableOpacity onPress={onClose} activeOpacity={0.7} style={[modalStyles.closeBtn, { backgroundColor: colors.surface }]}>
-              <IconSymbol name="xmark" size={16} color={colors.muted} />
-            </TouchableOpacity>
           </View>
 
           <ScrollView showsVerticalScrollIndicator={false} style={{ maxHeight: windowHeight * 0.9 - 220 }} contentContainerStyle={{ gap: 14, paddingBottom: 24 }}>
@@ -445,6 +444,10 @@ function PromptDetailModal({
               <Text style={[modalStyles.actionBtnText, { color: "#FFFFFF" }]}>Share</Text>
             </TouchableOpacity>
           </View>
+          <TouchableOpacity onPress={onClose} activeOpacity={0.8} style={[modalStyles.closeBottomBtn, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+            <IconSymbol name="xmark" size={16} color={colors.muted} />
+            <Text style={[modalStyles.closeBottomBtnText, { color: colors.muted }]}>Close</Text>
+          </TouchableOpacity>
         </View>
     </OverlaySheet>
   );
@@ -506,9 +509,6 @@ function CaptionDetailModal({
               <Text style={[modalStyles.title, { color: colors.foreground }]}>{caption.topic}</Text>
               <Text style={[modalStyles.subtitle, { color: colors.muted }]}>{caption.characterCount} characters</Text>
             </View>
-            <TouchableOpacity onPress={onClose} activeOpacity={0.7} style={[modalStyles.closeBtn, { backgroundColor: colors.surface }]}>
-              <IconSymbol name="xmark" size={16} color={colors.muted} />
-            </TouchableOpacity>
           </View>
 
           <ScrollView showsVerticalScrollIndicator={false} style={{ maxHeight: windowHeight * 0.9 - 220 }} contentContainerStyle={{ gap: 14, paddingBottom: 24 }}>
@@ -543,6 +543,10 @@ function CaptionDetailModal({
               <Text style={[modalStyles.actionBtnText, { color: "#FFFFFF" }]}>Share</Text>
             </TouchableOpacity>
           </View>
+          <TouchableOpacity onPress={onClose} activeOpacity={0.8} style={[modalStyles.closeBottomBtn, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+            <IconSymbol name="xmark" size={16} color={colors.muted} />
+            <Text style={[modalStyles.closeBottomBtnText, { color: colors.muted }]}>Close</Text>
+          </TouchableOpacity>
         </View>
     </OverlaySheet>
   );
@@ -598,9 +602,6 @@ function ExportModal({
               <Text style={[modalStyles.title, { color: colors.foreground }]}>Export Ideas</Text>
               <Text style={[modalStyles.subtitle, { color: colors.muted }]}>Compile ideas by platform into a single text block</Text>
             </View>
-            <TouchableOpacity onPress={onClose} activeOpacity={0.7} style={[modalStyles.closeBtn, { backgroundColor: colors.surface }]}>
-              <IconSymbol name="xmark" size={16} color={colors.muted} />
-            </TouchableOpacity>
           </View>
 
           <View style={exportStyles.filterLabel}>
@@ -641,6 +642,10 @@ function ExportModal({
               <Text style={[modalStyles.actionBtnText, { color: "#FFFFFF" }]}>Share</Text>
             </TouchableOpacity>
           </View>
+          <TouchableOpacity onPress={onClose} activeOpacity={0.8} style={[modalStyles.closeBottomBtn, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+            <IconSymbol name="xmark" size={16} color={colors.muted} />
+            <Text style={[modalStyles.closeBottomBtnText, { color: colors.muted }]}>Close</Text>
+          </TouchableOpacity>
         </View>
     </OverlaySheet>
   );
@@ -711,9 +716,6 @@ function ExportAnalysesModal({
               <Text style={[modalStyles.title, { color: colors.foreground }]}>Export Analyses</Text>
               <Text style={[modalStyles.subtitle, { color: colors.muted }]}>{analyses.length} niche intelligence report{analyses.length !== 1 ? "s" : ""}</Text>
             </View>
-            <TouchableOpacity onPress={onClose} activeOpacity={0.7} style={[modalStyles.closeBtn, { backgroundColor: colors.surface }]}>
-              <IconSymbol name="xmark" size={16} color={colors.muted} />
-            </TouchableOpacity>
           </View>
           <ScrollView style={[exportStyles.previewBox, { backgroundColor: colors.surface, borderColor: colors.border }]} showsVerticalScrollIndicator={false}>
             <Text style={[exportStyles.previewText, { color: colors.foreground }]}>{exportText}</Text>
@@ -728,6 +730,10 @@ function ExportAnalysesModal({
               <Text style={[modalStyles.actionBtnText, { color: "#FFFFFF" }]}>Share</Text>
             </TouchableOpacity>
           </View>
+          <TouchableOpacity onPress={onClose} activeOpacity={0.8} style={[modalStyles.closeBottomBtn, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+            <IconSymbol name="xmark" size={16} color={colors.muted} />
+            <Text style={[modalStyles.closeBottomBtnText, { color: colors.muted }]}>Close</Text>
+          </TouchableOpacity>
         </View>
     </OverlaySheet>
   );
@@ -796,9 +802,6 @@ function ExportPromptsModal({
               <Text style={[modalStyles.title, { color: colors.foreground }]}>Export Prompts</Text>
               <Text style={[modalStyles.subtitle, { color: colors.muted }]}>{prompts.length} AI prompt{prompts.length !== 1 ? "s" : ""}</Text>
             </View>
-            <TouchableOpacity onPress={onClose} activeOpacity={0.7} style={[modalStyles.closeBtn, { backgroundColor: colors.surface }]}>
-              <IconSymbol name="xmark" size={16} color={colors.muted} />
-            </TouchableOpacity>
           </View>
           <ScrollView style={[exportStyles.previewBox, { backgroundColor: colors.surface, borderColor: colors.border }]} showsVerticalScrollIndicator={false}>
             <Text style={[exportStyles.previewText, { color: colors.foreground }]}>{exportText}</Text>
@@ -813,6 +816,10 @@ function ExportPromptsModal({
               <Text style={[modalStyles.actionBtnText, { color: "#FFFFFF" }]}>Share</Text>
             </TouchableOpacity>
           </View>
+          <TouchableOpacity onPress={onClose} activeOpacity={0.8} style={[modalStyles.closeBottomBtn, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+            <IconSymbol name="xmark" size={16} color={colors.muted} />
+            <Text style={[modalStyles.closeBottomBtnText, { color: colors.muted }]}>Close</Text>
+          </TouchableOpacity>
         </View>
     </OverlaySheet>
   );
@@ -871,9 +878,6 @@ function ExportCaptionsModal({
               <Text style={[modalStyles.title, { color: colors.foreground }]}>Export Captions</Text>
               <Text style={[modalStyles.subtitle, { color: colors.muted }]}>{captions.length} caption{captions.length !== 1 ? "s" : ""}</Text>
             </View>
-            <TouchableOpacity onPress={onClose} activeOpacity={0.7} style={[modalStyles.closeBtn, { backgroundColor: colors.surface }]}>
-              <IconSymbol name="xmark" size={16} color={colors.muted} />
-            </TouchableOpacity>
           </View>
           <ScrollView style={[exportStyles.previewBox, { backgroundColor: colors.surface, borderColor: colors.border }]} showsVerticalScrollIndicator={false}>
             <Text style={[exportStyles.previewText, { color: colors.foreground }]}>{exportText}</Text>
@@ -888,6 +892,10 @@ function ExportCaptionsModal({
               <Text style={[modalStyles.actionBtnText, { color: "#FFFFFF" }]}>Share</Text>
             </TouchableOpacity>
           </View>
+          <TouchableOpacity onPress={onClose} activeOpacity={0.8} style={[modalStyles.closeBottomBtn, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+            <IconSymbol name="xmark" size={16} color={colors.muted} />
+            <Text style={[modalStyles.closeBottomBtnText, { color: colors.muted }]}>Close</Text>
+          </TouchableOpacity>
         </View>
     </OverlaySheet>
   );
@@ -943,9 +951,6 @@ function VisualDetailModal({
               <Text style={[modalStyles.title, { color: colors.foreground }]}>{visual.mediaType === "image" ? "Image" : "Video"} Visual Direction</Text>
               <Text style={[modalStyles.subtitle, { color: colors.muted }]}>{visual.platform} · {visual.contentType}</Text>
             </View>
-            <TouchableOpacity onPress={onClose} activeOpacity={0.7} style={[modalStyles.closeBtn, { backgroundColor: colors.surface }]}>
-              <IconSymbol name="xmark" size={16} color={colors.muted} />
-            </TouchableOpacity>
           </View>
           <ScrollView showsVerticalScrollIndicator={false} style={{ flex: 1 }} contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 20 }}>
             {/* From Idea */}
@@ -1015,6 +1020,10 @@ function VisualDetailModal({
               <Text style={[modalStyles.actionBtnText, { color: "#EF4444" }]}>Delete</Text>
             </TouchableOpacity>
           </View>
+          <TouchableOpacity onPress={onClose} activeOpacity={0.8} style={[modalStyles.closeBottomBtn, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+            <IconSymbol name="xmark" size={16} color={colors.muted} />
+            <Text style={[modalStyles.closeBottomBtnText, { color: colors.muted }]}>Close</Text>
+          </TouchableOpacity>
         </View>
     </OverlaySheet>
   );
@@ -1078,9 +1087,6 @@ function ExportVisualsModal({
               <Text style={[modalStyles.title, { color: colors.foreground }]}>Export Visual Directions</Text>
               <Text style={[modalStyles.subtitle, { color: colors.muted }]}>{visuals.length} visual{visuals.length !== 1 ? "s" : ""}</Text>
             </View>
-            <TouchableOpacity onPress={onClose} activeOpacity={0.7} style={[modalStyles.closeBtn, { backgroundColor: colors.surface }]}>
-              <IconSymbol name="xmark" size={16} color={colors.muted} />
-            </TouchableOpacity>
           </View>
           <ScrollView style={[exportStyles.previewBox, { backgroundColor: colors.surface, borderColor: colors.border, maxHeight: windowHeight * 0.9 - 220 }]} showsVerticalScrollIndicator={false}>
             <Text style={[exportStyles.previewText, { color: colors.foreground }]}>{exportText}</Text>
@@ -1095,6 +1101,10 @@ function ExportVisualsModal({
               <Text style={[modalStyles.actionBtnText, { color: "#FFFFFF" }]}>Share</Text>
             </TouchableOpacity>
           </View>
+          <TouchableOpacity onPress={onClose} activeOpacity={0.8} style={[modalStyles.closeBottomBtn, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+            <IconSymbol name="xmark" size={16} color={colors.muted} />
+            <Text style={[modalStyles.closeBottomBtnText, { color: colors.muted }]}>Close</Text>
+          </TouchableOpacity>
         </View>
     </OverlaySheet>
   );
@@ -2060,6 +2070,8 @@ const modalStyles = StyleSheet.create({
   title: { fontSize: 18, fontWeight: "800", letterSpacing: -0.3, lineHeight: 24 },
   subtitle: { fontSize: 13, marginTop: 2 },
   closeBtn: { width: 32, height: 32, borderRadius: 16, alignItems: "center", justifyContent: "center" },
+  closeBottomBtn: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, marginTop: 10, paddingVertical: 12, borderRadius: 12, borderWidth: 1 },
+  closeBottomBtnText: { fontSize: 15, fontWeight: "600" },
   section: { borderLeftWidth: 3, paddingLeft: 12, paddingVertical: 10, borderRadius: 6, gap: 4 },
   sectionHeader: { flexDirection: "row", alignItems: "center", gap: 6 },
   sectionLabel: { fontSize: 10, fontWeight: "800", textTransform: "uppercase", letterSpacing: 0.8 },

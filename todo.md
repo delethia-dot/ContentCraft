@@ -350,3 +350,6 @@
 - [x] History: ideas are not editable on desktop (edit modal missing)
 - [x] History: editing an idea does not update the linked calendar entry (mobile + desktop)
 - [x] Performance Tracker: desktop still shows old interface — all Phase 5 changes missing on desktop
+
+## Bug Fix - History Detail Close Button
+- [ ] History: move X close button from top to bottom of idea detail sheet so it's reachable on mobile
