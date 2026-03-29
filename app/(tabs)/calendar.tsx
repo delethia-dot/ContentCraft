@@ -10,7 +10,6 @@ import {
   Platform,
   Dimensions,
   useWindowDimensions,
-  Modal,
 } from "react-native";
 import { ScreenContainer } from "@/components/screen-container";
 import { IconSymbol } from "@/components/ui/icon-symbol";
@@ -58,8 +57,7 @@ function formatDisplayDate(dateStr: string): string {
 }
 
 // ─── Cross-platform overlay sheet ────────────────────────────────────────────
-// Uses Modal on native (works perfectly) and a fixed-position View on web
-// (position:absolute fails on web because it's relative to parent, not viewport)
+// Replaces React Native Modal (which doesn't render properly on web/desktop)
 
 interface OverlaySheetProps {
   visible: boolean;
@@ -70,56 +68,26 @@ interface OverlaySheetProps {
 
 function OverlaySheet({ visible, onClose, children, maxHeight }: OverlaySheetProps) {
   const { height: winH } = useWindowDimensions();
-  const sheetMax = maxHeight ?? winH * 0.85;
-
-  if (Platform.OS === "web") {
-    // On web: use a fixed-position overlay that covers the full viewport
-    if (!visible) return null;
-    return (
-      <View
-        style={[
-          overlayStyles.webRoot,
-          // @ts-ignore - position fixed is web-only
-          { position: "fixed" as any },
-        ]}
-      >
-        <TouchableOpacity style={overlayStyles.backdrop} activeOpacity={1} onPress={onClose} />
-        <View style={[overlayStyles.sheet, { maxHeight: sheetMax }]}>
-          {children}
-        </View>
-      </View>
-    );
-  }
-
-  // On native: use Modal which properly renders above everything
+  if (!visible) return null;
+  const sheetMax = maxHeight ?? winH * 0.9;
   return (
-    <Modal
-      visible={visible}
-      transparent
-      animationType="slide"
-      onRequestClose={onClose}
-      statusBarTranslucent
-    >
-      <View style={overlayStyles.nativeRoot}>
-        <TouchableOpacity style={overlayStyles.backdrop} activeOpacity={1} onPress={onClose} />
-        <View style={[overlayStyles.sheet, { maxHeight: sheetMax }]}>
-          {children}
-        </View>
+    <View style={overlayStyles.root}>
+      {/* Backdrop */}
+      <TouchableOpacity style={overlayStyles.backdrop} activeOpacity={1} onPress={onClose} />
+      {/* Sheet */}
+      <View style={[overlayStyles.sheet, { maxHeight: sheetMax }]}>
+        {children}
       </View>
-    </Modal>
+    </View>
   );
 }
 
 const overlayStyles = StyleSheet.create({
-  webRoot: {
+  root: {
+    position: "absolute",
     top: 0, left: 0, right: 0, bottom: 0,
     zIndex: 9999,
     justifyContent: "flex-end",
-  },
-  nativeRoot: {
-    flex: 1,
-    justifyContent: "flex-end",
-    backgroundColor: "transparent",
   },
   backdrop: {
     position: "absolute",
@@ -129,7 +97,7 @@ const overlayStyles = StyleSheet.create({
   sheet: {
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
-    minHeight: "50%" as any,
+    minHeight: "50%",
     overflow: "hidden",
   },
 });
@@ -379,8 +347,6 @@ const sheetStyles = StyleSheet.create({
 
 export default function CalendarScreen() {
   const colors = useColors();
-  const { width: screenWidth } = useWindowDimensions();
-  const isDesktop = Platform.OS === "web" && screenWidth >= 768;
   const { calendarEntries, addCalendarEntry, updateCalendarEntry, removeCalendarEntry } = useStorage();
   const { savedIdeas } = useSavedIdeas();
 
@@ -462,250 +428,268 @@ export default function CalendarScreen() {
     return h === 0 ? "12:00 AM" : h < 12 ? `${h}:00 AM` : h === 12 ? "12:00 PM" : `${h - 12}:00 PM`;
   }
 
-  // ─── Calendar grid JSX (shared between mobile and desktop) ────────────────
-  const calendarGridJSX = (
-    <>
-      {/* View Mode Toggle */}
-      <View style={[styles.viewToggle, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-        {(["month", "week"] as const).map((mode) => (
-          <TouchableOpacity
-            key={mode}
-            onPress={() => setViewMode(mode)}
-            activeOpacity={0.8}
-            style={[styles.viewToggleBtn, viewMode === mode && { backgroundColor: colors.primary }]}
-          >
-            <Text style={[styles.viewToggleBtnText, { color: viewMode === mode ? "#FFFFFF" : colors.muted }]}>
-              {mode.charAt(0).toUpperCase() + mode.slice(1)}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </View>
-
-      {/* Month Navigation */}
-      <View style={[styles.monthNav, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-        <TouchableOpacity onPress={handlePrevMonth} activeOpacity={0.7} style={styles.navBtn}>
-          <IconSymbol name="chevron.left" size={20} color={colors.foreground} />
-        </TouchableOpacity>
-        <Text style={[styles.monthTitle, { color: colors.foreground }]}>
-          {MONTHS[month]} {year}
-        </Text>
-        <TouchableOpacity onPress={handleNextMonth} activeOpacity={0.7} style={styles.navBtn}>
-          <IconSymbol name="chevron.right" size={20} color={colors.foreground} />
-        </TouchableOpacity>
-      </View>
-
-      {/* Calendar Grid */}
-      {viewMode === "month" ? (
-        <View style={[styles.calendarCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-          <View style={styles.dayHeaderRow}>
-            {DAYS_OF_WEEK.map((d) => (
-              <View key={d} style={styles.dayHeaderCell}>
-                <Text style={[styles.dayHeaderText, { color: colors.muted }]}>{d}</Text>
-              </View>
-            ))}
-          </View>
-          <View style={styles.daysGrid}>
-            {calendarDays.map((dateStr, idx) => {
-              if (!dateStr) return <View key={`empty-${idx}`} style={styles.dayCell} />;
-              const isToday = dateStr === todayStr;
-              const isSelected = dateStr === selectedDate;
-              const dayEntries = entriesForDate(dateStr);
-              const hasEntries = dayEntries.length > 0;
-              return (
-                <TouchableOpacity
-                  key={dateStr}
-                  onPress={() => setSelectedDate(dateStr)}
-                  activeOpacity={0.7}
-                  style={[
-                    styles.dayCell,
-                    isSelected && { backgroundColor: colors.primary, borderRadius: 10 },
-                    isToday && !isSelected && { borderWidth: 1.5, borderColor: colors.primary, borderRadius: 10 },
-                  ]}
-                >
-                  <Text style={[
-                    styles.dayNum,
-                    { color: isSelected ? "#FFFFFF" : isToday ? colors.primary : colors.foreground },
-                  ]}>
-                    {dateStr.split("-")[2].replace(/^0/, "")}
-                  </Text>
-                  {hasEntries && (
-                    <View style={styles.dotRow}>
-                      {dayEntries.slice(0, 3).map((e, i) => (
-                        <View key={i} style={[styles.entryDot, { backgroundColor: isSelected ? "rgba(255,255,255,0.7)" : PLATFORM_COLORS[e.platform] }]} />
-                      ))}
-                    </View>
-                  )}
-                </TouchableOpacity>
-              );
-            })}
-          </View>
-        </View>
-      ) : (
-        <View style={[styles.calendarCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-          <View style={styles.weekRow}>
-            {weekDays.map((dateStr) => {
-              const isToday = dateStr === todayStr;
-              const isSelected = dateStr === selectedDate;
-              const dayEntries = entriesForDate(dateStr);
-              const dayNum = parseInt(dateStr.split("-")[2], 10);
-              const dayOfWeek = new Date(dateStr + "T00:00:00").getDay();
-              return (
-                <TouchableOpacity
-                  key={dateStr}
-                  onPress={() => setSelectedDate(dateStr)}
-                  activeOpacity={0.7}
-                  style={[
-                    styles.weekDayCell,
-                    isSelected && { backgroundColor: colors.primary, borderRadius: 12 },
-                    isToday && !isSelected && { borderWidth: 1.5, borderColor: colors.primary, borderRadius: 12 },
-                  ]}
-                >
-                  <Text style={[styles.weekDayName, { color: isSelected ? "rgba(255,255,255,0.7)" : colors.muted }]}>
-                    {DAYS_OF_WEEK[dayOfWeek]}
-                  </Text>
-                  <Text style={[styles.weekDayNum, { color: isSelected ? "#FFFFFF" : isToday ? colors.primary : colors.foreground }]}>
-                    {dayNum}
-                  </Text>
-                  {dayEntries.length > 0 && (
-                    <View style={[styles.weekEntryBadge, { backgroundColor: isSelected ? "rgba(255,255,255,0.3)" : colors.primary + "20" }]}>
-                      <Text style={[styles.weekEntryBadgeText, { color: isSelected ? "#FFFFFF" : colors.primary }]}>
-                        {dayEntries.length}
-                      </Text>
-                    </View>
-                  )}
-                </TouchableOpacity>
-              );
-            })}
-          </View>
-        </View>
-      )}
-    </>
-  );
-
-  // ─── Entries panel JSX (shared between mobile and desktop) ──────────────────
-  const entriesPanelJSX = (
-    <>
-      <View style={[styles.dayDetailCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-        <View style={styles.dayDetailHeader}>
-          <Text style={[styles.dayDetailTitle, { color: colors.foreground }]}>
-            {selectedDate === todayStr ? "Today" : formatDisplayDate(selectedDate)}
-          </Text>
-          <TouchableOpacity
-            onPress={() => setShowAddSheet(true)}
-            activeOpacity={0.8}
-            style={[styles.addBtn, { backgroundColor: colors.primary }]}
-          >
-            <IconSymbol name="plus" size={16} color="#FFFFFF" />
-            <Text style={styles.addBtnText}>Plan Content</Text>
-          </TouchableOpacity>
-        </View>
-        {selectedEntries.length === 0 ? (
-          <View style={styles.emptyDay}>
-            <IconSymbol name="calendar.badge.plus" size={32} color={colors.muted} />
-            <Text style={[styles.emptyDayText, { color: colors.muted }]}>Your calendar is empty. Start planning.</Text>
-            <Text style={[styles.emptyDayHint, { color: colors.muted }]}>Tap "Plan Content" to add a post</Text>
-          </View>
-        ) : (
-          <View style={{ gap: 8 }}>
-            {selectedEntries.map((entry) => {
-              const pColor = PLATFORM_COLORS[entry.platform];
-              return (
-                <View
-                  key={entry.id}
-                  style={[styles.entryCard, { backgroundColor: colors.background, borderColor: pColor + "30", borderLeftColor: pColor, borderLeftWidth: 4 }]}
-                >
-                  <View style={styles.entryCardTop}>
-                    <TouchableOpacity onPress={() => handleToggleComplete(entry.id, entry.completed)} activeOpacity={0.7} style={{ padding: 2 }}>
-                      <IconSymbol name={entry.completed ? "checkmark.square.fill" : "square"} size={22} color={entry.completed ? "#10B981" : colors.muted} />
-                    </TouchableOpacity>
-                    <TouchableOpacity onPress={() => { setSelectedCalendarEntry(entry); setShowEntryDetail(true); }} activeOpacity={0.7} style={{ flex: 1, gap: 2 }}>
-                      <Text style={[styles.entryTitle, { color: entry.completed ? colors.muted : colors.foreground, textDecorationLine: entry.completed ? "line-through" : "none" }]}>
-                        {entry.ideaTitle}
-                      </Text>
-                      <View style={styles.entryMeta}>
-                        <View style={[styles.platformBadge, { backgroundColor: pColor + "15" }]}>
-                          <Text style={[styles.platformBadgeText, { color: pColor }]}>{entry.platform}</Text>
-                        </View>
-                        <View style={[styles.typeBadge, { backgroundColor: colors.primary + "12" }]}>
-                          <Text style={[styles.typeBadgeText, { color: colors.primary }]}>{CONTENT_TYPE_LABELS[entry.contentType]}</Text>
-                        </View>
-                      </View>
-                      {entry.postTime && <Text style={[styles.entryNotes, { color: colors.primary }]}>🕐 {formatTimeLabel(entry.postTime)}</Text>}
-                      {entry.notes && <Text style={[styles.entryNotes, { color: colors.muted }]} numberOfLines={2}>{entry.notes}</Text>}
-                    </TouchableOpacity>
-                    <TouchableOpacity onPress={() => handleDelete(entry.id)} activeOpacity={0.7} style={{ padding: 4 }}>
-                      <IconSymbol name="trash.fill" size={16} color={colors.muted} />
-                    </TouchableOpacity>
-                  </View>
-                </View>
-              );
-            })}
-          </View>
-        )}
-      </View>
-      {calendarEntries.filter((e) => e.date >= todayStr && !e.completed).length > 0 && (
-        <View style={[styles.upcomingCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-          <Text style={[styles.upcomingTitle, { color: colors.foreground }]}>Upcoming This Week</Text>
-          {calendarEntries
-            .filter((e) => { const sevenDays = new Date(today); sevenDays.setDate(today.getDate() + 7); return e.date >= todayStr && e.date <= toDateStr(sevenDays) && !e.completed; })
-            .slice(0, 5)
-            .map((entry) => {
-              const pColor = PLATFORM_COLORS[entry.platform];
-              return (
-                <TouchableOpacity key={entry.id} onPress={() => setSelectedDate(entry.date)} activeOpacity={0.7} style={[styles.upcomingRow, { borderBottomColor: colors.border }]}>
-                  <View style={[styles.upcomingDot, { backgroundColor: pColor }]} />
-                  <View style={{ flex: 1 }}>
-                    <Text style={[styles.upcomingEntryTitle, { color: colors.foreground }]} numberOfLines={1}>{entry.ideaTitle}</Text>
-                    <Text style={[styles.upcomingDate, { color: colors.muted }]}>{formatDisplayDate(entry.date)} · {entry.platform}</Text>
-                  </View>
-                  <IconSymbol name="chevron.right" size={14} color={colors.muted} />
-                </TouchableOpacity>
-              );
-            })}
-        </View>
-      )}
-    </>
-  );
-
   return (
     <View style={{ flex: 1 }}>
       <ScreenContainer>
-        {isDesktop ? (
-          // Desktop: two-column layout, no scrolling needed
-          <View style={{ flex: 1, flexDirection: "row", padding: 16, gap: 16 }}>
-            {/* Left: calendar grid */}
-            <View style={{ flex: 1, gap: 12 }}>
-              {calendarGridJSX}
+        <ScrollView showsVerticalScrollIndicator={false}>
+          {/* Header */}
+          <View style={[styles.header, { backgroundColor: colors.navy }]}>
+            <View style={styles.headerRow}>
+              <View style={[styles.headerIcon, { backgroundColor: "rgba(255,255,255,0.15)" }]}>
+                <IconSymbol name="calendar" size={22} color="#FFFFFF" />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={[styles.headerTitle, { color: "#FFFFFF" }]}>Content Planning Calendar</Text>
+                <Text style={[styles.headerSub, { color: "rgba(255,255,255,0.6)" }]}>
+                  Your content roadmap, built for planning, not posting.
+                </Text>
+              </View>
+              <TouchableOpacity
+                onPress={() => { setSelectedDate(todayStr); setViewDate(new Date(today.getFullYear(), today.getMonth(), 1)); }}
+                activeOpacity={0.8}
+                style={[styles.todayBtn, { backgroundColor: "rgba(255,255,255,0.15)" }]}
+              >
+                <Text style={styles.todayBtnText}>Today</Text>
+              </TouchableOpacity>
             </View>
-            {/* Right: entries panel */}
-            <ScrollView style={{ width: 340 }} showsVerticalScrollIndicator={false} contentContainerStyle={{ gap: 12, paddingBottom: 24 }}>
-              {entriesPanelJSX}
-            </ScrollView>
           </View>
-        ) : (
-          // Mobile: single column scrollable
-          <ScrollView showsVerticalScrollIndicator={false}>
-            <View style={[styles.header, { backgroundColor: colors.navy }]}>
-              <View style={styles.headerRow}>
-                <View style={[styles.headerIcon, { backgroundColor: "rgba(255,255,255,0.15)" }]}>
-                  <IconSymbol name="calendar" size={22} color="#FFFFFF" />
+
+          <View style={styles.content}>
+            {/* View Mode Toggle */}
+            <View style={[styles.viewToggle, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+              {(["month", "week"] as const).map((mode) => (
+                <TouchableOpacity
+                  key={mode}
+                  onPress={() => setViewMode(mode)}
+                  activeOpacity={0.8}
+                  style={[styles.viewToggleBtn, viewMode === mode && { backgroundColor: colors.primary }]}
+                >
+                  <Text style={[styles.viewToggleBtnText, { color: viewMode === mode ? "#FFFFFF" : colors.muted }]}>
+                    {mode.charAt(0).toUpperCase() + mode.slice(1)}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+
+            {/* Month Navigation */}
+            <View style={[styles.monthNav, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+              <TouchableOpacity onPress={handlePrevMonth} activeOpacity={0.7} style={styles.navBtn}>
+                <IconSymbol name="chevron.left" size={20} color={colors.foreground} />
+              </TouchableOpacity>
+              <Text style={[styles.monthTitle, { color: colors.foreground }]}>
+                {MONTHS[month]} {year}
+              </Text>
+              <TouchableOpacity onPress={handleNextMonth} activeOpacity={0.7} style={styles.navBtn}>
+                <IconSymbol name="chevron.right" size={20} color={colors.foreground} />
+              </TouchableOpacity>
+            </View>
+
+            {/* Calendar Grid */}
+            {viewMode === "month" ? (
+              <View style={[styles.calendarCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+                <View style={styles.dayHeaderRow}>
+                  {DAYS_OF_WEEK.map((d) => (
+                    <View key={d} style={styles.dayHeaderCell}>
+                      <Text style={[styles.dayHeaderText, { color: colors.muted }]}>{d}</Text>
+                    </View>
+                  ))}
                 </View>
-                <View style={{ flex: 1 }}>
-                  <Text style={[styles.headerTitle, { color: "#FFFFFF" }]}>Content Planning Calendar</Text>
-                  <Text style={[styles.headerSub, { color: "rgba(255,255,255,0.6)" }]}>Your content roadmap, built for planning, not posting.</Text>
+                <View style={styles.daysGrid}>
+                  {calendarDays.map((dateStr, idx) => {
+                    if (!dateStr) return <View key={`empty-${idx}`} style={styles.dayCell} />;
+                    const isToday = dateStr === todayStr;
+                    const isSelected = dateStr === selectedDate;
+                    const dayEntries = entriesForDate(dateStr);
+                    const hasEntries = dayEntries.length > 0;
+                    return (
+                      <TouchableOpacity
+                        key={dateStr}
+                        onPress={() => setSelectedDate(dateStr)}
+                        activeOpacity={0.7}
+                        style={[
+                          styles.dayCell,
+                          isSelected && { backgroundColor: colors.primary, borderRadius: 10 },
+                          isToday && !isSelected && { borderWidth: 1.5, borderColor: colors.primary, borderRadius: 10 },
+                        ]}
+                      >
+                        <Text style={[
+                          styles.dayNum,
+                          { color: isSelected ? "#FFFFFF" : isToday ? colors.primary : colors.foreground },
+                        ]}>
+                          {dateStr.split("-")[2].replace(/^0/, "")}
+                        </Text>
+                        {hasEntries && (
+                          <View style={styles.dotRow}>
+                            {dayEntries.slice(0, 3).map((e, i) => (
+                              <View key={i} style={[styles.entryDot, { backgroundColor: isSelected ? "rgba(255,255,255,0.7)" : PLATFORM_COLORS[e.platform] }]} />
+                            ))}
+                          </View>
+                        )}
+                      </TouchableOpacity>
+                    );
+                  })}
                 </View>
-                <TouchableOpacity onPress={() => { setSelectedDate(todayStr); setViewDate(new Date(today.getFullYear(), today.getMonth(), 1)); }} activeOpacity={0.8} style={[styles.todayBtn, { backgroundColor: "rgba(255,255,255,0.15)" }]}>
-                  <Text style={styles.todayBtnText}>Today</Text>
+              </View>
+            ) : (
+              <View style={[styles.calendarCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+                <View style={styles.weekRow}>
+                  {weekDays.map((dateStr) => {
+                    const isToday = dateStr === todayStr;
+                    const isSelected = dateStr === selectedDate;
+                    const dayEntries = entriesForDate(dateStr);
+                    const dayNum = parseInt(dateStr.split("-")[2], 10);
+                    const dayOfWeek = new Date(dateStr + "T00:00:00").getDay();
+                    return (
+                      <TouchableOpacity
+                        key={dateStr}
+                        onPress={() => setSelectedDate(dateStr)}
+                        activeOpacity={0.7}
+                        style={[
+                          styles.weekDayCell,
+                          isSelected && { backgroundColor: colors.primary, borderRadius: 12 },
+                          isToday && !isSelected && { borderWidth: 1.5, borderColor: colors.primary, borderRadius: 12 },
+                        ]}
+                      >
+                        <Text style={[styles.weekDayName, { color: isSelected ? "rgba(255,255,255,0.7)" : colors.muted }]}>
+                          {DAYS_OF_WEEK[dayOfWeek]}
+                        </Text>
+                        <Text style={[styles.weekDayNum, { color: isSelected ? "#FFFFFF" : isToday ? colors.primary : colors.foreground }]}>
+                          {dayNum}
+                        </Text>
+                        {dayEntries.length > 0 && (
+                          <View style={[styles.weekEntryBadge, { backgroundColor: isSelected ? "rgba(255,255,255,0.3)" : colors.primary + "20" }]}>
+                            <Text style={[styles.weekEntryBadgeText, { color: isSelected ? "#FFFFFF" : colors.primary }]}>
+                              {dayEntries.length}
+                            </Text>
+                          </View>
+                        )}
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+              </View>
+            )}
+
+            {/* Selected Date Entries */}
+            <View style={[styles.dayDetailCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+              <View style={styles.dayDetailHeader}>
+                <Text style={[styles.dayDetailTitle, { color: colors.foreground }]}>
+                  {selectedDate === todayStr ? "Today" : formatDisplayDate(selectedDate)}
+                </Text>
+                <TouchableOpacity
+                  onPress={() => setShowAddSheet(true)}
+                  activeOpacity={0.8}
+                  style={[styles.addBtn, { backgroundColor: colors.primary }]}
+                >
+                  <IconSymbol name="plus" size={16} color="#FFFFFF" />
+                  <Text style={styles.addBtnText}>Plan Content</Text>
                 </TouchableOpacity>
               </View>
+
+              {selectedEntries.length === 0 ? (
+                <View style={styles.emptyDay}>
+                  <IconSymbol name="calendar.badge.plus" size={32} color={colors.muted} />
+                  <Text style={[styles.emptyDayText, { color: colors.muted }]}>Your calendar is empty. Start planning.</Text>
+                  <Text style={[styles.emptyDayHint, { color: colors.muted }]}>Tap "Plan Content" to add a post</Text>
+                </View>
+              ) : (
+                <View style={{ gap: 8 }}>
+                  {selectedEntries.map((entry) => {
+                    const pColor = PLATFORM_COLORS[entry.platform];
+                    return (
+                      <TouchableOpacity
+                        key={entry.id}
+                        onPress={() => { setSelectedCalendarEntry(entry); setShowEntryDetail(true); }}
+                        activeOpacity={0.85}
+                        style={[styles.entryCard, { backgroundColor: colors.background, borderColor: pColor + "30", borderLeftColor: pColor, borderLeftWidth: 4 }]}
+                      >
+                        <View style={styles.entryCardTop}>
+                          <TouchableOpacity
+                            onPress={() => handleToggleComplete(entry.id, entry.completed)}
+                            activeOpacity={0.7}
+                            style={{ padding: 2 }}
+                          >
+                            <IconSymbol
+                              name={entry.completed ? "checkmark.square.fill" : "square"}
+                              size={22}
+                              color={entry.completed ? "#10B981" : colors.muted}
+                            />
+                          </TouchableOpacity>
+                          <View style={{ flex: 1, gap: 2 }}>
+                            <Text style={[styles.entryTitle, { color: entry.completed ? colors.muted : colors.foreground, textDecorationLine: entry.completed ? "line-through" : "none" }]}>
+                              {entry.ideaTitle}
+                            </Text>
+                            <View style={styles.entryMeta}>
+                              <View style={[styles.platformBadge, { backgroundColor: pColor + "15" }]}>
+                                <Text style={[styles.platformBadgeText, { color: pColor }]}>{entry.platform}</Text>
+                              </View>
+                              <View style={[styles.typeBadge, { backgroundColor: colors.primary + "12" }]}>
+                                <Text style={[styles.typeBadgeText, { color: colors.primary }]}>
+                                  {CONTENT_TYPE_LABELS[entry.contentType]}
+                                </Text>
+                              </View>
+                            </View>
+                            {entry.postTime && (
+                              <Text style={[styles.entryNotes, { color: colors.primary }]}>🕐 {formatTimeLabel(entry.postTime)}</Text>
+                            )}
+                            {entry.notes && (
+                              <Text style={[styles.entryNotes, { color: colors.muted }]} numberOfLines={2}>{entry.notes}</Text>
+                            )}
+                          </View>
+                          <TouchableOpacity
+                            onPress={() => handleDelete(entry.id)}
+                            activeOpacity={0.7}
+                            style={{ padding: 4 }}
+                          >
+                            <IconSymbol name="trash.fill" size={16} color={colors.muted} />
+                          </TouchableOpacity>
+                        </View>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+              )}
             </View>
-            <View style={styles.content}>
-              {calendarGridJSX}
-              {entriesPanelJSX}
-              <View style={{ height: 40 }} />
-            </View>
-          </ScrollView>
-        )}
+
+            {/* Upcoming Posts Summary */}
+            {calendarEntries.filter((e) => e.date >= todayStr && !e.completed).length > 0 && (
+              <View style={[styles.upcomingCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+                <Text style={[styles.upcomingTitle, { color: colors.foreground }]}>Upcoming This Week</Text>
+                {calendarEntries
+                  .filter((e) => {
+                    const sevenDays = new Date(today);
+                    sevenDays.setDate(today.getDate() + 7);
+                    return e.date >= todayStr && e.date <= toDateStr(sevenDays) && !e.completed;
+                  })
+                  .slice(0, 5)
+                  .map((entry) => {
+                    const pColor = PLATFORM_COLORS[entry.platform];
+                    return (
+                      <TouchableOpacity
+                        key={entry.id}
+                        onPress={() => setSelectedDate(entry.date)}
+                        activeOpacity={0.7}
+                        style={[styles.upcomingRow, { borderBottomColor: colors.border }]}
+                      >
+                        <View style={[styles.upcomingDot, { backgroundColor: pColor }]} />
+                        <View style={{ flex: 1 }}>
+                          <Text style={[styles.upcomingEntryTitle, { color: colors.foreground }]} numberOfLines={1}>
+                            {entry.ideaTitle}
+                          </Text>
+                          <Text style={[styles.upcomingDate, { color: colors.muted }]}>
+                            {formatDisplayDate(entry.date)} · {entry.platform}
+                          </Text>
+                        </View>
+                        <IconSymbol name="chevron.right" size={14} color={colors.muted} />
+                      </TouchableOpacity>
+                    );
+                  })}
+              </View>
+            )}
+
+            <View style={{ height: 40 }} />
+          </View>
+        </ScrollView>
       </ScreenContainer>
 
       {/* Add Entry Sheet — cross-platform overlay */}

@@ -93,7 +93,7 @@ For EVERY idea, also include a "visualDirection" object with:
         messages: [
           {
             role: "system",
-            content: `You are an expert social media content strategist and copywriter. Generate exactly 5 unique, high-quality content ideas with FULL format-specific details. Return ONLY valid JSON with no markdown.`,
+            content: `You are an expert social media content strategist, copywriter, and visual director. Generate exactly 5 unique, high-quality content ideas with FULL format-specific details AND detailed visual direction for both image and video. Return ONLY valid JSON with no markdown.`,
           },
           {
             role: "user",
@@ -101,8 +101,9 @@ For EVERY idea, also include a "visualDirection" object with:
 Platform style: ${platformGuide[platform]}
 
 ${extraInstructions}
+${visualDirectionInstructions}
 
-Return JSON in this exact format — include ALL format-specific fields for every idea:
+Return JSON in this exact format — include ALL format-specific fields AND the visualDirection object for every idea:
 {
   "ideas": [
     {
@@ -115,6 +116,7 @@ Return JSON in this exact format — include ALL format-specific fields for ever
       "contentType": "${contentType}",
       "niche": "${niche}",
       "createdAt": "ISO date string",
+      "visualDirection": { ... as described above ... },
       ... (include all format-specific fields as described above)
     }
   ]

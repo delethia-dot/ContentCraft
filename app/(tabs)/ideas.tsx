@@ -239,9 +239,7 @@ export default function IdeasScreen() {
   const generateMutation = trpc.content.generateIdeas.useMutation();
   const generateVisualMutation = trpc.content.generateVisualDirection.useMutation();
   const [visualDirectionCache, setVisualDirectionCache] = useState<Record<string, any>>({});
-  const [loadingVisual, setLoadingVisual] = useState<Record<string, boolean>>({});
-  const [generateError, setGenerateError] = useState<string | null>(null);
-  const [slowWarning, setSlowWarning] = useState(false); 
+  const [loadingVisual, setLoadingVisual] = useState<Record<string, boolean>>({}); 
 
   const availableContentTypes = CONTENT_TYPES.filter((ct) =>
     ct.platforms.includes(selectedPlatform)
@@ -250,9 +248,6 @@ export default function IdeasScreen() {
   const handleGenerate = useCallback(async () => {
     if (Platform.OS !== "web") Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     setIsGenerating(true);
-    setGenerateError(null);
-    setSlowWarning(false);
-    const slowTimer = setTimeout(() => setSlowWarning(true), 15_000);
     try {
       const result = await generateMutation.mutateAsync({
         platform: selectedPlatform,
@@ -262,18 +257,12 @@ export default function IdeasScreen() {
       setIdeas(result.ideas as ContentIdea[]);
       setExpandedId(null);
       setVisualTab({});
-      setGenerateError(null);
       if (Platform.OS !== "web") Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    } catch (e: any) {
-      const msg = e?.message?.includes("timed out")
-        ? "The request timed out. The AI is busy — please try again."
-        : "Failed to generate ideas. Please check your connection and try again.";
-      setGenerateError(msg);
+    } catch (e) {
+      Alert.alert("Error", "Failed to generate ideas. Please try again.");
       if (Platform.OS !== "web") Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
     } finally {
-      clearTimeout(slowTimer);
       setIsGenerating(false);
-      setSlowWarning(false);
     }
   }, [selectedPlatform, selectedContentType, niche, generateMutation]);
 
@@ -533,21 +522,6 @@ export default function IdeasScreen() {
               {isGenerating ? "Generating Ideas..." : "Generate 5 Ideas"}
             </Text>
           </TouchableOpacity>
-          {slowWarning && isGenerating && (
-            <View style={{ marginTop: 10, backgroundColor: colors.primary + "15", borderRadius: 10, padding: 12, flexDirection: "row", alignItems: "center", gap: 8 }}>
-              <ActivityIndicator size="small" color={colors.primary} />
-              <Text style={{ color: colors.primary, fontSize: 13, fontWeight: "500", flex: 1 }}>Still working... the AI is generating your ideas. This can take up to 60 seconds.</Text>
-            </View>
-          )}
-          {generateError && !isGenerating && (
-            <View style={{ marginTop: 10, backgroundColor: colors.error + "15", borderRadius: 10, padding: 12, flexDirection: "row", alignItems: "center", gap: 8 }}>
-              <IconSymbol name="exclamationmark.triangle.fill" size={16} color={colors.error} />
-              <Text style={{ color: colors.error, fontSize: 13, fontWeight: "500", flex: 1 }}>{generateError}</Text>
-              <TouchableOpacity onPress={handleGenerate} activeOpacity={0.8} style={{ backgroundColor: colors.error, borderRadius: 8, paddingHorizontal: 12, paddingVertical: 6 }}>
-                <Text style={{ color: "#fff", fontSize: 12, fontWeight: "700" }}>Retry</Text>
-              </TouchableOpacity>
-            </View>
-          )}
         </View>
 
         {/* Ideas List */}
