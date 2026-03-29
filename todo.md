@@ -359,3 +359,7 @@
 ## Critical Bugs (Round 2)
 - [ ] Calendar detail modal still not opening on mobile or desktop after OverlaySheet conversion
 - [ ] Desktop changes not appearing despite Railway deployment and browser cache clear
+
+## Critical Bugs (Round 3)
+- [ ] Calendar entry detail sheet still not opening on tap (desktop and mobile)
+- [ ] Desktop calendar layout too large — user has to scroll; needs to fit viewport without scrolling
