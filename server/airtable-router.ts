@@ -84,7 +84,7 @@ async function airtableEnsureFields(
 
 // ─── Field definitions for ContentCraft table ─────────────────────────────────
 
-const CONTENTCRAFT_TABLE = "ContentCraft";
+const CONTENTCRAFT_TABLE = "Table 1";
 const CONTENTCRAFT_FIELDS: Array<{ name: string; type: string }> = [
   { name: "Type", type: "singleLineText" },
   { name: "Title", type: "singleLineText" },
@@ -105,7 +105,7 @@ const CONTENTCRAFT_FIELDS: Array<{ name: string; type: string }> = [
 
 // ─── BSW Content Calendar field names ─────────────────────────────────────────
 
-const BSW_TABLE = "BSW Content Calendar";
+const BSW_TABLE = "Content";
 
 // ─── Router ───────────────────────────────────────────────────────────────────
 
