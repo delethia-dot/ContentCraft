@@ -352,4 +352,27 @@
 - [x] Performance Tracker: desktop still shows old interface — all Phase 5 changes missing on desktop
 
 ## Bug Fix - History Detail Close Button
-- [ ] History: move X close button from top to bottom of idea detail sheet so it's reachable on mobile
+- [x] History: move X close button from top to bottom of idea detail sheet so it's reachable on mobile
+
+## Deferred Fix (Next Credit Cycle)
+
+- [ ] **History: IdeaDetailModal only shows Hook/Body/CTA — missing rich content-type fields**
+  - The data IS fully saved in AsyncStorage — it just isn't rendered in the detail modal
+  - Fix: add conditional render blocks in `IdeaDetailModal` (history.tsx) for each content type, mirroring the existing `buildCopyText()` function in `ideas.tsx` which already handles all formats:
+    - `script` → scripted video (intro, scenes, outro, estimatedDuration, productionNotes)
+    - `slides` → carousel (slideNumber, headline, bodyText, visualDirection, slideCount)
+    - `imageConceptDetails` → image post (composition, textOverlay, colorMood, style, toolSuggestions, captionHint)
+    - `shortScript` → reel/story (hook, keyPoints, closingLine, trendAngle)
+    - `outline` → long-form/YouTube (intro, sections, conclusion, seoAngle)
+    - `talkingHeadScript` → talking-head (openingHook, keyTalkingPoints, personalityAngle, closingLine, topicCategory, expertiseAngle, audienceProblemSolved)
+    - `postStructure` → post (openingLine, mainContent, closingCTA)
+  - Files to edit: `app/(tabs)/history.tsx` (IdeaDetailModal), optionally `lib/types.ts` to add optional fields for type safety
+
+## Airtable Integration & History Detail Fix (Approved)
+- [x] Fix History IdeaDetailModal to display all rich content-type fields (Talking Head, Carousel, Script, Reel/Story, Long-form, Image, Post)
+- [x] Create columns in ContentCraft Airtable table via API
+- [x] Build Airtable server endpoint (secure backend route for both bases)
+- [x] Add Push to Airtable button on History idea cards → BSW Content Calendar (Source, Content Idea, hook options, Date Created)
+- [x] Add Push to Airtable button on History caption cards → BSW Content Calendar (Captions CC, Hashtags CC)
+- [x] Add Push to Airtable button on all History items → ContentCraft table (full record)
+- [x] Save checkpoint and redeploy to Railway

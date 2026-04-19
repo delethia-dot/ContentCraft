@@ -65,6 +65,7 @@ import { ContentIdea, UrlAnalysis, SavedPrompt, SavedCaption, SavedVisual, PLATF
 import { APP_WEB_URL } from "@/constants/app-url";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Haptics from "expo-haptics";
+import { trpc } from "@/lib/trpc";
 
 const SAVED_ANALYSES_KEY = "@contentcraft_niche_analyses";
 
@@ -115,7 +116,126 @@ function IdeaDetailModal({
   const platformColor = PLATFORMS.find((p) => p.id === idea.platform)?.color ?? colors.primary;
   const platformLabel = PLATFORMS.find((p) => p.id === idea.platform)?.label ?? idea.platform;
 
-  const fullText = `📌 ${idea.title}\n\n🎣 Hook:\n${idea.hook}\n\n📝 Body:\n${idea.body}\n\n📣 CTA:\n${idea.cta}\n\n🏷️ Platform: ${platformLabel} | Type: ${idea.contentType} | Niche: ${idea.niche}\n\n✨ Created with ContentCraft\n${APP_WEB_URL}`;
+  const raw = idea as any;
+
+  const pushBSWMutation = trpc.airtable.pushIdeaToBSW.useMutation();
+  const pushAllMutation = trpc.airtable.pushToContentCraft.useMutation();
+  const ensureFieldsMutation = trpc.airtable.ensureContentCraftFields.useMutation();
+
+  const handlePushBSW = async () => {
+    if (Platform.OS !== "web") Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    try {
+      await pushBSWMutation.mutateAsync({
+        title: idea.title,
+        hook: idea.hook,
+        body: idea.body,
+        cta: idea.cta,
+      });
+      Alert.alert("Sent to Airtable!", "This idea has been added to BSW Content Calendar.");
+    } catch (e: any) {
+      Alert.alert("Airtable Error", e?.message ?? "Failed to send to Airtable. Please try again.");
+    }
+  };
+
+  const handlePushAll = async () => {
+    if (Platform.OS !== "web") Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    try {
+      await ensureFieldsMutation.mutateAsync();
+      await pushAllMutation.mutateAsync({
+        type: "idea",
+        title: idea.title,
+        platform: idea.platform,
+        niche: idea.niche,
+        contentType: idea.contentType,
+        hook: idea.hook,
+        body: idea.body,
+        cta: idea.cta,
+        fullContent: buildFullText(),
+        dateSaved: idea.createdAt,
+      });
+      Alert.alert("Sent to Airtable!", "This idea has been added to your ContentCraft base.");
+    } catch (e: any) {
+      Alert.alert("Airtable Error", e?.message ?? "Failed to send to Airtable. Please try again.");
+    }
+  };
+
+  // Build rich full text matching buildCopyText in ideas.tsx
+  const buildFullText = (): string => {
+    const lines: string[] = [`📌 ${idea.title}`, ``, `🎣 Hook: ${idea.hook}`, ``];
+    if (raw.script) {
+      lines.push(`--- FULL SCRIPT ---`);
+      lines.push(`INTRO: ${raw.script.intro}`);
+      if (Array.isArray(raw.script.scenes)) {
+        raw.script.scenes.forEach((s: any) => {
+          lines.push(``, `SCENE ${s.sceneNumber} (${s.duration}): ${s.description}`);
+          if (s.dialogue) lines.push(`DIALOGUE: ${s.dialogue}`);
+        });
+      }
+      lines.push(``, `OUTRO: ${raw.script.outro}`);
+      if (raw.estimatedDuration) lines.push(`Duration: ${raw.estimatedDuration}`);
+      if (raw.productionNotes) lines.push(`Production Notes: ${raw.productionNotes}`);
+    } else if (raw.slides) {
+      lines.push(`--- CAROUSEL BREAKDOWN (${raw.slideCount ?? raw.slides.length} slides) ---`);
+      raw.slides.forEach((s: any) => {
+        lines.push(``, `SLIDE ${s.slideNumber}: ${s.headline}`);
+        if (s.bodyText) lines.push(s.bodyText);
+        if (s.visualDirection) lines.push(`Visual: ${s.visualDirection}`);
+      });
+    } else if (raw.imageConceptDetails) {
+      lines.push(`--- IMAGE CONCEPT ---`);
+      lines.push(`Composition: ${raw.imageConceptDetails.composition}`);
+      lines.push(`Text Overlay: ${raw.imageConceptDetails.textOverlay}`);
+      lines.push(`Color/Mood: ${raw.imageConceptDetails.colorMood}`);
+      lines.push(`Style: ${raw.imageConceptDetails.style}`);
+      if (raw.toolSuggestions?.length) lines.push(`Tools: ${raw.toolSuggestions.join(', ')}`);
+      if (raw.captionHint) lines.push(`Caption Hint: ${raw.captionHint}`);
+    } else if (raw.shortScript) {
+      lines.push(`--- SHORT VIDEO SCRIPT ---`);
+      lines.push(`Hook (first 3s): ${raw.shortScript.hook}`);
+      if (Array.isArray(raw.shortScript.keyPoints)) {
+        lines.push(``, `Key Points:`);
+        raw.shortScript.keyPoints.forEach((pt: string) => lines.push(`• ${pt}`));
+      }
+      lines.push(``, `Closing: ${raw.shortScript.closingLine}`);
+      if (raw.trendAngle) lines.push(`Trend Angle: ${raw.trendAngle}`);
+    } else if (raw.outline) {
+      lines.push(`--- CONTENT OUTLINE ---`);
+      lines.push(`Intro: ${raw.outline.intro}`);
+      if (Array.isArray(raw.outline.sections)) {
+        raw.outline.sections.forEach((sec: any) => {
+          lines.push(``, `${sec.heading}:`);
+          if (Array.isArray(sec.keyPoints)) sec.keyPoints.forEach((pt: string) => lines.push(`• ${pt}`));
+        });
+      }
+      lines.push(``, `Conclusion: ${raw.outline.conclusion}`);
+      if (raw.seoAngle) lines.push(`SEO Angle: ${raw.seoAngle}`);
+    } else if (raw.talkingHeadScript) {
+      lines.push(`--- TALKING HEAD SCRIPT ---`);
+      lines.push(`Opening Hook: ${raw.talkingHeadScript.openingHook}`);
+      if (Array.isArray(raw.talkingHeadScript.keyTalkingPoints)) {
+        lines.push(``, `Key Talking Points:`);
+        raw.talkingHeadScript.keyTalkingPoints.forEach((pt: string) => lines.push(`• ${pt}`));
+      }
+      lines.push(``, `Personality Angle: ${raw.talkingHeadScript.personalityAngle}`);
+      lines.push(`Closing Line: ${raw.talkingHeadScript.closingLine}`);
+      if (raw.topicCategory) lines.push(`Topic Category: ${raw.topicCategory}`);
+      if (raw.estimatedDuration) lines.push(`Duration: ${raw.estimatedDuration}`);
+      if (raw.expertiseAngle) lines.push(`Expertise Angle: ${raw.expertiseAngle}`);
+      if (raw.audienceProblemSolved) lines.push(`Audience Problem Solved: ${raw.audienceProblemSolved}`);
+    } else if (raw.postStructure) {
+      lines.push(raw.postStructure.openingLine);
+      lines.push(``, raw.postStructure.mainContent);
+      lines.push(``, raw.postStructure.closingCTA);
+    } else {
+      lines.push(idea.body);
+    }
+    lines.push(``, `📣 CTA: ${idea.cta}`);
+    lines.push(``, `🏷️ Platform: ${platformLabel} | Type: ${idea.contentType} | Niche: ${idea.niche}`);
+    lines.push(``, `✨ Created with ContentCraft`, APP_WEB_URL);
+    return lines.join('\n');
+  };
+
+  const fullText = buildFullText();
 
   const handleCopy = () => {
     Clipboard.setString(fullText);
@@ -148,7 +268,8 @@ function IdeaDetailModal({
             <Text style={[modalStyles.subtitle, { color: colors.muted }]}>Niche: {idea.niche}</Text>
           </View>
         </View>
-        <ScrollView showsVerticalScrollIndicator={false} style={{ flex: 1 }} contentContainerStyle={{ gap: 14, paddingBottom: 16 }}>
+        <ScrollView showsVerticalScrollIndicator={false} style={{ flex: 1 }} contentContainerStyle={{ gap: 14, paddingBottom: 16, paddingHorizontal: 16 }}>
+          {/* Hook — always shown */}
           <View style={[modalStyles.section, { backgroundColor: colors.primary + "0A", borderLeftColor: colors.primary }]}>
             <View style={modalStyles.sectionHeader}>
               <IconSymbol name="bolt.fill" size={14} color={colors.primary} />
@@ -156,13 +277,195 @@ function IdeaDetailModal({
             </View>
             <Text style={[modalStyles.sectionText, { color: colors.foreground }]}>{idea.hook}</Text>
           </View>
-          <View style={[modalStyles.section, { backgroundColor: colors.surface, borderLeftColor: colors.accent ?? "#B8860B" }]}>
-            <View style={modalStyles.sectionHeader}>
-              <IconSymbol name="doc.text.fill" size={14} color={colors.accent ?? "#B8860B"} />
-              <Text style={[modalStyles.sectionLabel, { color: colors.accent ?? "#B8860B" }]}>BODY</Text>
+
+          {/* ── Scripted Video ── */}
+          {raw.script && (
+            <>
+              <View style={[modalStyles.section, { backgroundColor: colors.surface, borderLeftColor: "#8B5CF6" }]}>
+                <View style={modalStyles.sectionHeader}>
+                  <IconSymbol name="video.fill" size={14} color="#8B5CF6" />
+                  <Text style={[modalStyles.sectionLabel, { color: "#8B5CF6" }]}>INTRO</Text>
+                </View>
+                <Text style={[modalStyles.sectionText, { color: colors.foreground }]}>{raw.script.intro}</Text>
+              </View>
+              {Array.isArray(raw.script.scenes) && raw.script.scenes.map((s: any, i: number) => (
+                <View key={i} style={[modalStyles.section, { backgroundColor: colors.surface, borderLeftColor: "#8B5CF6" }]}>
+                  <View style={modalStyles.sectionHeader}>
+                    <Text style={[modalStyles.sectionLabel, { color: "#8B5CF6" }]}>SCENE {s.sceneNumber}{s.duration ? ` · ${s.duration}` : ""}</Text>
+                  </View>
+                  <Text style={[modalStyles.sectionText, { color: colors.foreground }]}>{s.description}</Text>
+                  {!!s.dialogue && <Text style={[modalStyles.sectionText, { color: colors.muted, fontStyle: "italic", marginTop: 4 }]}>Dialogue: {s.dialogue}</Text>}
+                </View>
+              ))}
+              <View style={[modalStyles.section, { backgroundColor: colors.surface, borderLeftColor: "#8B5CF6" }]}>
+                <View style={modalStyles.sectionHeader}>
+                  <Text style={[modalStyles.sectionLabel, { color: "#8B5CF6" }]}>OUTRO</Text>
+                </View>
+                <Text style={[modalStyles.sectionText, { color: colors.foreground }]}>{raw.script.outro}</Text>
+              </View>
+              {!!raw.estimatedDuration && <Text style={[modalStyles.sectionText, { color: colors.muted }]}>Duration: {raw.estimatedDuration}</Text>}
+              {!!raw.productionNotes && <Text style={[modalStyles.sectionText, { color: colors.muted }]}>Production Notes: {raw.productionNotes}</Text>}
+            </>
+          )}
+
+          {/* ── Carousel / Slides ── */}
+          {raw.slides && (
+            <>
+              <View style={[modalStyles.section, { backgroundColor: colors.surface, borderLeftColor: "#F59E0B" }]}>
+                <View style={modalStyles.sectionHeader}>
+                  <IconSymbol name="rectangle.stack.fill" size={14} color="#F59E0B" />
+                  <Text style={[modalStyles.sectionLabel, { color: "#F59E0B" }]}>CAROUSEL — {raw.slideCount ?? raw.slides.length} SLIDES</Text>
+                </View>
+              </View>
+              {raw.slides.map((s: any, i: number) => (
+                <View key={i} style={[modalStyles.section, { backgroundColor: colors.surface, borderLeftColor: "#F59E0B" }]}>
+                  <Text style={[modalStyles.sectionLabel, { color: "#F59E0B" }]}>SLIDE {s.slideNumber}: {s.headline}</Text>
+                  {!!s.bodyText && <Text style={[modalStyles.sectionText, { color: colors.foreground, marginTop: 4 }]}>{s.bodyText}</Text>}
+                  {!!s.visualDirection && <Text style={[modalStyles.sectionText, { color: colors.muted, fontStyle: "italic", marginTop: 4 }]}>Visual: {s.visualDirection}</Text>}
+                </View>
+              ))}
+            </>
+          )}
+
+          {/* ── Image Concept ── */}
+          {raw.imageConceptDetails && (
+            <View style={[modalStyles.section, { backgroundColor: colors.surface, borderLeftColor: "#EC4899" }]}>
+              <View style={modalStyles.sectionHeader}>
+                <IconSymbol name="photo.fill" size={14} color="#EC4899" />
+                <Text style={[modalStyles.sectionLabel, { color: "#EC4899" }]}>IMAGE CONCEPT</Text>
+              </View>
+              <Text style={[modalStyles.sectionText, { color: colors.muted }]}>Composition</Text>
+              <Text style={[modalStyles.sectionText, { color: colors.foreground }]}>{raw.imageConceptDetails.composition}</Text>
+              <Text style={[modalStyles.sectionText, { color: colors.muted, marginTop: 6 }]}>Text Overlay</Text>
+              <Text style={[modalStyles.sectionText, { color: colors.foreground }]}>{raw.imageConceptDetails.textOverlay}</Text>
+              <Text style={[modalStyles.sectionText, { color: colors.muted, marginTop: 6 }]}>Color / Mood</Text>
+              <Text style={[modalStyles.sectionText, { color: colors.foreground }]}>{raw.imageConceptDetails.colorMood}</Text>
+              <Text style={[modalStyles.sectionText, { color: colors.muted, marginTop: 6 }]}>Style</Text>
+              <Text style={[modalStyles.sectionText, { color: colors.foreground }]}>{raw.imageConceptDetails.style}</Text>
+              {raw.toolSuggestions?.length > 0 && (
+                <><Text style={[modalStyles.sectionText, { color: colors.muted, marginTop: 6 }]}>Tools</Text>
+                <Text style={[modalStyles.sectionText, { color: colors.foreground }]}>{raw.toolSuggestions.join(', ')}</Text></>
+              )}
+              {!!raw.captionHint && (
+                <><Text style={[modalStyles.sectionText, { color: colors.muted, marginTop: 6 }]}>Caption Hint</Text>
+                <Text style={[modalStyles.sectionText, { color: colors.foreground }]}>{raw.captionHint}</Text></>
+              )}
             </View>
-            <Text style={[modalStyles.sectionText, { color: colors.foreground }]}>{idea.body}</Text>
-          </View>
+          )}
+
+          {/* ── Short Video Script (Reel / Story) ── */}
+          {raw.shortScript && (
+            <View style={[modalStyles.section, { backgroundColor: colors.surface, borderLeftColor: "#06B6D4" }]}>
+              <View style={modalStyles.sectionHeader}>
+                <IconSymbol name="play.fill" size={14} color="#06B6D4" />
+                <Text style={[modalStyles.sectionLabel, { color: "#06B6D4" }]}>SHORT VIDEO SCRIPT</Text>
+              </View>
+              <Text style={[modalStyles.sectionText, { color: colors.muted }]}>Hook (first 3s)</Text>
+              <Text style={[modalStyles.sectionText, { color: colors.foreground }]}>{raw.shortScript.hook}</Text>
+              {Array.isArray(raw.shortScript.keyPoints) && raw.shortScript.keyPoints.length > 0 && (
+                <><Text style={[modalStyles.sectionText, { color: colors.muted, marginTop: 6 }]}>Key Points</Text>
+                {raw.shortScript.keyPoints.map((pt: string, i: number) => (
+                  <Text key={i} style={[modalStyles.sectionText, { color: colors.foreground }]}>• {pt}</Text>
+                ))}</>
+              )}
+              <Text style={[modalStyles.sectionText, { color: colors.muted, marginTop: 6 }]}>Closing Line</Text>
+              <Text style={[modalStyles.sectionText, { color: colors.foreground }]}>{raw.shortScript.closingLine}</Text>
+              {!!raw.trendAngle && (
+                <><Text style={[modalStyles.sectionText, { color: colors.muted, marginTop: 6 }]}>Trend Angle</Text>
+                <Text style={[modalStyles.sectionText, { color: colors.foreground }]}>{raw.trendAngle}</Text></>
+              )}
+            </View>
+          )}
+
+          {/* ── Long-form Outline ── */}
+          {raw.outline && (
+            <View style={[modalStyles.section, { backgroundColor: colors.surface, borderLeftColor: "#EF4444" }]}>
+              <View style={modalStyles.sectionHeader}>
+                <IconSymbol name="list.bullet" size={14} color="#EF4444" />
+                <Text style={[modalStyles.sectionLabel, { color: "#EF4444" }]}>CONTENT OUTLINE</Text>
+              </View>
+              <Text style={[modalStyles.sectionText, { color: colors.muted }]}>Intro</Text>
+              <Text style={[modalStyles.sectionText, { color: colors.foreground }]}>{raw.outline.intro}</Text>
+              {Array.isArray(raw.outline.sections) && raw.outline.sections.map((sec: any, i: number) => (
+                <View key={i} style={{ marginTop: 8 }}>
+                  <Text style={[modalStyles.sectionText, { color: colors.muted }]}>{sec.heading}</Text>
+                  {Array.isArray(sec.keyPoints) && sec.keyPoints.map((pt: string, j: number) => (
+                    <Text key={j} style={[modalStyles.sectionText, { color: colors.foreground }]}>• {pt}</Text>
+                  ))}
+                </View>
+              ))}
+              <Text style={[modalStyles.sectionText, { color: colors.muted, marginTop: 6 }]}>Conclusion</Text>
+              <Text style={[modalStyles.sectionText, { color: colors.foreground }]}>{raw.outline.conclusion}</Text>
+              {!!raw.seoAngle && (
+                <><Text style={[modalStyles.sectionText, { color: colors.muted, marginTop: 6 }]}>SEO Angle</Text>
+                <Text style={[modalStyles.sectionText, { color: colors.foreground }]}>{raw.seoAngle}</Text></>
+              )}
+            </View>
+          )}
+
+          {/* ── Talking Head Script ── */}
+          {raw.talkingHeadScript && (
+            <View style={[modalStyles.section, { backgroundColor: colors.surface, borderLeftColor: "#10B981" }]}>
+              <View style={modalStyles.sectionHeader}>
+                <IconSymbol name="person.fill" size={14} color="#10B981" />
+                <Text style={[modalStyles.sectionLabel, { color: "#10B981" }]}>TALKING HEAD SCRIPT</Text>
+              </View>
+              <Text style={[modalStyles.sectionText, { color: colors.muted }]}>Opening Hook (On Camera)</Text>
+              <Text style={[modalStyles.sectionText, { color: colors.foreground }]}>{raw.talkingHeadScript.openingHook}</Text>
+              {Array.isArray(raw.talkingHeadScript.keyTalkingPoints) && raw.talkingHeadScript.keyTalkingPoints.length > 0 && (
+                <><Text style={[modalStyles.sectionText, { color: colors.muted, marginTop: 6 }]}>Key Talking Points</Text>
+                {raw.talkingHeadScript.keyTalkingPoints.map((pt: string, i: number) => (
+                  <Text key={i} style={[modalStyles.sectionText, { color: colors.foreground }]}>• {pt}</Text>
+                ))}</>
+              )}
+              <Text style={[modalStyles.sectionText, { color: colors.muted, marginTop: 6 }]}>Personality Angle</Text>
+              <Text style={[modalStyles.sectionText, { color: colors.foreground }]}>{raw.talkingHeadScript.personalityAngle}</Text>
+              <Text style={[modalStyles.sectionText, { color: colors.muted, marginTop: 6 }]}>Closing Line</Text>
+              <Text style={[modalStyles.sectionText, { color: colors.foreground }]}>{raw.talkingHeadScript.closingLine}</Text>
+              {!!raw.topicCategory && (
+                <><Text style={[modalStyles.sectionText, { color: colors.muted, marginTop: 6 }]}>Topic Category</Text>
+                <Text style={[modalStyles.sectionText, { color: colors.foreground }]}>{raw.topicCategory}</Text></>
+              )}
+              {!!raw.estimatedDuration && (
+                <><Text style={[modalStyles.sectionText, { color: colors.muted, marginTop: 6 }]}>Estimated Duration</Text>
+                <Text style={[modalStyles.sectionText, { color: colors.foreground }]}>{raw.estimatedDuration}</Text></>
+              )}
+              {!!raw.expertiseAngle && (
+                <><Text style={[modalStyles.sectionText, { color: colors.muted, marginTop: 6 }]}>Expertise Angle</Text>
+                <Text style={[modalStyles.sectionText, { color: colors.foreground }]}>{raw.expertiseAngle}</Text></>
+              )}
+              {!!raw.audienceProblemSolved && (
+                <><Text style={[modalStyles.sectionText, { color: colors.muted, marginTop: 6 }]}>Audience Problem Solved</Text>
+                <Text style={[modalStyles.sectionText, { color: colors.foreground }]}>{raw.audienceProblemSolved}</Text></>
+              )}
+            </View>
+          )}
+
+          {/* ── Post Structure ── */}
+          {raw.postStructure && (
+            <View style={[modalStyles.section, { backgroundColor: colors.surface, borderLeftColor: colors.accent ?? "#B8860B" }]}>
+              <View style={modalStyles.sectionHeader}>
+                <IconSymbol name="doc.text.fill" size={14} color={colors.accent ?? "#B8860B"} />
+                <Text style={[modalStyles.sectionLabel, { color: colors.accent ?? "#B8860B" }]}>POST CONTENT</Text>
+              </View>
+              <Text style={[modalStyles.sectionText, { color: colors.foreground }]}>{raw.postStructure.openingLine}</Text>
+              <Text style={[modalStyles.sectionText, { color: colors.foreground, marginTop: 6 }]}>{raw.postStructure.mainContent}</Text>
+              <Text style={[modalStyles.sectionText, { color: colors.muted, marginTop: 6 }]}>{raw.postStructure.closingCTA}</Text>
+            </View>
+          )}
+
+          {/* ── Fallback Body (plain post with no special structure) ── */}
+          {!raw.script && !raw.slides && !raw.imageConceptDetails && !raw.shortScript && !raw.outline && !raw.talkingHeadScript && !raw.postStructure && (
+            <View style={[modalStyles.section, { backgroundColor: colors.surface, borderLeftColor: colors.accent ?? "#B8860B" }]}>
+              <View style={modalStyles.sectionHeader}>
+                <IconSymbol name="doc.text.fill" size={14} color={colors.accent ?? "#B8860B"} />
+                <Text style={[modalStyles.sectionLabel, { color: colors.accent ?? "#B8860B" }]}>BODY</Text>
+              </View>
+              <Text style={[modalStyles.sectionText, { color: colors.foreground }]}>{idea.body}</Text>
+            </View>
+          )}
+
+          {/* CTA — always shown */}
           <View style={[modalStyles.section, { backgroundColor: "#10B98108", borderLeftColor: "#10B981" }]}>
             <View style={modalStyles.sectionHeader}>
               <IconSymbol name="hand.thumbsup.fill" size={14} color="#10B981" />
@@ -179,6 +482,31 @@ function IdeaDetailModal({
           <TouchableOpacity onPress={handleShare} activeOpacity={0.8} style={[modalStyles.actionBtn, { backgroundColor: colors.primary, borderColor: colors.primary }]}>
             <IconSymbol name="square.and.arrow.up" size={18} color="#FFFFFF" />
             <Text style={[modalStyles.actionBtnText, { color: "#FFFFFF" }]}>Share</Text>
+          </TouchableOpacity>
+        </View>
+        {/* Airtable push buttons */}
+        <View style={[modalStyles.actions, { marginTop: 0 }]}>
+          <TouchableOpacity
+            onPress={handlePushBSW}
+            activeOpacity={0.8}
+            disabled={pushBSWMutation.isPending}
+            style={[modalStyles.actionBtn, { backgroundColor: "#18BFFF18", borderColor: "#18BFFF60", flex: 1 }]}
+          >
+            <IconSymbol name="arrow.up.circle.fill" size={16} color="#18BFFF" />
+            <Text style={[modalStyles.actionBtnText, { color: "#18BFFF", fontSize: 12 }]}>
+              {pushBSWMutation.isPending ? "Sending..." : "→ BSW Calendar"}
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={handlePushAll}
+            activeOpacity={0.8}
+            disabled={pushAllMutation.isPending || ensureFieldsMutation.isPending}
+            style={[modalStyles.actionBtn, { backgroundColor: "#F59E0B18", borderColor: "#F59E0B60", flex: 1 }]}
+          >
+            <IconSymbol name="arrow.up.circle.fill" size={16} color="#F59E0B" />
+            <Text style={[modalStyles.actionBtnText, { color: "#F59E0B", fontSize: 12 }]}>
+              {pushAllMutation.isPending ? "Sending..." : "→ ContentCraft Base"}
+            </Text>
           </TouchableOpacity>
         </View>
         <TouchableOpacity onPress={onClose} activeOpacity={0.8} style={[modalStyles.closeBottomBtn, { backgroundColor: colors.surface, borderColor: colors.border }]}>
@@ -210,6 +538,27 @@ function AnalysisDetailModal({
     : colors.primary;
 
   const r = analysis.result;
+
+  const pushAllAnalysisMutation = trpc.airtable.pushToContentCraft.useMutation();
+  const ensureFieldsAnalysisMutation = trpc.airtable.ensureContentCraftFields.useMutation();
+
+  const handlePushAllAnalysis = async () => {
+    if (Platform.OS !== "web") Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    try {
+      await ensureFieldsAnalysisMutation.mutateAsync();
+      await pushAllAnalysisMutation.mutateAsync({
+        type: "analysis",
+        title: analysis.niche,
+        platform: analysis.platform,
+        niche: analysis.niche,
+        fullContent: fullText,
+        dateSaved: analysis.savedAt,
+      });
+      Alert.alert("Sent to Airtable!", "Analysis added to your ContentCraft base.");
+    } catch (e: any) {
+      Alert.alert("Airtable Error", e?.message ?? "Failed to send. Please try again.");
+    }
+  };
   const fullText = [
     `🔍 Niche Intelligence: ${analysis.niche}`,
     analysis.platform !== "all" ? `Platform: ${analysis.platform}` : "",
@@ -322,6 +671,20 @@ function AnalysisDetailModal({
               <Text style={[modalStyles.actionBtnText, { color: "#FFFFFF" }]}>Share</Text>
             </TouchableOpacity>
           </View>
+          {/* Airtable push button — ContentCraft base only for analyses */}
+          <View style={[modalStyles.actions, { marginTop: 0 }]}>
+            <TouchableOpacity
+              onPress={handlePushAllAnalysis}
+              activeOpacity={0.8}
+              disabled={pushAllAnalysisMutation.isPending || ensureFieldsAnalysisMutation.isPending}
+              style={[modalStyles.actionBtn, { backgroundColor: "#F59E0B18", borderColor: "#F59E0B60", flex: 1 }]}
+            >
+              <IconSymbol name="arrow.up.circle.fill" size={16} color="#F59E0B" />
+              <Text style={[modalStyles.actionBtnText, { color: "#F59E0B", fontSize: 12 }]}>
+                {pushAllAnalysisMutation.isPending ? "Sending..." : "→ ContentCraft Base"}
+              </Text>
+            </TouchableOpacity>
+          </View>
           <TouchableOpacity onPress={onClose} activeOpacity={0.8} style={[modalStyles.closeBottomBtn, { backgroundColor: colors.surface, borderColor: colors.border }]}>
             <IconSymbol name="xmark" size={16} color={colors.muted} />
             <Text style={[modalStyles.closeBottomBtnText, { color: colors.muted }]}>Close</Text>
@@ -347,6 +710,28 @@ function PromptDetailModal({
   const { height: windowHeight } = useWindowDimensions();
   if (!prompt) return null;
   const toolColor = "#8B5CF6";
+
+  const pushAllPromptMutation = trpc.airtable.pushToContentCraft.useMutation();
+  const ensureFieldsPromptMutation = trpc.airtable.ensureContentCraftFields.useMutation();
+
+  const handlePushAllPrompt = async () => {
+    if (Platform.OS !== "web") Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    try {
+      await ensureFieldsPromptMutation.mutateAsync();
+      await pushAllPromptMutation.mutateAsync({
+        type: "prompt",
+        title: prompt.subject || "AI Prompt",
+        platform: prompt.platform,
+        tool: prompt.tool,
+        prompt: prompt.mainPrompt,
+        fullContent: fullText,
+        dateSaved: prompt.createdAt,
+      });
+      Alert.alert("Sent to Airtable!", "Prompt added to your ContentCraft base.");
+    } catch (e: any) {
+      Alert.alert("Airtable Error", e?.message ?? "Failed to send. Please try again.");
+    }
+  };
 
   const fullText = `🎨 AI Prompt — ${prompt.tool}\n\nSubject: ${prompt.subject}\nPlatform: ${prompt.platform} | Type: ${prompt.mediaType}\n\nMain Prompt:\n${prompt.mainPrompt}\n\nNegative Prompt:\n${prompt.negativePrompt}${prompt.tips.length > 0 ? `\n\nTips:\n${prompt.tips.map((t, i) => `${i + 1}. ${t}`).join("\n")}` : ""}${prompt.variations.length > 0 ? `\n\nVariations:\n${prompt.variations.map((v, i) => `${i + 1}. ${v}`).join("\n")}` : ""}\n\n✨ Generated with ContentCraft\n${APP_WEB_URL}`;
 
@@ -444,6 +829,20 @@ function PromptDetailModal({
               <Text style={[modalStyles.actionBtnText, { color: "#FFFFFF" }]}>Share</Text>
             </TouchableOpacity>
           </View>
+          {/* Airtable push button — ContentCraft base only for prompts */}
+          <View style={[modalStyles.actions, { marginTop: 0 }]}>
+            <TouchableOpacity
+              onPress={handlePushAllPrompt}
+              activeOpacity={0.8}
+              disabled={pushAllPromptMutation.isPending || ensureFieldsPromptMutation.isPending}
+              style={[modalStyles.actionBtn, { backgroundColor: "#F59E0B18", borderColor: "#F59E0B60", flex: 1 }]}
+            >
+              <IconSymbol name="arrow.up.circle.fill" size={16} color="#F59E0B" />
+              <Text style={[modalStyles.actionBtnText, { color: "#F59E0B", fontSize: 12 }]}>
+                {pushAllPromptMutation.isPending ? "Sending..." : "→ ContentCraft Base"}
+              </Text>
+            </TouchableOpacity>
+          </View>
           <TouchableOpacity onPress={onClose} activeOpacity={0.8} style={[modalStyles.closeBottomBtn, { backgroundColor: colors.surface, borderColor: colors.border }]}>
             <IconSymbol name="xmark" size={16} color={colors.muted} />
             <Text style={[modalStyles.closeBottomBtnText, { color: colors.muted }]}>Close</Text>
@@ -476,6 +875,41 @@ function CaptionDetailModal({
     ? "\n\n" + caption.hashtags.map((h) => `#${h.replace(/^#/, "")}`).join(" ")
     : "";
   const fullText = caption.caption + hashtagStr + `\n\n✨ Created with ContentCraft\n${APP_WEB_URL}`;
+
+  const pushBSWCaptionMutation = trpc.airtable.pushCaptionToBSW.useMutation();
+  const pushAllCaptionMutation = trpc.airtable.pushToContentCraft.useMutation();
+  const ensureFieldsCaptionMutation = trpc.airtable.ensureContentCraftFields.useMutation();
+
+  const handlePushBSWCaption = async () => {
+    if (Platform.OS !== "web") Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    try {
+      await pushBSWCaptionMutation.mutateAsync({
+        caption: caption.caption,
+        hashtags: caption.hashtags.map((h) => `#${h.replace(/^#/, "")}`).join(" "),
+      });
+      Alert.alert("Sent to Airtable!", "Caption added to BSW Content Calendar.");
+    } catch (e: any) {
+      Alert.alert("Airtable Error", e?.message ?? "Failed to send. Please try again.");
+    }
+  };
+
+  const handlePushAllCaption = async () => {
+    if (Platform.OS !== "web") Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    try {
+      await ensureFieldsCaptionMutation.mutateAsync();
+      await pushAllCaptionMutation.mutateAsync({
+        type: "caption",
+        title: caption.topic,
+        platform: caption.platform,
+        caption: caption.caption,
+        hashtags: caption.hashtags.map((h) => `#${h.replace(/^#/, "")}`).join(" "),
+        dateSaved: caption.createdAt,
+      });
+      Alert.alert("Sent to Airtable!", "Caption added to your ContentCraft base.");
+    } catch (e: any) {
+      Alert.alert("Airtable Error", e?.message ?? "Failed to send. Please try again.");
+    }
+  };
 
   const handleCopy = () => {
     Clipboard.setString(fullText);
@@ -541,6 +975,31 @@ function CaptionDetailModal({
             <TouchableOpacity onPress={handleShare} activeOpacity={0.8} style={[modalStyles.actionBtn, { backgroundColor: pColor, borderColor: pColor }]}>
               <IconSymbol name="square.and.arrow.up" size={18} color="#FFFFFF" />
               <Text style={[modalStyles.actionBtnText, { color: "#FFFFFF" }]}>Share</Text>
+            </TouchableOpacity>
+          </View>
+          {/* Airtable push buttons */}
+          <View style={[modalStyles.actions, { marginTop: 0 }]}>
+            <TouchableOpacity
+              onPress={handlePushBSWCaption}
+              activeOpacity={0.8}
+              disabled={pushBSWCaptionMutation.isPending}
+              style={[modalStyles.actionBtn, { backgroundColor: "#18BFFF18", borderColor: "#18BFFF60", flex: 1 }]}
+            >
+              <IconSymbol name="arrow.up.circle.fill" size={16} color="#18BFFF" />
+              <Text style={[modalStyles.actionBtnText, { color: "#18BFFF", fontSize: 12 }]}>
+                {pushBSWCaptionMutation.isPending ? "Sending..." : "→ BSW Calendar"}
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={handlePushAllCaption}
+              activeOpacity={0.8}
+              disabled={pushAllCaptionMutation.isPending || ensureFieldsCaptionMutation.isPending}
+              style={[modalStyles.actionBtn, { backgroundColor: "#F59E0B18", borderColor: "#F59E0B60", flex: 1 }]}
+            >
+              <IconSymbol name="arrow.up.circle.fill" size={16} color="#F59E0B" />
+              <Text style={[modalStyles.actionBtnText, { color: "#F59E0B", fontSize: 12 }]}>
+                {pushAllCaptionMutation.isPending ? "Sending..." : "→ ContentCraft Base"}
+              </Text>
             </TouchableOpacity>
           </View>
           <TouchableOpacity onPress={onClose} activeOpacity={0.8} style={[modalStyles.closeBottomBtn, { backgroundColor: colors.surface, borderColor: colors.border }]}>
@@ -921,6 +1380,37 @@ function VisualDetailModal({
 
   if (!visual) return null;
 
+  const pushAllVisualMutation = trpc.airtable.pushToContentCraft.useMutation();
+  const ensureFieldsVisualMutation = trpc.airtable.ensureContentCraftFields.useMutation();
+
+  const handlePushAllVisual = async () => {
+    if (Platform.OS !== "web") Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    try {
+      await ensureFieldsVisualMutation.mutateAsync();
+      const visualText = [
+        `🎨 Visual Direction — ${visual.mediaType === "image" ? "Image" : "Video"}`,
+        `Platform: ${visual.platform} | Content Type: ${visual.contentType}`,
+        `From Idea: ${visual.ideaTitle}`,
+        `Concept: ${visual.concept}`,
+        visual.lighting ? `Lighting: ${visual.lighting}` : "",
+        visual.colors ? `Colors: ${visual.colors}` : "",
+        visual.cameraAngle ? `Camera Angle: ${visual.cameraAngle}` : "",
+        visual.promptReadyDescription ? `Prompt-Ready: ${visual.promptReadyDescription}` : "",
+      ].filter(Boolean).join("\n");
+      await pushAllVisualMutation.mutateAsync({
+        type: "visual",
+        title: visual.ideaTitle,
+        platform: visual.platform,
+        contentType: visual.contentType,
+        fullContent: visualText,
+        dateSaved: visual.savedAt,
+      });
+      Alert.alert("Sent to Airtable!", "Visual direction added to your ContentCraft base.");
+    } catch (e: any) {
+      Alert.alert("Airtable Error", e?.message ?? "Failed to send. Please try again.");
+    }
+  };
+
   const handleCopy = () => {
     const text = [
       `🎨 Visual Direction — ${visual.mediaType === "image" ? "Image" : "Video"}`,
@@ -1018,6 +1508,20 @@ function VisualDetailModal({
             <TouchableOpacity onPress={() => onDelete(visual.id)} activeOpacity={0.8} style={[modalStyles.actionBtn, { backgroundColor: "#EF444415", borderColor: "#EF444440", flex: 1 }]}>
               <IconSymbol name="trash.fill" size={18} color="#EF4444" />
               <Text style={[modalStyles.actionBtnText, { color: "#EF4444" }]}>Delete</Text>
+            </TouchableOpacity>
+          </View>
+          {/* Airtable push button — ContentCraft base only for visuals */}
+          <View style={[modalStyles.actions, { marginTop: 0 }]}>
+            <TouchableOpacity
+              onPress={handlePushAllVisual}
+              activeOpacity={0.8}
+              disabled={pushAllVisualMutation.isPending || ensureFieldsVisualMutation.isPending}
+              style={[modalStyles.actionBtn, { backgroundColor: "#F59E0B18", borderColor: "#F59E0B60", flex: 1 }]}
+            >
+              <IconSymbol name="arrow.up.circle.fill" size={16} color="#F59E0B" />
+              <Text style={[modalStyles.actionBtnText, { color: "#F59E0B", fontSize: 12 }]}>
+                {pushAllVisualMutation.isPending ? "Sending..." : "→ ContentCraft Base"}
+              </Text>
             </TouchableOpacity>
           </View>
           <TouchableOpacity onPress={onClose} activeOpacity={0.8} style={[modalStyles.closeBottomBtn, { backgroundColor: colors.surface, borderColor: colors.border }]}>
