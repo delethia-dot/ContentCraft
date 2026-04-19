@@ -376,3 +376,6 @@
 - [x] Add Push to Airtable button on History caption cards → BSW Content Calendar (Captions CC, Hashtags CC)
 - [x] Add Push to Airtable button on all History items → ContentCraft table (full record)
 - [x] Save checkpoint and redeploy to Railway
+
+## Critical Bug - History Tab Crash (Post Airtable Integration)
+- [x] History tab crashes after Airtable integration — diagnose and fix (React hooks-after-return violation fixed in all 5 detail modals)

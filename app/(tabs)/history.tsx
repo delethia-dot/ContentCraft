@@ -112,15 +112,15 @@ function IdeaDetailModal({
   colors: any;
 }) {
   const { height: windowHeight } = useWindowDimensions();
+  const pushBSWMutation = trpc.airtable.pushIdeaToBSW.useMutation();
+  const pushAllMutation = trpc.airtable.pushToContentCraft.useMutation();
+  const ensureFieldsMutation = trpc.airtable.ensureContentCraftFields.useMutation();
+
   if (!idea) return null;
   const platformColor = PLATFORMS.find((p) => p.id === idea.platform)?.color ?? colors.primary;
   const platformLabel = PLATFORMS.find((p) => p.id === idea.platform)?.label ?? idea.platform;
 
   const raw = idea as any;
-
-  const pushBSWMutation = trpc.airtable.pushIdeaToBSW.useMutation();
-  const pushAllMutation = trpc.airtable.pushToContentCraft.useMutation();
-  const ensureFieldsMutation = trpc.airtable.ensureContentCraftFields.useMutation();
 
   const handlePushBSW = async () => {
     if (Platform.OS !== "web") Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -532,15 +532,15 @@ function AnalysisDetailModal({
   colors: any;
 }) {
   const { height: windowHeight } = useWindowDimensions();
+  const pushAllAnalysisMutation = trpc.airtable.pushToContentCraft.useMutation();
+  const ensureFieldsAnalysisMutation = trpc.airtable.ensureContentCraftFields.useMutation();
+
   if (!analysis) return null;
   const platformColor = analysis.platform && analysis.platform !== "all"
     ? (PLATFORMS.find((p) => p.id === analysis.platform)?.color ?? colors.primary)
     : colors.primary;
 
   const r = analysis.result;
-
-  const pushAllAnalysisMutation = trpc.airtable.pushToContentCraft.useMutation();
-  const ensureFieldsAnalysisMutation = trpc.airtable.ensureContentCraftFields.useMutation();
 
   const handlePushAllAnalysis = async () => {
     if (Platform.OS !== "web") Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -708,11 +708,11 @@ function PromptDetailModal({
   colors: any;
 }) {
   const { height: windowHeight } = useWindowDimensions();
-  if (!prompt) return null;
-  const toolColor = "#8B5CF6";
-
   const pushAllPromptMutation = trpc.airtable.pushToContentCraft.useMutation();
   const ensureFieldsPromptMutation = trpc.airtable.ensureContentCraftFields.useMutation();
+
+  if (!prompt) return null;
+  const toolColor = "#8B5CF6";
 
   const handlePushAllPrompt = async () => {
     if (Platform.OS !== "web") Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -866,6 +866,10 @@ function CaptionDetailModal({
   colors: any;
 }) {
   const { height: windowHeight } = useWindowDimensions();
+  const pushBSWCaptionMutation = trpc.airtable.pushCaptionToBSW.useMutation();
+  const pushAllCaptionMutation = trpc.airtable.pushToContentCraft.useMutation();
+  const ensureFieldsCaptionMutation = trpc.airtable.ensureContentCraftFields.useMutation();
+
   if (!caption) return null;
   const PLATFORM_COLORS: Record<string, string> = {
     instagram: "#E1306C", facebook: "#1877F2", tiktok: "#00C2CB", youtube: "#FF0000", linkedin: "#0A66C2",
@@ -875,10 +879,6 @@ function CaptionDetailModal({
     ? "\n\n" + caption.hashtags.map((h) => `#${h.replace(/^#/, "")}`).join(" ")
     : "";
   const fullText = caption.caption + hashtagStr + `\n\n✨ Created with ContentCraft\n${APP_WEB_URL}`;
-
-  const pushBSWCaptionMutation = trpc.airtable.pushCaptionToBSW.useMutation();
-  const pushAllCaptionMutation = trpc.airtable.pushToContentCraft.useMutation();
-  const ensureFieldsCaptionMutation = trpc.airtable.ensureContentCraftFields.useMutation();
 
   const handlePushBSWCaption = async () => {
     if (Platform.OS !== "web") Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -1377,11 +1377,10 @@ function VisualDetailModal({
 }) {
   const { height: windowHeight } = useWindowDimensions();
   const [copied, setCopied] = useState(false);
-
-  if (!visual) return null;
-
   const pushAllVisualMutation = trpc.airtable.pushToContentCraft.useMutation();
   const ensureFieldsVisualMutation = trpc.airtable.ensureContentCraftFields.useMutation();
+
+  if (!visual) return null;
 
   const handlePushAllVisual = async () => {
     if (Platform.OS !== "web") Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
